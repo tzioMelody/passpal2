@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:paddingStart="4dp"
+    android:paddingEnd="30dp"
+    android:background="@drawable/bg2"
+    tools:context=".AddAppUserActivity">
+
+    <LinearLayout
+        android:id="@+id/CustomApp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="10dp"
+        tools:layout_editor_absoluteX="147dp"
+        tools:layout_editor_absoluteY="119dp">
+
+
+        <ImageView
+            android:id="@+id/addAppPhoto"
+            android:layout_width="139dp"
+            android:layout_height="133dp"
+            app:srcCompat="@android:drawable/ic_input_add"
+            tools:ignore="SpeakableTextPresentCheck" />
+
+        <EditText
+            android:id="@+id/newAppname"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:background="#00FFFFFF"
+            android:hint="App Name"
+            android:inputType="text"
+            android:maxLines="1"
+            android:textColor="@color/white"
+            android:textColorHint="@color/white"
+            app:errorEnabled="true"
+            app:hintTextColor="@color/white" />
+
+        <EditText
+            android:id="@+id/newAppLink"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:background="#00FFFFFF"
+            android:hint="Link"
+            android:inputType="text"
+            android:maxLines="1"
+            android:textColor="@color/white"
+            android:textColorHint="@color/white"
+            app:errorEnabled="true"
+            app:hintTextColor="@color/white" />
+
+        <EditText
+            android:id="@+id/newAppUsername"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:background="#00FFFFFF"
+
+            android:hint="Username"
+            android:inputType="text"
+            android:maxLines="1"
+            android:textColor="@color/white"
+            android:textColorHint="@color/white"
+            app:errorEnabled="true"
+            app:hintTextColor="@color/white" />
+
+        <EditText
+            android:id="@+id/newAppEmail"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:background="#00FFFFFF"
+
+            android:hint="Email"
+            android:inputType="text"
+            android:maxLines="1"
+            android:minHeight="48dp"
+            android:textColor="@color/white"
+            android:textColorHint="@color/white"
+            app:errorEnabled="true"
+            app:hintTextColor="@color/white" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.8">
+
+                <EditText
+                    android:id="@+id/newAppPassword"
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+                    android:background="#00FFFFFF"
+
+                    android:hint="Password"
+                    android:inputType="textPassword"
+                    android:maxLines="1"
+                    android:textColor="@color/white"
+                    android:textColorHint="@color/white"
+                    app:errorEnabled="true"
+                    app:hintTextColor="@color/white" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.2">
+
+                <ImageButton
+                    android:id="@+id/showHideBtn"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:background="@drawable/showpswdbtn"
+                    android:gravity="center"
+                    tools:ignore="TouchTargetSizeCheck,SpeakableTextPresentCheck" />
+
+                <ImageButton
+                    android:id="@+id/passGnrt"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_alignParentRight="true"
+                    android:layout_centerVertical="true"
+                    android:layout_gravity="end"
+                    android:gravity="center"
+                    android:src="@drawable/load_icon"
+                    android:text="PassGnrt"
+                    tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck" />
+
+
+            </LinearLayout>
+
+
+        </LinearLayout>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/saveNewApp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|right"
+            android:backgroundTint="@color/white"
+            android:src="@drawable/ic_menu_saver"
+            app:tint="@color/black"
+            tools:ignore="SpeakableTextPresentCheck" />
+    </LinearLayout>
+
+
+</RelativeLayout>
+
+

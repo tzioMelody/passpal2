@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:padding="8dp">
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerView"
+        android:layout_width="400dp"
+        android:layout_height="660dp"/>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center">
+
+            <Button
+                android:id="@+id/AddUserApps"
+                style="?attr/materialButtonOutlinedStyle"
+                android:layout_width="203dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:background="#00FFFFFF"
+                android:text="ADD"
+                android:textColor="@color/purple_200"
+                android:textSize="15sp"
+                app:strokeColor="@color/purple_200" />
+
+            <Button
+                android:id="@+id/selectionApp"
+                android:layout_width="182dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:background="@color/purple_200"
+                android:padding="12dp"
+                android:text="DONE"
+                android:textColor="#311B92"
+                android:textSize="15sp"
+                app:rippleColor="@color/purple_200" />
+        </LinearLayout>
+
+    </LinearLayout>
+</RelativeLayout>
