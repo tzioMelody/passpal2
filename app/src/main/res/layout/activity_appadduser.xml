@@ -125,10 +125,10 @@
                     android:gravity="center"
                     tools:ignore="TouchTargetSizeCheck,SpeakableTextPresentCheck" />
 
-                <ImageButton
+                <ImageView
                     android:id="@+id/passGnrt"
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
+                    android:layout_width="41dp"
+                    android:layout_height="36dp"
                     android:layout_alignParentRight="true"
                     android:layout_centerVertical="true"
                     android:layout_gravity="end"

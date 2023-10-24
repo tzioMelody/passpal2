@@ -28,7 +28,7 @@
                 android:layout_gravity="center"
                 android:background="#00FFFFFF"
                 android:text="ADD"
-                android:textColor="@color/purple_200"
+                android:textColor="@color/light_gray"
                 android:textSize="15sp"
                 app:strokeColor="@color/purple_200" />
 

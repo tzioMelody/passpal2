@@ -40,7 +40,7 @@ public class AppsObj {
         COMMON_APPS.add(new AppInfo("Disney+", "https://www.disneyplus.com/",R.drawable.app_icon22));
     }
 
-    public static class AppInfo {
+    public static class AppInfo  {
         private final String appName;
         private final String appLink;
         private final int appIconId; // Πεδίο για το ID της εικόνας
@@ -48,7 +48,7 @@ public class AppsObj {
         public AppInfo(String appName, String appLink, int appIconId) {
             this.appName = appName;
             this.appLink = appLink;
-            this.appIconId = appIconId; // Αποθηκεύετε το ID της εικόνας
+            this.appIconId = appIconId; // Αποθήκευση το ID της εικόνας
         }
 
         public String getAppName() {

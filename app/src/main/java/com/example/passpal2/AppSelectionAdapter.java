@@ -3,6 +3,7 @@ package com.example.passpal2;
 
 
 import android.content.Context;
+import android.os.Parcelable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,7 +13,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 
-
+import java.util.ArrayList;
 import java.util.List;
 
 public class AppSelectionAdapter extends RecyclerView.Adapter<AppSelectionAdapter.AppViewHolder> {
@@ -26,6 +27,9 @@ public class AppSelectionAdapter extends RecyclerView.Adapter<AppSelectionAdapte
         this.appList = appList;
         this.commonApps = commonApps; // Αναθέστε τη λίστα commonApps
     }
+
+
+
     public interface OnItemClickListener {
         void onItemClick(int position);
     }
@@ -46,7 +50,8 @@ public class AppSelectionAdapter extends RecyclerView.Adapter<AppSelectionAdapte
         AppsObj.AppInfo appInfo = appList.get(position);
 
         holder.appNameTextView.setText(appInfo.getAppName());
-
+        ImageView appIconImageView = holder.itemView.findViewById(R.id.addBtn);
+        appIconImageView.setImageResource(appInfo.getAppIconId());
 
         holder.itemView.setOnClickListener(v -> {
             if (clickListener != null) {
