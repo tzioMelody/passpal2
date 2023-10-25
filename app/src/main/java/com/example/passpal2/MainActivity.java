@@ -25,13 +25,13 @@ public class MainActivity extends AppCompatActivity {
 
         // OnClickListener για τον FloatingActionButton
         appsBtn.setOnClickListener(view -> {
-                    // Μετάβαση στην σελίδα με λίστα εφαρμογών
-                    Intent intent = new Intent(MainActivity.this, AppSelectionActivity.class);
-                    startActivity(intent);
-                });
+            // Μετάβαση στην σελίδα με λίστα εφαρμογών
+            Intent intent = new Intent(MainActivity.this, AppSelectionActivity.class);
+            startActivity(intent);
+        });
 
-                // Εμφανίστε τις επιλεγμένες εφαρμογές από το Intent στο RecyclerView
-                RecyclerView appsRecyclerView = findViewById(R.id.appsRecyclerView);
+        // Εμφανίστε τις επιλεγμένες εφαρμογές από το Intent στο RecyclerView
+        RecyclerView appsRecyclerView = findViewById(R.id.appsRecyclerView);
         ArrayList<Parcelable> parcelableList = getIntent().getParcelableArrayListExtra("selectedApps");
         List<AppsObj.AppInfo> selectedApps = new ArrayList<>();
 
@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
-            // Create the adapter with the selected apps
+            // Αντάπτορας με τις επιλεγμένες εφαρμογές
             AppSelectionAdapter adapter = new AppSelectionAdapter(this, selectedApps, selectedApps);
             appsRecyclerView.setAdapter(adapter);
         }

@@ -1,6 +1,8 @@
 package com.example.passpal2;
 
 
+import android.os.Parcelable;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,7 +42,7 @@ public class AppsObj {
         COMMON_APPS.add(new AppInfo("Disney+", "https://www.disneyplus.com/",R.drawable.app_icon22));
     }
 
-    public static class AppInfo  {
+    public static class AppInfo implements Parcelable {
         private final String appName;
         private final String appLink;
         private final int appIconId; // Πεδίο για το ID της εικόνας

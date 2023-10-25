@@ -1,5 +1,7 @@
 package com.example.passpal2;
 
+import static com.example.passpal2.AppsObj.USER_APPS;
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -8,6 +10,7 @@ import android.widget.ImageView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
@@ -30,23 +33,22 @@ public class AppSelectionActivity extends AppCompatActivity {
         List<AppsObj.AppInfo> appInfoList = new ArrayList<>();
         appInfoList.addAll(AppsObj.COMMON_APPS);
 
-        appInfoList.addAll(AppsObj.USER_APPS.stream()
+        appInfoList.addAll(USER_APPS.stream()
                 .map(userApp -> new AppsObj.AppInfo(userApp.getAppName(), userApp.getAppLink(), R.drawable.default_app_icon))
                 .collect(Collectors.toList()));
 
-        // Δημιουργία της λίστας commonAndUserApps
-        List<AppsObj.AppInfo> commonAndUserApps = new ArrayList<>();
-        commonAndUserApps.addAll(AppsObj.COMMON_APPS);
-        commonAndUserApps.addAll(appInfoList);
-
         recyclerView = findViewById(R.id.recyclerView);
-        AppSelectionAdapter adapter = new AppSelectionAdapter(this, commonAndUserApps, commonAndUserApps);
+        AppSelectionAdapter adapter = new AppSelectionAdapter(this, appInfoList, AppsObj.COMMON_APPS);
         recyclerView.setAdapter(adapter);
+        List<AppsObj.AppInfo> commonAndUserApps = new ArrayList<>();
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        commonAndUserApps.addAll(AppsObj.COMMON_APPS);
+/*        commonAndUserApps.addAll(USER_APPS);*/
 
         adapter.setOnItemClickListener(new AppSelectionAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(int position) {
-                AppsObj.AppInfo clickedApp = commonAndUserApps.get(position);
+                AppsObj.AppInfo clickedApp = appInfoList.get(position);
 
                 if (selectedAppsList.contains(clickedApp)) {
                     // Αφαιρεί
@@ -64,7 +66,6 @@ public class AppSelectionActivity extends AppCompatActivity {
                     }
                 }
             }
-
             private void updateCheckmarkVisibility(int position, boolean isVisible) {
                 RecyclerView.ViewHolder viewHolder = recyclerView.findViewHolderForAdapterPosition(position);
                 if (viewHolder != null) {
@@ -77,7 +78,7 @@ public class AppSelectionActivity extends AppCompatActivity {
         Button selectionApp = findViewById(R.id.selectionApp);
         selectionApp.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
+            public void onClick(View v) {
                 if (selectedAppsList.size() == 0) {
                     Toast.makeText(AppSelectionActivity.this, "Please choose at least one app", Toast.LENGTH_SHORT).show();
                 } else if (selectedAppsList.size() <= 10) {
@@ -89,6 +90,9 @@ public class AppSelectionActivity extends AppCompatActivity {
                 }
             }
         });
+
+
+
 
         Button AddUserApps = findViewById(R.id.AddUserApps);
         AddUserApps.setOnClickListener(new View.OnClickListener() {

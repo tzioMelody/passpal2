@@ -47,12 +47,13 @@ public class LoginActivity extends AppCompatActivity {
                 User user = dbHelper.getUserByUsername(username);
 
                 if (user != null && user.getPassword().equals(password)) {
-                    // Επιτυχής σύνδεση. Ενημέρωση της βάσης δεδομένων με την ημερομηνία και την ώρα.
-                    new UpdateLoginDateTimeTask(username).execute();
+                    new UpdateLoginDateTimeTask(username).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 } else {
                     // Αν ο κωδικός δεν είναι σωστός, εμφάνισε ένα μήνυμα
                     Toast.makeText(LoginActivity.this, "Login failed. Please check your credentials.", Toast.LENGTH_SHORT).show();
                 }
+
+
 
                 // Μην ξεχάσετε να κλείσετε τη βάση δεδομένων μετά τη χρήση
                 db.close();
@@ -96,14 +97,15 @@ public class LoginActivity extends AppCompatActivity {
             SQLiteDatabase db = dbHelper.getWritableDatabase();
 
             ContentValues cv = new ContentValues();
-            cv.put(UserDB.COLUMN_LOGIN_DATE, loginDate);
-            cv.put(UserDB.COLUMN_LOGIN_TIME, loginTime);
-            db.update(UserDB.TABLE_USERS, cv, UserDB.COLUMN_USERNAME + " = ?", new String[]{username});
+            cv.put(DataBaseHelper.COLUMN_LOGINDATE, loginDate);
+            cv.put(DataBaseHelper.COLUMN_LOGINTIME, loginTime);
+            db.update(DataBaseHelper.USER_TABLE, cv, DataBaseHelper.COLUMN_USERNAME + " = ?", new String[]{username});
 
             db.close();
 
             return null;
         }
+
 
         @Override
         protected void onPostExecute(Void aVoid) {
@@ -124,4 +126,5 @@ public class LoginActivity extends AppCompatActivity {
         Calendar calendar = Calendar.getInstance();
         return sdf.format(calendar.getTime());
     }
+
 }
