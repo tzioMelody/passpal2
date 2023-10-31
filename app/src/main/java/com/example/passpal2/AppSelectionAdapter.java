@@ -59,6 +59,13 @@ public class AppSelectionAdapter extends RecyclerView.Adapter<AppSelectionAdapte
             }
         });
     }
+    public void updateUserApps(List<AppsObj.UserApp> userAppsList) {
+        this.appList.clear(); // Καθαρίστε την υπάρχουσα λίστα
+        for (AppsObj.UserApp userApp : userAppsList) {
+            this.appList.add(new AppsObj.AppInfo(userApp.getAppName(), userApp.getAppLink(), R.drawable.default_app_icon));
+        }
+        notifyDataSetChanged(); // Ενημερώστε το RecyclerView
+    }
 
     @Override
     public int getItemCount() {
@@ -74,5 +81,6 @@ public class AppSelectionAdapter extends RecyclerView.Adapter<AppSelectionAdapte
             appIconImageView = itemView.findViewById(R.id.addBtn);
             appNameTextView = itemView.findViewById(R.id.appNameTextView);
         }
+
     }
 }

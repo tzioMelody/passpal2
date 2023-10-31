@@ -19,6 +19,7 @@ public class ForgotPasswordActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_forgot_password);
+        getSupportActionBar().setTitle("Reset password");
 
         resetPassBtn = findViewById(R.id.resetpassbtn);
         CancelbtnForgot = findViewById(R.id.CancelbtnForgot);

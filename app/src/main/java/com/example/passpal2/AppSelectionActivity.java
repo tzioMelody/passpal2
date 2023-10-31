@@ -26,20 +26,24 @@ public class AppSelectionActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_app_selection);
+        getSupportActionBar().setTitle("App selection");
+
 
         viewModel = new ViewModelProvider(this).get(AppSelectionViewModel.class);
 
         List<AppsObj.AppInfo> appInfoList = new ArrayList<>();
         appInfoList.addAll(AppsObj.COMMON_APPS);
 
+        for (AppsObj.UserApp userApp : userAppsList) {
+            appInfoList.add(new AppsObj.AppInfo(userApp.getAppName(), userApp.getAppLink(), R.drawable.default_app_icon));
+        }
         appInfoList.addAll(userAppsList.stream()
                 .map(userApp -> new AppsObj.AppInfo(userApp.getAppName(), userApp.getAppLink(), R.drawable.default_app_icon))
                 .collect(Collectors.toList()));
 
         recyclerView = findViewById(R.id.recyclerView);
-        AppSelectionAdapter adapter = new AppSelectionAdapter(this, AppsObj.COMMON_APPS, userAppsList); // Αλλαγή εδώ
+        AppSelectionAdapter adapter = new AppSelectionAdapter(this, appInfoList, AppsObj.COMMON_APPS); // Περνάμε και τις κοινές εφαρμογές ως όρισμα στον adapter
         recyclerView.setAdapter(adapter);
-
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         adapter.setOnItemClickListener(new AppSelectionAdapter.OnItemClickListener() {
@@ -48,13 +52,11 @@ public class AppSelectionActivity extends AppCompatActivity {
                 AppsObj.AppInfo clickedApp = appInfoList.get(position);
 
                 if (selectedAppsList.contains(clickedApp)) {
-                    // Αφαιρεί την εφαρμογή
                     selectedAppsList.remove(clickedApp);
                     updateCheckmarkVisibility(position, false);
                     viewModel.removeSelectedApp(clickedApp);
                 } else {
                     if (selectedAppsList.size() < 10) {
-                        // Προσθέτει την εφαρμογή στη λίστα
                         selectedAppsList.add(clickedApp);
                         updateCheckmarkVisibility(position, true);
                         viewModel.addSelectedApp(clickedApp);
@@ -100,7 +102,6 @@ public class AppSelectionActivity extends AppCompatActivity {
         });
     }
 
-    // Αυτή η μέθοδος καλείται όταν ολοκληρώνετε τη δημιουργία μιας εφαρμογής από τον χρήστη
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -109,14 +110,11 @@ public class AppSelectionActivity extends AppCompatActivity {
             String appName = data.getStringExtra("appName");
             String appLink = data.getStringExtra("appLink");
 
-            // Προσθέστε τις εφαρμογές του χρήστη στη λίστα
             userAppsList.add(new AppsObj.UserApp(appName, appLink));
-            // Ανανεώστε τον αντίστοιχο RecyclerView για να εμφανιστούν οι νέες εφαρμογές
             refreshUserAppsRecyclerView();
         }
     }
 
-    // Ανανέωση του RecyclerView που εμφανίζει τις εφαρμογές του χρήστη
     private void refreshUserAppsRecyclerView() {
         AppSelectionAdapter adapter = (AppSelectionAdapter) recyclerView.getAdapter();
         if (adapter != null) {

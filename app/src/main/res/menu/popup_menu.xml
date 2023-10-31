@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu
+    xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/menu_item1"
         android:title="Passwords" />
@@ -8,5 +9,11 @@
         android:title="Previous logins" />
     <item
         android:id="@+id/menu_item3"
-        android:title="item 3" />
+        android:title="Change background" />
+    <item
+        android:id="@+id/menu_item4"
+        android:title="Help" />
+    <item
+        android:id="@+id/menu_item5"
+        android:title="Log out" />
 </menu>

@@ -14,7 +14,6 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.io.IOException;
@@ -83,31 +82,7 @@ public class AddAppUserActivity extends AppCompatActivity {
                 } else if (TextUtils.isEmpty(password)) {
                     Toast.makeText(AddAppUserActivity.this, "Please enter your password!", Toast.LENGTH_SHORT).show();
                 } else {
-                    try {
-                        URL url = new URL(appLink);
-                        HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
-                        // timeout value
-                        httpURLConnection.setConnectTimeout(5000);
-                        int responseCode = httpURLConnection.getResponseCode();
-
-
-                        if (responseCode == HttpURLConnection.HTTP_OK) {
-                            // Η URL είναι έγκυρη και προσβάσιμη, οπότε αποθηκεύεται στη βάση δεδομένων
-                            AppsObj.UserApp newUserApp = new AppsObj.UserApp(appName, appLink); // Δημιουργία νέου UserApp
-                            AppsObj.USER_APPS.add(newUserApp); // Προσθήκη του UserApp στη λίστα
-                            Toast.makeText(AddAppUserActivity.this, "App added successfully!", Toast.LENGTH_SHORT).show();
-                            Intent intent = new Intent(AddAppUserActivity.this, AppSelectionActivity.class);
-                            startActivity(intent);
-                    } else {
-                            Toast.makeText(AddAppUserActivity.this, "The entered app link is not reachable", Toast.LENGTH_SHORT).show();
-                        }
-
-                        httpURLConnection.disconnect();
-                    } catch (MalformedURLException e) {
-                        Toast.makeText(AddAppUserActivity.this, "Please enter a valid URL for the app link", Toast.LENGTH_SHORT).show();
-                    } catch (IOException e) {
-                        Toast.makeText(AddAppUserActivity.this, "An error occurred while checking the app link", Toast.LENGTH_SHORT).show();
-                    }
+                    new CheckAppLinkValidityTask().execute(appLink, appName);
                 }
             }
         });
@@ -120,8 +95,48 @@ public class AddAppUserActivity extends AppCompatActivity {
             newAppPassword.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
         }
         isPasswordVisible = !isPasswordVisible;
-        newAppPassword.setSelection(newAppPassword.getText().length()); // Keep the cursor at the end
+        // Keep the cursor at the end
+        newAppPassword.setSelection(newAppPassword.getText().length());
     }
+
+    private class CheckAppLinkValidityTask extends AsyncTask<String, Void, Integer> {
+        private String appName;
+        private String appLink;
+
+        @Override
+        protected Integer doInBackground(String... params) {
+            appName = params[1];
+            appLink = params[0];
+            try {
+                URL url = new URL(appLink);
+                HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
+                httpURLConnection.setConnectTimeout(5000);
+                return httpURLConnection.getResponseCode();
+            } catch (Exception e) {
+                e.printStackTrace();
+                // Ήπια προστασία για τυχόν σφάλματα
+                return -1;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(Integer responseCode) {
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                AppsObj.UserApp newUserApp = new AppsObj.UserApp(appName, appLink);
+                AppsObj.USER_APPS.add(newUserApp);
+                Toast.makeText(AddAppUserActivity.this, "App added successfully!", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(AddAppUserActivity.this, AppSelectionActivity.class);
+                startActivity(intent);
+            } else {
+                if (responseCode == -1) {
+                    Toast.makeText(AddAppUserActivity.this, "An error occurred while checking the app link", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(AddAppUserActivity.this, "The entered app link is not reachable", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
+    }
+
 
     private class GeneratePasswordTask extends AsyncTask<Void, Void, String> {
         @Override
