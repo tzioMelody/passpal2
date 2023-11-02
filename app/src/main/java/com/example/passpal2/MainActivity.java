@@ -1,12 +1,15 @@
 package com.example.passpal2;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.content.Intent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.PopupMenu;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.snackbar.Snackbar;
 
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
@@ -50,6 +53,8 @@ public class MainActivity extends AppCompatActivity {
             }
             adapter.notifyDataSetChanged();
         }
+
+
     }
 
     @Override
@@ -118,13 +123,49 @@ public class MainActivity extends AppCompatActivity {
         public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
             int position = viewHolder.getAdapterPosition();
             if (direction == ItemTouchHelper.LEFT) {
+                deletedApp = String.valueOf(selectedApps.get(position));
+                Snackbar.make(((RecyclerView.ViewHolder) viewHolder).itemView, deletedApp, Snackbar.LENGTH_LONG)
+                .setAction("Undo", new View.OnClickListener(){
+                    @Override
+                    public void onClick(View view){
+                        selectedApps.add(position, selectedApps.get(position));
+                        adapter.notifyItemInserted(position);
+                    }
+                        }).show();
                 deleteApp(position);
             } else if (direction == ItemTouchHelper.RIGHT) {
+                //BottomSheet
                 editApp(position);
             }
         }
     }
 
+    String deletedApp = null;
+    ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0,ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+
+
+        @Override
+        public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+            return false;
+        }
+
+        @Override
+        public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+
+            int position = viewHolder.getAdapterPosition();
+            switch(direction){
+                //Delete
+                case ItemTouchHelper.LEFT:
+                    selectedApps.remove(position);
+                    adapter.notifyItemRemoved(position);
+                    break;
+                    //Edit
+                case  ItemTouchHelper.RIGHT:
+
+                    break;
+            }
+        }
+    };
     private void deleteApp(int position) {
         selectedApps.remove(position);
         adapter.notifyItemRemoved(position);
