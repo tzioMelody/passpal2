@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.Dialog;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
@@ -15,9 +16,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
+
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
 import android.os.Parcelable;
@@ -25,6 +29,8 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import it.xabaras.android.recyclerview.swipedecorator.RecyclerViewSwipeDecorator;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -135,12 +141,16 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 //EditActivity for apps activated
+                dialog.dismiss();
+
             }
         });
         ShareLy.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 //Log in app or website
+                dialog.dismiss();
+
             }
         });
         UpdateLy.setOnClickListener(new View.OnClickListener() {
@@ -148,6 +158,8 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 //Update database
                 Toast.makeText(MainActivity.this, "Updating...", Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
+
             }
         });
         LoginPswLy.setOnClickListener(new View.OnClickListener() {
@@ -155,6 +167,8 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 //Will recuire a master password so he can go to the login and
                 // passwords activity with all apps their usernames and their passwords
+                dialog.dismiss();
+
             }
         });
         SettingsLy.setOnClickListener(new View.OnClickListener() {
@@ -162,13 +176,38 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 //Settings can have the changes to the color of the app the interior
                 //and the background.
+                dialog.dismiss();
+
             }
         });
-    dialog.show();
-    dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT);
-    dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.WHITE));
-    dialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimation;
-    dialog.getWindow().setGravity(Gravity.BOTTOM);
+
+        LinearLayout bottomSheetLayout = dialog.findViewById(R.id.bottom_sheet); // Υποθέτουμε ότι η μεταβλητή bottom_sheet αναφέρεται στο LinearLayout του Bottom Sheet
+
+        if (bottomSheetLayout != null) {
+            BottomSheetBehavior bottomSheetBehavior = BottomSheetBehavior.from(bottomSheetLayout);
+            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED); // Κάνει το bottom sheet να είναι εμφανές
+
+            // Καθορίζει τη συμπεριφορά κατά το κλείσιμο
+            bottomSheetBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+                @Override
+                public void onStateChanged(@NonNull View bottomSheet, int newState) {
+                    if (newState == BottomSheetBehavior.STATE_HIDDEN) {
+                        dialog.dismiss();
+                    }
+                }
+
+                @Override
+                public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+                    // Επιπλέον λειτουργικότητα κατά τη συρτή του Bottom Sheet
+                }
+            });
+        }
+
+        dialog.show();
+        dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT);
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        dialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimation;
+        dialog.getWindow().setGravity(Gravity.BOTTOM);
 
     }
 
@@ -190,11 +229,12 @@ public class MainActivity extends AppCompatActivity {
         }
 
         //Undo if delete item and put it back at the same position
+        //This is what is using for swipes
         @Override
         public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
             int position = viewHolder.getAdapterPosition();
             if (direction == ItemTouchHelper.LEFT) {
-                deletedApp = String.valueOf(selectedApps.get(position));
+                String deletedApp = String.valueOf(selectedApps.get(position));
                 Snackbar.make(((RecyclerView.ViewHolder) viewHolder).itemView, deletedApp, Snackbar.LENGTH_LONG)
                 .setAction("Undo", new View.OnClickListener(){
                     @Override
@@ -208,35 +248,26 @@ public class MainActivity extends AppCompatActivity {
                 //BottomSheet
                 editApp(position);
             }
+
+        }
+        @Override
+        public void onChildDraw(@NonNull Canvas c,@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder,
+                                float dX, float dY, int actionState, boolean isCurrentlyActive){
+            new RecyclerViewSwipeDecorator.Builder(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
+
+                    //Adding color backgorund and icon for deleteSwipe
+                    .addSwipeLeftBackgroundColor(ContextCompat.getColor(MainActivity.this,R.color.red))
+                    .addSwipeLeftActionIcon(R.drawable.deleteappitem)
+
+                    //Adding color background and icon for editSwipe
+                    .addSwipeRightBackgroundColor(ContextCompat.getColor(MainActivity.this,R.color.appGreen))
+                    .addSwipeRightActionIcon(R.drawable.editappitem)
+                    .create()
+                    .decorate();
+            super.onChildDraw(c,recyclerView,viewHolder,dX,dY,actionState,isCurrentlyActive);
         }
     }
 
-    String deletedApp = null;
-    ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0,ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
-
-
-        @Override
-        public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
-            return false;
-        }
-
-        //Delete app once swiped left
-        @Override
-        public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
-            int position = viewHolder.getAdapterPosition();
-            switch(direction){
-                //Delete
-                case ItemTouchHelper.LEFT:
-                    selectedApps.remove(position);
-                    adapter.notifyItemRemoved(position);
-                    break;
-                    //Edit
-                case  ItemTouchHelper.RIGHT:
-
-                    break;
-            }
-        }
-    };
 
     //Works for the undo button so DO NOT delete
     private void deleteApp(int position) {
@@ -247,8 +278,14 @@ public class MainActivity extends AppCompatActivity {
 
     //Edit app once swiped right
     private void editApp(int position) {
-        // Edit app functionality here
-        Toast.makeText(this, "App edited", Toast.LENGTH_SHORT).show();
+        if (position < selectedApps.size()) {
+            AppsObj.AppInfo selectedApp = selectedApps.get(position);
+            // Μεταφορά προς το EditSelectedAppActivity
+            Intent editIntent = new Intent(MainActivity.this, EditSelectedAppActivity.class);
+            editIntent.putExtra("selectedApp", selectedApp);
+            startActivity(editIntent);
+        }
     }
+
 }
 

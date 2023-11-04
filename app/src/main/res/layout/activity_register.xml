@@ -134,12 +134,13 @@
 
             <Button
                 android:id="@+id/alreadyAccount"
-                android:layout_width="294dp"
                 style="?attr/materialButtonOutlinedStyle"
+                android:layout_width="294dp"
                 android:layout_height="52dp"
                 android:layout_marginTop="16dp"
                 android:background="#00FFFFFF"
                 android:text="Already have an account?"
+                android:textColor="@color/white"
                 android:textSize="10dp"
                 tools:ignore="TextSizeCheck" />
 
