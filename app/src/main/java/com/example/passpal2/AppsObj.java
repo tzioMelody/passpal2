@@ -49,6 +49,8 @@ public class AppsObj {
             this.appIconId = appIconId;
         }
 
+
+
         public String getAppName() {
             return appName;
         }
