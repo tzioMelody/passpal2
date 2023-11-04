@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="ShareLy" type="id" />
+    <item name="EditLy" type="id" />
+    <item name="UpdateLy" type="id" />
+    <item name="LoginPswLy" type="id" />
+    <item name="SettingsLy" type="id" />
+</resources>

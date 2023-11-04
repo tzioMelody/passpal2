@@ -2,11 +2,18 @@ package com.example.passpal2;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.app.Dialog;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.content.Intent;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
@@ -41,9 +48,13 @@ public class MainActivity extends AppCompatActivity {
         adapter = new AppSelectionAdapter(this, selectedApps, selectedApps);
         appsRecyclerView.setAdapter(adapter);
 
+
+        //Swipe items for Edit and Delete
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new SwipeToDeleteCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT));
         itemTouchHelper.attachToRecyclerView(appsRecyclerView);
 
+
+        //Show selected apps from AppSelectionActivity
         ArrayList<Parcelable> parcelableList = getIntent().getParcelableArrayListExtra("selectedApps");
         if (parcelableList != null) {
             for (Parcelable parcelable : parcelableList) {
@@ -79,12 +90,15 @@ public class MainActivity extends AppCompatActivity {
 
         popupMenu.setOnMenuItemClickListener(item -> {
             switch (item.getItemId()) {
+                //options(bottomsheet)
                 case R.id.menu_item1:
-                    // Handle menu item 1
-                    return true;
+                  showDialog();
+                   return true;
+                   //LOG OUT
                 case R.id.menu_item2:
-                    // Handle menu item 2
-                    return true;
+                    performLogout();
+                return true;
+                    /*
                 case R.id.menu_item3:
                     // Handle menu item 3
                     return true;
@@ -94,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
                     return true;
                 case R.id.menu_item5:
                     performLogout();
-                    return true;
+                    return true;*/
                 default:
                     return false;
             }
@@ -103,6 +117,62 @@ public class MainActivity extends AppCompatActivity {
         popupMenu.show();
     }
 
+
+    //For bottomSheet popup
+    private void showDialog() {
+        final Dialog dialog = new Dialog(this);
+        dialog.requestWindowFeature(getWindow().FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.bottomsheet_layout);
+
+        LinearLayout EditLy = dialog.findViewById(R.id.EditLy);
+        LinearLayout ShareLy = dialog.findViewById(R.id.ShareLy);
+        LinearLayout UpdateLy = dialog.findViewById(R.id.UpdateLy);
+        LinearLayout LoginPswLy = dialog.findViewById(R.id.LoginPswLy);
+        LinearLayout SettingsLy = dialog.findViewById(R.id.SettingsLy);
+
+
+        EditLy.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //EditActivity for apps activated
+            }
+        });
+        ShareLy.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //Log in app or website
+            }
+        });
+        UpdateLy.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //Update database
+                Toast.makeText(MainActivity.this, "Updating...", Toast.LENGTH_SHORT).show();
+            }
+        });
+        LoginPswLy.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //Will recuire a master password so he can go to the login and
+                // passwords activity with all apps their usernames and their passwords
+            }
+        });
+        SettingsLy.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //Settings can have the changes to the color of the app the interior
+                //and the background.
+            }
+        });
+    dialog.show();
+    dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT);
+    dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.WHITE));
+    dialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimation;
+    dialog.getWindow().setGravity(Gravity.BOTTOM);
+
+    }
+
+    //Log out from popup menu LOGOUT FROM APP
     private void performLogout() {
         Intent intent = new Intent(MainActivity.this, LoginActivity.class);
         startActivity(intent);
@@ -119,6 +189,7 @@ public class MainActivity extends AppCompatActivity {
             return false;
         }
 
+        //Undo if delete item and put it back at the same position
         @Override
         public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
             int position = viewHolder.getAdapterPosition();
@@ -149,9 +220,9 @@ public class MainActivity extends AppCompatActivity {
             return false;
         }
 
+        //Delete app once swiped left
         @Override
         public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
-
             int position = viewHolder.getAdapterPosition();
             switch(direction){
                 //Delete
@@ -166,12 +237,15 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     };
+
+    //Works for the undo button so DO NOT delete
     private void deleteApp(int position) {
         selectedApps.remove(position);
         adapter.notifyItemRemoved(position);
         Toast.makeText(this, "App deleted", Toast.LENGTH_SHORT).show();
     }
 
+    //Edit app once swiped right
     private void editApp(int position) {
         // Edit app functionality here
         Toast.makeText(this, "App edited", Toast.LENGTH_SHORT).show();

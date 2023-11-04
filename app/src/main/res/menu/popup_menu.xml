@@ -3,11 +3,11 @@
     xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/menu_item1"
-        android:title="Passwords" />
-    <item
+        android:title="Options" />
+  <item
         android:id="@+id/menu_item2"
-        android:title="Previous logins" />
-    <item
+        android:title="Log out" />
+  <!--  <item
         android:id="@+id/menu_item3"
         android:title="Change background" />
     <item
@@ -15,5 +15,5 @@
         android:title="Help" />
     <item
         android:id="@+id/menu_item5"
-        android:title="Log out" />
+        android:title="Log out" />-->
 </menu>
