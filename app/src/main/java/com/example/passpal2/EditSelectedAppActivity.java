@@ -32,23 +32,30 @@ public class EditSelectedAppActivity extends MainActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_app);
 
-        GeneratePsw = findViewById(R.id.GeneratePsw);
-        SaveSelectedAppData = findViewById(R.id.SaveSelectedAppData);
-        SelectedAppPassword = findViewById(R.id.SelectedAppPassword);
+        // Λήψη των πληροφοριών από το Intent
         Intent intent = getIntent();
         if (intent != null) {
             AppsObj.AppInfo selectedApp = intent.getParcelableExtra("selectedApp");
 
-            // Εμφάνιση των δεδομένων στο UI
-            ImageView appIcon = findViewById(R.id.appIcon); // Εικόνα της εφαρμογής
-            TextView appNameTextView = findViewById(R.id.appNameTextView); // TextView για το όνομα της εφαρμογής
-            EditText appLinkEditText = findViewById(R.id.appLinkEditText); // EditText για το link της εφαρμογής
+            // Εύρεση των views στο layout
+            ImageView appIconImageView = findViewById(R.id.appIconImageView);
+            TextView appNameTextView = findViewById(R.id.appNameTextView);
+            EditText appLinkEditText = findViewById(R.id.appLinkEditText);
 
-            // Ορίστε τα δεδομένα στα αντίστοιχα Views
-            appIcon.setImageResource(selectedApp.getIcon()); // Ορίζετε την εικόνα ανάλογα με την εφαρμογή
-            appNameTextView.setText(selectedApp.getName()); // Ορίζετε το όνομα της εφαρμογής
-            appLinkEditText.setText(selectedApp.getLink()); // Ορίζετε το link της εφαρμογής
+            // Ορισμός των δεδομένων στα αντίστοιχα Views
+
+            // Ορισμός της εικόνας
+            appIconImageView.setImageResource(selectedApp.getAppIconId());
+            // Ορισμός του ονόματος
+            appNameTextView.setText(selectedApp.getAppName());
+            // Ορισμός του link
+            appLinkEditText.setText(selectedApp.getAppLink());
         }
+
+        GeneratePsw = findViewById(R.id.GeneratePsw);
+        SaveSelectedAppData = findViewById(R.id.SaveSelectedAppData);
+        SelectedAppPassword = findViewById(R.id.SelectedAppPassword);
+
         ImageButton showHideButton = findViewById(R.id.ShowHide);
         showHideButton.setOnClickListener(new View.OnClickListener() {
             @Override

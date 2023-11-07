@@ -53,6 +53,17 @@ public class AppSelectionAdapter extends RecyclerView.Adapter<AppSelectionAdapte
         ImageView appIconImageView = holder.itemView.findViewById(R.id.addBtn);
         appIconImageView.setImageResource(appInfo.getAppIconId());
 
+
+        // Έλεγχος για το checkmark
+        if (commonApps.contains(appInfo)) {
+            // Εάν η τρέχουσα εφαρμογή βρίσκεται στις κοινές εφαρμογές, εμφανίστε το checkmark
+            // ή κάποιο άλλο σήμα που υποδεικνύει την επιλογή του χρήστη
+            // Εδώ χρησιμοποιείται ένα απλό checkmark, αλλά μπορείτε να χρησιμοποιήσετε κάποιο εικονίδιο ή αντίστοιχο γραφικό στο σημείο αυτό
+            holder.checkMarkImageView.setVisibility(View.VISIBLE);
+        } else {
+            holder.checkMarkImageView.setVisibility(View.INVISIBLE);
+        }
+
         holder.itemView.setOnClickListener(v -> {
             if (clickListener != null) {
                 clickListener.onItemClick(position);
@@ -75,11 +86,13 @@ public class AppSelectionAdapter extends RecyclerView.Adapter<AppSelectionAdapte
     static class AppViewHolder extends RecyclerView.ViewHolder {
         ImageView appIconImageView;
         TextView appNameTextView;
+        ImageView checkMarkImageView;
 
         public AppViewHolder(View itemView) {
             super(itemView);
             appIconImageView = itemView.findViewById(R.id.addBtn);
             appNameTextView = itemView.findViewById(R.id.appNameTextView);
+            checkMarkImageView = itemView.findViewById(R.id.checkMarkImageView);
         }
 
     }

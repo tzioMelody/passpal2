@@ -124,6 +124,8 @@ public class AddAppUserActivity extends AppCompatActivity {
             if (responseCode == HttpURLConnection.HTTP_OK) {
                 AppsObj.UserApp newUserApp = new AppsObj.UserApp(appName, appLink);
                 AppsObj.USER_APPS.add(newUserApp);
+                // Καλούμε μέθοδο για αποθήκευση
+                saveNewUserAppToDatabase(newUserApp);
                 Toast.makeText(AddAppUserActivity.this, "App added successfully!", Toast.LENGTH_SHORT).show();
                 Intent intent = new Intent(AddAppUserActivity.this, AppSelectionActivity.class);
                 startActivity(intent);
@@ -134,6 +136,14 @@ public class AddAppUserActivity extends AppCompatActivity {
                     Toast.makeText(AddAppUserActivity.this, "The entered app link is not reachable", Toast.LENGTH_SHORT).show();
                 }
             }
+        }
+        private void saveNewUserAppToDatabase(AppsObj.UserApp newUserApp) {
+            // Παράδειγμα υλοποίησης σώζοντας τα δεδομένα στη λίστα `USER_APPS`:
+            AppsObj.USER_APPS.add(newUserApp);
+
+            // Το στέλνουμε στην AppSelectionActivity να εμφανιστεί η νέα εφαρμογή
+            Intent intent = new Intent(AddAppUserActivity.this, AppSelectionActivity.class);
+            startActivity(intent);
         }
     }
 

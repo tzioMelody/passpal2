@@ -43,9 +43,15 @@ public class RegisterActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 String username = inputUsername.getText().toString();
-                String email = inputEmail.getText().toString();
                 String password = inputPassword.getText().toString();
                 String confirmPassword = inputConfirmPassword.getText().toString();
+
+                String email = inputEmail.getText().toString();
+
+
+                //Verify email
+                VerifyEmailTask task = new VerifyEmailTask();
+                task.execute(email);
 
                 if (TextUtils.isEmpty(username) || TextUtils.isEmpty(email) || TextUtils.isEmpty(password) || TextUtils.isEmpty(confirmPassword)) {
                     Toast.makeText(RegisterActivity.this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
@@ -74,6 +80,7 @@ public class RegisterActivity extends AppCompatActivity {
                     }
                 }
             }
+
         });
 
     }
@@ -144,4 +151,24 @@ public class RegisterActivity extends AppCompatActivity {
             return null;
         }
     }
+    //Κάνει verify το email οταν ο χρηστης πατησει το κουμπί
+    private class VerifyEmailTask extends AsyncTask<String, Void, Boolean> {
+        @Override
+        protected Boolean doInBackground(String... emails) {
+            String emailToVerify = emails[0];
+             emailToVerify = new emailToVerify("9f387e4dfb8a839b9b246089137cc92244ad5562"); // Αντικαταστήστε το "YOUR_API_KEY" με το παρεχόμενο API key
+            return verifier.verifyEmail(emailToVerify);
+        }
+
+        @Override
+        protected void onPostExecute(Boolean isEmailValid) {
+            super.onPostExecute(isEmailValid);
+            if (isEmailValid) {
+                // Το email είναι έγκυρο - Μπορείτε να συνεχίσετε την εγγραφή του χρήστη
+            } else {
+                Toast.makeText(RegisterActivity.this, "Το email δεν είναι έγκυρο", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
 }

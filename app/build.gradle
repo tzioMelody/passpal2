@@ -44,6 +44,9 @@ dependencies {
     implementation 'com.google.android.material:material:1.10.0'
     //Swipe items for edit and delete in main (from github)
     implementation 'it.xabaras.android:recyclerview-swipedecorator:1.4'
+    //Email Verification hunter dependecy
+    implementation 'com.hunter:hunter-email-verifier:1.0.0'
+
 
     //Material
     implementation 'com.google.android.material:material:1.10.0-alpha01'
