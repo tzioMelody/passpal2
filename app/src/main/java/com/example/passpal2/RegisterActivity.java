@@ -10,6 +10,17 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.passpal2.Data.Entities.User;
 import com.google.android.material.textfield.TextInputEditText;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
@@ -70,7 +81,10 @@ public class RegisterActivity extends AppCompatActivity {
                         boolean isUserInserted = dbHelper.addOne(newUser);
 
                         if (isUserInserted) {
+                            //Επιτυχημενη εγγραφη
+/*
                             Toast.makeText(RegisterActivity.this, "User registered successfully", Toast.LENGTH_SHORT).show();
+*/
                             Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
                             startActivity(intent);
                             Toast.makeText(RegisterActivity.this, "Welcome!", Toast.LENGTH_SHORT).show();
@@ -138,37 +152,109 @@ public class RegisterActivity extends AppCompatActivity {
         return sdf.format(calendar.getTime());
     }
 
-    private class InsertUserTask extends AsyncTask<User, Void, Void> {
-        @Override
-        protected Void doInBackground(User... users) {
-            // Εδώ πρέπει να προσθέσετε τον κώδικα για την αποθήκευση του νέου χρήστη στη βάση δεδομένων
-            User user = users[0];
-            // Προσαρμόστε τον κώδικα ανάλογα με τη βάση δεδομένων που χρησιμοποιείτε
 
-            // Καλέστε τη μέθοδο getCurrentDateTimeInBackground για την ενημέρωση της ημερομηνίας και της ώρας
-            getCurrentDateTimeInBackground(user);
-
-            return null;
-        }
-    }
-    //Κάνει verify το email οταν ο χρηστης πατησει το κουμπί
     private class VerifyEmailTask extends AsyncTask<String, Void, Boolean> {
         @Override
         protected Boolean doInBackground(String... emails) {
             String emailToVerify = emails[0];
-             emailToVerify = new emailToVerify("9f387e4dfb8a839b9b246089137cc92244ad5562"); // Αντικαταστήστε το "YOUR_API_KEY" με το παρεχόμενο API key
-            return verifier.verifyEmail(emailToVerify);
-        }
+            // Το API Key από το Hunter
+            String apiKey = "9f387e4dfb8a839b9b246089137cc92244ad5562";
 
-        @Override
-        protected void onPostExecute(Boolean isEmailValid) {
-            super.onPostExecute(isEmailValid);
-            if (isEmailValid) {
-                // Το email είναι έγκυρο - Μπορείτε να συνεχίσετε την εγγραφή του χρήστη
-            } else {
-                Toast.makeText(RegisterActivity.this, "Το email δεν είναι έγκυρο", Toast.LENGTH_SHORT).show();
+                    try {
+                        URL url = new URL("https://api.hunter.io/v2/email-verifier?email=" + emailToVerify + "&api_key=" + apiKey);
+                        HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+
+                        try {
+                            InputStream in = new BufferedInputStream(urlConnection.getInputStream());
+                            BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+                            StringBuilder result = new StringBuilder();
+                            String line;
+                            while ((line = reader.readLine()) != null) {
+                                result.append(line);
+                            }
+
+                            // Παίρνετε το JSON από την απάντηση του Hunter API
+                            String jsonString = result.toString();
+                            try {
+                                // Δημιουργείτε ένα αντικείμενο JSON από τη συμβολοσειρά JSON
+                                JSONObject jsonObject = new JSONObject(jsonString);
+
+                                // Παίρνετε το αντικείμενο data από το JSON
+                                JSONObject data = jsonObject.getJSONObject("data");
+                                // Παίρνετε την τιμή του πεδίου result
+                                String emailResult = data.getString("result");
+
+                                // Έλεγχος εάν το email είναι έγκυρο με βάση το πεδίο result
+                                if (emailResult.equals("deliverable")) {
+                                    // Το email είναι έγκυρο
+                                    Toast.makeText(RegisterActivity.this, "Your email is verified!", Toast.LENGTH_SHORT).show();
+
+                                } else {
+                                    // Το email δεν είναι έγκυρο
+                                    Toast.makeText(RegisterActivity.this, "Unvalid email", Toast.LENGTH_SHORT).show();
+
+                                }
+                            } catch (IOException e) {
+                                // Αντιμετώπιση σφαλμάτων δικτύου
+                                e.printStackTrace();
+                                Toast.makeText(RegisterActivity.this, "Σφάλμα στην επικοινωνία με το δίκτυο", Toast.LENGTH_SHORT).show();
+                            } catch (JSONException e) {
+                                // Αντιμετώπιση λαθών JSON
+                                e.printStackTrace();
+                                Toast.makeText(RegisterActivity.this, "Σφάλμα στην επεξεργασία των δεδομένων", Toast.LENGTH_SHORT).show();
+                            } catch (Exception e) {
+                                // Αντιμετώπιση γενικών απροσδιόριστων σφαλμάτων
+                                e.printStackTrace();
+                                Toast.makeText(RegisterActivity.this, "Μη αναμενόμενο σφάλμα", Toast.LENGTH_SHORT).show();
+                            }
+
+                            // Επιστροφή του αποτελέσματος
+                            return result.toString().contains("\"result\":\"deliverable\"");
+                        } finally {
+                            urlConnection.disconnect();
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                    // Αν υπάρχει κάποιο σφάλμα, επιστροφή false
+                    return false;
+                }
+
+                @Override
+                protected void onPostExecute(Boolean isEmailValid) {
+                    super.onPostExecute(isEmailValid);
+                    if (isEmailValid) {
+                        // Το email είναι έγκυρο - Μπορείτε να συνεχίσετε την εγγραφή του χρήστη
+                        saveUserToDatabase();
+                    } else {
+                        //Το email δεν είναι έγκυρο βγαλε μήνυμα
+                        Toast.makeText(RegisterActivity.this, "Email is not valid", Toast.LENGTH_SHORT).show();
+                    }
+                }
             }
+
+    private void saveUserToDatabase() {
+        String username = inputUsername.getText().toString();
+        String password = inputPassword.getText().toString();
+        String email = inputEmail.getText().toString();
+
+        // Δημιουργείτε ένα αντικείμενο User με τα δεδομένα που έχουν εισαχθεί
+        User newUser = new User(username, email, password);
+
+        // Προσθέτετε τον νέο χρήστη στη βάση δεδομένων
+        DataBaseHelper dbHelper = new DataBaseHelper(RegisterActivity.this);
+        boolean isUserInserted = dbHelper.addOne(newUser);
+
+        if (isUserInserted) {
+            Toast.makeText(RegisterActivity.this, "User registered successfully", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
+            startActivity(intent);
+            Toast.makeText(RegisterActivity.this, "Welcome!", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(RegisterActivity.this, "Failed to register user", Toast.LENGTH_SHORT).show();
         }
     }
+
 
 }
