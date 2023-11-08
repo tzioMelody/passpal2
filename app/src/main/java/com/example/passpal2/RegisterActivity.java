@@ -194,10 +194,11 @@ public class RegisterActivity extends AppCompatActivity {
                                     Toast.makeText(RegisterActivity.this, "Unvalid email", Toast.LENGTH_SHORT).show();
 
                                 }
-                            } catch (IOException e) {
+                           /* } catch (IOException e) { TODO : να βρω γιατι χυπαει ερρορ
                                 // Αντιμετώπιση σφαλμάτων δικτύου
                                 e.printStackTrace();
                                 Toast.makeText(RegisterActivity.this, "Σφάλμα στην επικοινωνία με το δίκτυο", Toast.LENGTH_SHORT).show();
+                            */
                             } catch (JSONException e) {
                                 // Αντιμετώπιση λαθών JSON
                                 e.printStackTrace();
