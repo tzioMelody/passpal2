@@ -9,6 +9,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -60,13 +62,23 @@ public class AppSelectionAdapter extends RecyclerView.Adapter<AppSelectionAdapte
             // ή κάποιο άλλο σήμα που υποδεικνύει την επιλογή του χρήστη
             // Εδώ χρησιμοποιείται ένα απλό checkmark, αλλά μπορείτε να χρησιμοποιήσετε κάποιο εικονίδιο ή αντίστοιχο γραφικό στο σημείο αυτό
             holder.checkMarkImageView.setVisibility(View.VISIBLE);
+
+
         } else {
             holder.checkMarkImageView.setVisibility(View.INVISIBLE);
+
         }
 
         holder.itemView.setOnClickListener(v -> {
             if (clickListener != null) {
                 clickListener.onItemClick(position);
+
+                // Έλεγχος για το checkmark όταν γίνεται κλικ
+                if (commonApps.contains(appInfo)) {
+                    holder.checkMarkImageView.setVisibility(View.VISIBLE);
+                } else {
+                    holder.checkMarkImageView.setVisibility(View.INVISIBLE);
+                }
             }
         });
     }

@@ -98,12 +98,12 @@ public class MainActivity extends AppCompatActivity {
             switch (item.getItemId()) {
                 //options(bottomsheet)
                 case R.id.menu_item1:
-                  showDialog();
-                   return true;
-                   //LOG OUT
+                    showDialog();
+                    return true;
+                //LOG OUT
                 case R.id.menu_item2:
                     performLogout();
-                return true;
+                    return true;
                     /*
                 case R.id.menu_item3:
                     // Handle menu item 3
@@ -233,23 +233,22 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
             int position = viewHolder.getAdapterPosition();
-            if (direction == ItemTouchHelper.LEFT) {
-                String deletedApp = String.valueOf(selectedApps.get(position));
-                Snackbar.make(((RecyclerView.ViewHolder) viewHolder).itemView, deletedApp, Snackbar.LENGTH_LONG)
-                .setAction("Undo", new View.OnClickListener(){
-                    @Override
-                    public void onClick(View view){
-                        selectedApps.add(position, selectedApps.get(position));
-                        adapter.notifyItemInserted(position);
-                    }
-                        }).show();
-                deleteApp(position);
-            } else if (direction == ItemTouchHelper.RIGHT) {
-                //BottomSheet
-                editApp(position);
+            if (!selectedApps.isEmpty() && position >= 0 && position < selectedApps.size()) {
+                if (direction == ItemTouchHelper.LEFT) {
+                    AppsObj.AppInfo deletedApp = selectedApps.get(position);
+                    Snackbar.make(viewHolder.itemView, deletedApp.getAppName() + " deleted!", Snackbar.LENGTH_LONG)
+                            .setAction("Undo", view -> {
+                                selectedApps.add(position, deletedApp);
+                                adapter.notifyItemInserted(position);
+                            }).show();
+                    deleteApp(position);
+                } else if (direction == ItemTouchHelper.RIGHT) {
+                    // BottomSheet
+                    editApp(position);
+                }
             }
-
         }
+
         @Override
         public void onChildDraw(@NonNull Canvas c,@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder,
                                 float dX, float dY, int actionState, boolean isCurrentlyActive){
@@ -273,7 +272,6 @@ public class MainActivity extends AppCompatActivity {
     private void deleteApp(int position) {
         selectedApps.remove(position);
         adapter.notifyItemRemoved(position);
-        Toast.makeText(this, "App deleted", Toast.LENGTH_SHORT).show();
     }
 
     //Edit app once swiped right
@@ -285,7 +283,6 @@ public class MainActivity extends AppCompatActivity {
             editIntent.putExtra("selectedApp", selectedApp);
             startActivity(editIntent);
         }
-    }
+    }}
 
-}
 
