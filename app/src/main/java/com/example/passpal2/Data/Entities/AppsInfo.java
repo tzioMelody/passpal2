@@ -6,8 +6,8 @@ import androidx.room.PrimaryKey;
 @Entity(tableName = "app_info_table")
 public class AppsInfo {
     @PrimaryKey(autoGenerate = true)
-    private int id; // Πρωτεύον κλειδί, αυτόματα αυξανόμενο
-
+    // Πρωτεύον κλειδί, αυτόματα αυξανόμενο
+    private int id;
     private String appName;
     private String appLink;
     private int imageResource;
@@ -19,6 +19,11 @@ public class AppsInfo {
         this.imageResource = imageResource;
         this.isSelected = false;
     }
+    // Προσθήκη άδειου κατασκευαστή
+    public AppsInfo() {
+        // Αφήστε τον άδειο κατασκευαστή για τη χρήση από τον CursorAdapter
+    }
+
 
     // Προσθήκη getter και setter μεθόδων για τα πεδία της κλάσης
     public int getId() {
