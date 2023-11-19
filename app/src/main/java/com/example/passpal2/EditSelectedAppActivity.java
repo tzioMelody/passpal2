@@ -42,8 +42,6 @@ public class EditSelectedAppActivity extends MainActivity {
             TextView appNameTextView = findViewById(R.id.appNameTextView);
             EditText appLinkEditText = findViewById(R.id.appLinkEditText);
 
-            // Ορισμός των δεδομένων στα αντίστοιχα Views
-
             // Ορισμός της εικόνας
             appIconImageView.setImageResource(selectedApp.getAppIconId());
             // Ορισμός του ονόματος
