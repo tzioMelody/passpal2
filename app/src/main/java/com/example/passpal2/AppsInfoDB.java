@@ -50,16 +50,16 @@ public class AppsInfoDB extends SQLiteOpenHelper {
     public void addAppInfo(AppsInfo appInfo, int userId) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put(KEY_USER_ID, userId); // Προσθήκη του χρήστη
+        values.put(KEY_USER_ID, userId);
         values.put(COLUMN_APP_NAME, appInfo.getAppName());
         values.put(COLUMN_APP_LINK, appInfo.getAppLink());
         values.put(COLUMN_IMAGE_RESOURCE, appInfo.getImageResource());
         values.put(COLUMN_IS_SELECTED, appInfo.isSelected() ? 1 : 0);
 
-        // Εισαγωγή γραμμής στον πίνακα
         db.insert(TABLE_APP_INFO, null, values);
         db.close();
     }
+
 
     // Μέθοδος για ανάκτηση όλων των εφαρμογών για έναν συγκεκριμένο χρήστη
     public List<AppsInfo> getAllAppsForUser(int userId) {

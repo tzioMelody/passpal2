@@ -6,12 +6,14 @@ import androidx.room.PrimaryKey;
 @Entity(tableName = "app_info_table")
 public class AppsInfo {
     @PrimaryKey(autoGenerate = true)
-    // Πρωτεύον κλειδί, αυτόματα αυξανόμενο
     private int id;
     private String appName;
     private String appLink;
     private int imageResource;
     private boolean isSelected;
+
+    // Προσθήκη πεδίου userId
+    private int userId;
 
     public AppsInfo(String appName, String appLink, int imageResource) {
         this.appName = appName;
@@ -19,6 +21,7 @@ public class AppsInfo {
         this.imageResource = imageResource;
         this.isSelected = false;
     }
+
     // Προσθήκη άδειου κατασκευαστή
     public AppsInfo() {
         // Αφήστε τον άδειο κατασκευαστή για τη χρήση από τον CursorAdapter
@@ -34,6 +37,11 @@ public class AppsInfo {
         this.id = id;
     }
 
+    //ειναι η αντιστοιχιση του χρηστη με τις εφαρμογες που εχει επιλεξει
+    //γιατι δεν εχει usage(?)
+    public int getUserId() {return userId;}
+
+    public void setUserId(int userId) {this.userId = userId;}
     public String getAppName() {
         return appName;
     }
