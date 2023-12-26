@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -38,28 +39,35 @@ public class LoginActivity extends AppCompatActivity {
         login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String username = inputUserName.getText().toString(); // Αποθηκεύστε το όνομα χρήστη
-                String password = inputPassword.getText().toString();
+                EditText emailEditText = findViewById(R.id.userName);
+                String userEmail = emailEditText.getText().toString();
 
-                // Ελέγξτε τη βάση δεδομένων για την ύπαρξη του χρήστη
+                EditText passwordEditText = findViewById(R.id.passWord);
+                String userPassword = passwordEditText.getText().toString();
+
                 DataBaseHelper dbHelper = new DataBaseHelper(LoginActivity.this);
                 SQLiteDatabase db = dbHelper.getWritableDatabase();
-                // Αλλάξτε τη μέθοδο για να πάρετε τον χρήστη με βάση το όνομα χρήστη
-                User user = dbHelper.getUserByUsername(username);
 
-                if (user != null && user.getPassword().equals(password)) {
-                    new UpdateLoginDateTimeTask(username).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                User user = dbHelper.getUserByUsername(userEmail);
+
+                if (user != null && user.getPassword().equals(userPassword)) {
+                    new UpdateLoginDateTimeTask(userEmail).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                    Log.d("LoginActivity", "Όλα εντάξει;");
+
+                    // Μετάβαση στην κύρια δραστηριότητα
+                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                    startActivity(intent);
+
                 } else {
                     // Αν ο κωδικός δεν είναι σωστός, εμφάνισε ένα μήνυμα
                     Toast.makeText(LoginActivity.this, "Login failed. Please check your credentials.", Toast.LENGTH_SHORT).show();
                 }
 
-
-
-                // Μην ξεχάσετε να κλείσετε τη βάση δεδομένων μετά τη χρήση
                 db.close();
             }
         });
+
+
 
 
         donthaveaccount.setOnClickListener(new View.OnClickListener() {

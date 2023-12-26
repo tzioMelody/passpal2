@@ -41,17 +41,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        getSupportActionBar().setTitle("Pass Pal");
 
-
-        // Εδώ προσθέτουμε τον έλεγχο σύνδεσης χρήστη
-        if (!isLoggedIn()) {
-            // Αν δεν είναι συνδεδεμένος ο χρήστης, μεταφέρετε τον στην οθόνη σύνδεσης
-            Intent loginIntent = new Intent(MainActivity.this, LoginActivity.class);
-            startActivity(loginIntent);
-            finish(); // Τερματίζουμε την τρέχουσα δραστηριότητα για να μην επιτρέπεται η επιστροφή πίσω.
-            return;
-        }
+            setContentView(R.layout.activity_main);
+            getSupportActionBar().setTitle("Pass Pal");
 
         FloatingActionButton appsBtn = findViewById(R.id.appsBtn);
         appsBtn.setOnClickListener(view -> {
@@ -81,32 +73,9 @@ public class MainActivity extends AppCompatActivity {
             adapter.notifyDataSetChanged();
         }
 
-// Εδώ προσθέτουμε τον κώδικα για την αποθήκευση των επιλεγμένων εφαρμογών στη βάση δεδομένων
-        saveSelectedAppsToDatabase(selectedApps);
+
     }
 
-    // Προσθέτουμε την εξής μέθοδο για τον έλεγχο σύνδεσης χρήστη
-    private boolean isLoggedIn() {
-        // Εδώ μπορείτε να επικοινωνήσετε με τη βάση δεδομένων ή να χρησιμοποιήσετε άλλον τρόπο
-        // για να ελέγξετε αν ο χρήστης είναι συνδεδεμένος. Στο παράδειγμα, ελέγχουμε την ύπαρξη του email στη βάση χρηστών.
-        // Επιστρέφουμε true αν ο χρήστης είναι συνδεδεμένος, αλλιώς false.
-        UserDB userDB = new UserDB(this);
-        User loggedInUser = userDB.getUserByEmail("email@example.com");
-        return loggedInUser != null;
-    }
-
-    // Προσθέτουμε την εξής μέθοδο για την αποθήκευση των επιλεγμένων εφαρμογών στη βάση δεδομένων
-    private void saveSelectedAppsToDatabase(List<AppsObj.AppInfo> selectedApps) {
-        // Εδώ πρέπει να αποθηκεύσετε τις επιλεγμένες εφαρμογές (selectedApps) στη βάση δεδομένων.
-        // Χρησιμοποιήστε την κατάλληλη κλάση για την επικοινωνία με τη βάση δεδομένων (π.χ., AppsInfoDB).
-        // Στο παράδειγμα, χρησιμοποιούμε τη μέθοδο addUserIfNotExists για να προσθέσουμε κάθε επιλεγμένη εφαρμογή ως χρήστη.
-        UserDB userDB = new UserDB(this);
-        for (AppsObj.AppInfo selectedApp : selectedApps) {
-            // Υποθέτουμε ότι το email του χρήστη είναι η μοναδική αναγνωριστική πληροφορία για τον έλεγχο.
-            // Αν χρησιμοποιείτε άλλη μοναδική πληροφορία, προσαρμόστε αντίστοιχα.
-            userDB.addUserIfNotExists(new User(0, "", "email@example.com", "", "", ""));
-        }
-    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_menu, menu);
@@ -137,10 +106,12 @@ public class MainActivity extends AppCompatActivity {
                 case R.id.menu_item2:
                     performLogout();
                     return true;
-                    /*
+
                 case R.id.menu_item3:
                     // Handle menu item 3
                     return true;
+
+                    /*
                 case R.id.menu_item4:
                     Intent helpIntent = new Intent(MainActivity.this, HelpActivity.class);
                     startActivity(helpIntent);
@@ -224,7 +195,7 @@ public class MainActivity extends AppCompatActivity {
             bottomSheetBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
                 @Override
                 public void onStateChanged(@NonNull View bottomSheet, int newState) {
-                    if (newState == BottomSheetBehavior.STATE_HIDDEN) {
+                    if (newState == BottomSheetBehavior.STATE_COLLAPSED) {
                         dialog.dismiss();
                     }
                 }
@@ -234,6 +205,7 @@ public class MainActivity extends AppCompatActivity {
                     // Επιπλέον λειτουργικότητα κατά τη συρτή του Bottom Sheet
                 }
             });
+
         }
 
         dialog.show();

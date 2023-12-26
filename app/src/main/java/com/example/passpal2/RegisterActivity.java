@@ -206,6 +206,7 @@ public class RegisterActivity extends AppCompatActivity {
                 e.printStackTrace();
                 return false;
             }
+
         }
 
         @Override
