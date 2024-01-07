@@ -116,4 +116,37 @@ public class UserDB extends SQLiteOpenHelper {
         return user;
     }
 
+    public List<User> getAllUsers() {
+        List<User> userList = new ArrayList<>();
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_USERS, null);
+
+        if (cursor != null) {
+            while (cursor.moveToNext()) {
+                int idColumnIndex = cursor.getColumnIndex(COLUMN_ID);
+                int usernameColumnIndex = cursor.getColumnIndex(COLUMN_USERNAME);
+                int emailColumnIndex = cursor.getColumnIndex(COLUMN_EMAIL);
+                int passwordColumnIndex = cursor.getColumnIndex(COLUMN_PASSWORD);
+                int loginDateColumnIndex = cursor.getColumnIndex(COLUMN_LOGIN_DATE);
+                int loginTimeColumnIndex = cursor.getColumnIndex(COLUMN_LOGIN_TIME);
+
+                int id = cursor.getInt(idColumnIndex);
+                String username = cursor.getString(usernameColumnIndex);
+                String userEmail = cursor.getString(emailColumnIndex);
+                String password = cursor.getString(passwordColumnIndex);
+                String loginDate = cursor.getString(loginDateColumnIndex);
+                String loginTime = cursor.getString(loginTimeColumnIndex);
+
+                User user = new User(id, username, userEmail, password, loginDate, loginTime);
+                userList.add(user);
+            }
+            cursor.close();
+        }
+
+        db.close();
+
+        return userList;
+    }
+
 }

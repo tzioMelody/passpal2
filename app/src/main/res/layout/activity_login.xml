@@ -17,23 +17,27 @@
 
     <LinearLayout
         android:id="@+id/loginLayout"
-        android:layout_width="332dp"
+        android:layout_width="333dp"
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
         android:layout_alignParentEnd="true"
-        android:layout_marginStart="46dp"
-        android:layout_marginEnd="29dp"
+        android:layout_marginStart="30dp"
+        android:layout_marginEnd="3dp"
         android:orientation="vertical"
         android:padding="10dp">
 
         <TextView
             android:id="@+id/logo"
-            android:layout_width="match_parent"
+            android:layout_width="329dp"
             android:layout_height="wrap_content"
             android:gravity="center"
+            android:shadowColor="#80000000"
+            android:shadowDx="5"
+            android:shadowDy="5"
+            android:shadowRadius="4"
             android:text="Welcome"
             android:textColor="@color/white"
-            android:textSize="40sp"/>
+            android:textSize="40dp" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
@@ -60,12 +64,12 @@
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:hint="Password"
             android:textColorHint="@color/white"
             app:errorEnabled="true"
             app:hintTextColor="@color/white"
-            app:startIconTint="@null"
-            android:hint="Password"
-            app:startIconDrawable="@drawable/ic_password">
+            app:startIconDrawable="@drawable/ic_password"
+            app:startIconTint="@null">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/passWord"
@@ -103,13 +107,13 @@
                 style="?attr/materialButtonOutlinedStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_margin="5dp"
                 android:text="Forgot your password?"
                 android:textColor="@color/white"
                 android:textSize="10sp"
-                android:layout_gravity="center"
-                android:layout_margin="5dp"
                 app:strokeColor="@color/purple_200"
-                tools:ignore="TouchTargetSizeCheck"/>
+                tools:ignore="TouchTargetSizeCheck" />
 
             <Button
                 android:id="@+id/donthaveaccount"
