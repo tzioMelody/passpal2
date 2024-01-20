@@ -1,0 +1,5 @@
+<!-- res/drawable/input_field_background.xml -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="#FFFF"/> <!-- Χρώμα του background -->
+    <corners android:radius="20dp"/> <!-- Στρογγυλεμένες γωνίες -->
+</shape>
