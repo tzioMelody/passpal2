@@ -11,33 +11,25 @@ public class User {
     private String username;
     private String email;
     private String password;
-    private String loginDate;
-    private String loginTime;
+    private String loginDateTime;
 
 
-    //Constructors
-    public User(int id,String username, String email, String password, String loginDate, String loginTime) {
+    // Κατασκευαστές (Constructors)
+    public User(int id, String username, String email, String password, String loginDateTime) {
         this.id = id;
         this.username = username;
         this.email = email;
         this.password = password;
-        this.loginDate = loginDate;
-        this.loginTime = loginTime;
-    }
-    public User(String username, String email, String password) {
-        this.username = username;
-        this.email = email;
-        this.password = password;
-        // Μπορείτε να αρχικοποιήσετε άλλα πεδία του χρήστη εδώ, όπως την ημερομηνία και την ώρα σύνδεσης.
+        // Εδώ δεν ορίζεται η ημερομηνία και ώρα σύνδεσης
     }
 
-    public User(int id,String username, String email, String password, String loginDate) {
-        this.id = id;
+    public User(String username, String email, String password, String loginDateTime) {
         this.username = username;
         this.email = email;
         this.password = password;
-        this.loginDate = loginDate;
+        this.loginDateTime = loginDateTime;
     }
+
 
     @Override
     public String toString() {
@@ -46,8 +38,7 @@ public class User {
                 ", username='" + username + '\'' +
                 ", email='" + email + '\'' +
                 ", password='" + password + '\'' +
-                ", loginDate='" + loginDate + '\'' +
-                ", loginTime='" + loginTime + '\'' +
+                ", loginDateTime='" + loginDateTime + '\'' +
                 '}';
     }
 
@@ -83,19 +74,11 @@ public class User {
         this.password = password;
     }
 
-    public String getLoginDate() {
-        return loginDate;
+    public String getLoginDateTime() {
+        return loginDateTime;
     }
 
-    public void setLoginDate(String loginDate) {
-        this.loginDate = loginDate;
-    }
-
-    public String getLoginTime() {
-        return loginTime;
-    }
-
-    public void setLoginTime(String loginTime) {
-        this.loginTime = loginTime;
+    public void setLoginDateTime(String loginDateTime) {
+        this.loginDateTime = loginDateTime;
     }
 }

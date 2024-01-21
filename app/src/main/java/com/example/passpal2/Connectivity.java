@@ -48,13 +48,12 @@ public class Connectivity extends AsyncTask<Void, Void, Boolean> {
 
     private void performDatabaseOperation() {
         // Εκτέλεση λειτουργιών βάσης δεδομένων
-        // Εδώ μπορείς να χρησιμοποιήσεις την UserDB για να εκτελέσεις τις λειτουργίες που χρειάζεσαι
-        UserDB userDB = new UserDB(context);
+        DataBaseHelper userDB = new DataBaseHelper(context);
 
-        // Παράδειγμα: Εκτέλεση λειτουργίας βάσης δεδομένων (π.χ., ανάκτηση χρηστών)
-        List<User> userList = userDB.getAllUsers();
-        for (User user : userList) {
+        List<DataBaseHelper.User> userList = userDB.getAllUsers();
+        for (DataBaseHelper.User user : userList) {
             // Κάνε ό,τι χρειάζεται με τον κάθε χρήστη
         }
     }
+
 }

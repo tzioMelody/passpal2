@@ -25,8 +25,8 @@ public class ForgotPasswordActivity extends AppCompatActivity {
         CancelbtnForgot = findViewById(R.id.CancelbtnForgot);
 
         inputEmail = findViewById(R.id.inputEmail);
-        newPassword = findViewById(R.id.newPassword);
-        ConfirmNewPassword = findViewById(R.id.ConfirmNewPassword);
+        newPassword = findViewById(R.id.ResetpasswordEditText);
+        ConfirmNewPassword = findViewById(R.id.ConfirmpasswordEditText);
 
         CancelbtnForgot.setOnClickListener(new View.OnClickListener() {
             @Override

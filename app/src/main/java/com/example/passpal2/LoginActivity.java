@@ -1,5 +1,6 @@
 package com.example.passpal2;
 
+import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -23,35 +24,32 @@ import java.util.Locale;
 
 public class LoginActivity extends AppCompatActivity {
     private EditText inputPassword, inputUserName;
-    private Button login, donthaveaccount, forgotPassword;
+    private Button loginButton, donthaveaccountButton, forgotPasswordButton;
 
+    @SuppressLint("WrongViewCast")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         getSupportActionBar().setTitle("Login");
 
-        inputPassword = findViewById(R.id.passWord);
-        inputUserName = findViewById(R.id.userName);
+        // Ενημερώνουμε τις αναφορές στο UI σύμφωνα με το XML layout
+        inputUserName = findViewById(R.id.usernameEditText);
+        inputPassword = findViewById(R.id.passwordEditText);
+        loginButton = findViewById(R.id.logInBtn);
+        donthaveaccountButton = findViewById(R.id.donthaveaccountBtn);
+        forgotPasswordButton = findViewById(R.id.forgotPasswordBtn);
 
-        login = findViewById(R.id.login);
-        donthaveaccount = findViewById(R.id.donthaveaccount);
-        forgotPassword = findViewById(R.id.forgotpassword);
-
-        // Έλεγχος αποθηκευμένων διαπιστευτηρίων για autofill
         checkSavedCredentials();
 
-        login.setOnClickListener(new View.OnClickListener() {
+        loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                EditText emailEditText = findViewById(R.id.userName);
                 String username = inputUserName.getText().toString();
-
-                EditText passwordEditText = findViewById(R.id.passWord);
-                String userPassword = passwordEditText.getText().toString();
+                String password = inputPassword.getText().toString();
 
                 // Έλεγχος κενού
-                if (username.trim().isEmpty() || userPassword.trim().isEmpty()) {
+                if (username.trim().isEmpty() || password.trim().isEmpty()) {
                     Toast.makeText(LoginActivity.this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
                     return;
                 }
@@ -65,14 +63,15 @@ public class LoginActivity extends AppCompatActivity {
                 DataBaseHelper dbHelper = new DataBaseHelper(LoginActivity.this);
                 SQLiteDatabase db = dbHelper.getWritableDatabase();
 
-                User user = dbHelper.getUserByUsername(username);
+                DataBaseHelper.User user = dbHelper.getUserByUsername(username);
 
-                if (user != null && user.getPassword().equals(userPassword)) {
+                if (user != null && user.getPassword().equals(password)) {
                     new UpdateLoginDateTimeTask(username).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                     Log.d("LoginActivity", "Όλα εντάξει;");
+                    Toast.makeText(LoginActivity.this, "Login successfull", Toast.LENGTH_SHORT).show();
 
                     // Αποθήκευση διαπιστευτηρίων για αυτόματη σύνδεση
-                    saveCredentials(username, userPassword);
+                    saveCredentials(username, password);
 
                     // Μετάβαση στην κύρια δραστηριότητα
                     Intent intent = new Intent(LoginActivity.this, MainActivity.class);
@@ -87,7 +86,7 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
-        donthaveaccount.setOnClickListener(new View.OnClickListener() {
+        donthaveaccountButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
@@ -95,7 +94,7 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
-        forgotPassword.setOnClickListener(new View.OnClickListener() {
+        forgotPasswordButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(LoginActivity.this, ForgotPasswordActivity.class);
@@ -107,8 +106,7 @@ public class LoginActivity extends AppCompatActivity {
     // Ενημερώνει τη βάση δεδομένων με την ημερομηνία και την ώρα σύνδεσης
     private class UpdateLoginDateTimeTask extends AsyncTask<Void, Void, Void> {
         private String username;
-        private String loginDate;
-        private String loginTime;
+        private String currentDateTime;
 
         UpdateLoginDateTimeTask(String username) {
             this.username = username;
@@ -116,15 +114,13 @@ public class LoginActivity extends AppCompatActivity {
 
         @Override
         protected Void doInBackground(Void... voids) {
-            loginDate = getCurrentDate();
-            loginTime = getCurrentTime();
+            currentDateTime = getCurrentDateTime();
 
             DataBaseHelper dbHelper = new DataBaseHelper(LoginActivity.this);
             SQLiteDatabase db = dbHelper.getWritableDatabase();
 
             ContentValues cv = new ContentValues();
-            cv.put(DataBaseHelper.COLUMN_LOGINDATE, loginDate);
-            cv.put(DataBaseHelper.COLUMN_LOGINTIME, loginTime);
+            cv.put(DataBaseHelper.COLUMN_LOGINDATETIME, currentDateTime);
             db.update(DataBaseHelper.USER_TABLE, cv, DataBaseHelper.COLUMN_USERNAME + " = ?", new String[]{username});
 
             db.close();
@@ -140,14 +136,8 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    private String getCurrentDate() {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-        Calendar calendar = Calendar.getInstance();
-        return sdf.format(calendar.getTime());
-    }
-
-    private String getCurrentTime() {
-        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss", Locale.getDefault());
+    private String getCurrentDateTime() {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
         Calendar calendar = Calendar.getInstance();
         return sdf.format(calendar.getTime());
     }
@@ -175,7 +165,7 @@ public class LoginActivity extends AppCompatActivity {
         DataBaseHelper dbHelper = new DataBaseHelper(LoginActivity.this);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
-        User user = dbHelper.getUserByUsername(email);
+        DataBaseHelper.User user = dbHelper.getUserByUsername(email);
 
         if (user != null && user.getPassword().equals(password)) {
             new UpdateLoginDateTimeTask(email).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);

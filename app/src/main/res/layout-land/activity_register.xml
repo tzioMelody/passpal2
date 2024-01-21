@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -25,6 +30,8 @@
             android:src="@drawable/signup" />
     </androidx.cardview.widget.CardView>
 
+    <!-- ProgressBar -->
+
     <LinearLayout
         android:id="@+id/signincard"
         android:layout_width="wrap_content"
@@ -32,9 +39,9 @@
         android:layout_alignParentStart="true"
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
-        android:layout_marginStart="4dp"
-        android:layout_marginEnd="0dp"
-        android:layout_marginBottom="57dp"
+        android:layout_marginStart="3dp"
+        android:layout_marginEnd="1dp"
+        android:layout_marginBottom="10dp"
         android:background="@drawable/login_card_background"
         android:elevation="4dp"
         android:gravity="center_horizontal"
@@ -159,7 +166,6 @@
 
     </LinearLayout>
 
-    <!-- ProgressBar -->
     <View
         android:id="@+id/overlayView"
         android:layout_width="match_parent"
@@ -178,3 +184,4 @@
         android:layout_centerInParent="true"
         android:visibility="gone"/>
 </RelativeLayout>
+</ScrollView>

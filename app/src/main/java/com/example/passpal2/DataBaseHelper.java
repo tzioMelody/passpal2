@@ -1,30 +1,95 @@
 package com.example.passpal2;
 
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import com.example.passpal2.Data.Entities.User;
 import com.example.passpal2.Data.Entities.AppsInfo;
+
 import androidx.annotation.Nullable;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 
 public class DataBaseHelper extends SQLiteOpenHelper {
+
+    //User table
     public static final String USER_TABLE = "USER_TABLE";
     public static final String COLUMN_ID = "ID";
     public static final String COLUMN_USERNAME = "username";
     public static final String COLUMN_EMAIL = "email";
     public static final String COLUMN_PASSWORD = "password";
-    public static final String COLUMN_LOGINDATE = "loginDate";
-    public static final String COLUMN_LOGINTIME = "loginTime";
+    public static final String COLUMN_LOGINDATETIME = "DateTime";
+
+    //App table
     public static final String TABLE_APPS_INFO = "app_info_table";
     public static final String COLUMN_APP_NAME = "AppName";
     public static final String COLUMN_APP_LINK = "AppLink";
     public static final String COLUMN_IMAGE_RESOURCE = "imageResource";
     public static final String COLUMN_IS_SELECTED = "isSelected";
+
+    public static class User {
+        private int id;
+        private String username;
+        private String email;
+        private String password;
+        private String loginDateTime;
+
+        // Κατασκευαστής
+        public User(int id, String username, String email, String password, String loginDateTime) {
+            this.id = id;
+            this.username = username;
+            this.email = email;
+            this.password = password;
+            this.loginDateTime = loginDateTime;
+        }
+
+        // Getters και Setters
+        public int getId() {
+            return id;
+        }
+
+        public void setId(int id) {
+            this.id = id;
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
+        }
+
+        public String getEmail() {
+            return email;
+        }
+
+        public void setEmail(String email) {
+            this.email = email;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
+        }
+
+        public String getLoginDateTime() {
+            return loginDateTime;
+        }
+
+        public void setLoginDateTime(String loginDateTime) {
+            this.loginDateTime = loginDateTime;
+        }
+    }
 
     public DataBaseHelper(@Nullable Context context) {
         super(context, "passpal.db", null, 1);
@@ -32,25 +97,212 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
+        // Ορισμός του SQL statement για τη δημιουργία του πίνακα χρηστών
         String createUserTableStatement = "CREATE TABLE " + USER_TABLE + " (" +
                 COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 COLUMN_USERNAME + " TEXT, " +
                 COLUMN_EMAIL + " TEXT, " +
                 COLUMN_PASSWORD + " TEXT, " +
-                COLUMN_LOGINDATE + " TEXT, " +
-                COLUMN_LOGINTIME + " TEXT" +
-                ")";
+                COLUMN_LOGINDATETIME + " TEXT)";
+
+        // Εκτέλεση της εντολής για τη δημιουργία του πίνακα χρηστών
         db.execSQL(createUserTableStatement);
 
+        // Ορισμός του SQL statement για τη δημιουργία του πίνακα εφαρμογών
         String createAppsInfoTableStatement = "CREATE TABLE " + TABLE_APPS_INFO + " (" +
                 COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 COLUMN_APP_NAME + " TEXT, " +
                 COLUMN_APP_LINK + " TEXT, " +
                 COLUMN_IMAGE_RESOURCE + " INTEGER, " +
-                COLUMN_IS_SELECTED + " INTEGER" +
-                ")";
+                COLUMN_IS_SELECTED + " INTEGER)";
+
+        // Εκτέλεση της εντολής για τη δημιουργία του πίνακα εφαρμογών
         db.execSQL(createAppsInfoTableStatement);
     }
+
+    ///////USER GETTERS AND SETTERS
+
+    // Κώδικας για την εισαγωγή του χρήστη στον πίνακα
+    public boolean addOne(User user) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues cv = new ContentValues();
+
+        cv.put(COLUMN_USERNAME, user.getUsername());
+        cv.put(COLUMN_EMAIL, user.getEmail());
+        cv.put(COLUMN_PASSWORD, user.getPassword());
+        cv.put(COLUMN_LOGINDATETIME, getCurrentDateTime());
+
+        long insert = db.insert(USER_TABLE, null, cv);
+        db.close();
+
+        return insert != -1;
+    }
+    // Ελέγχος εάν ο χρήστης υπάρχει με βάση το email
+    public boolean isUserExists(String email) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query = "SELECT * FROM " + USER_TABLE + " WHERE " + COLUMN_EMAIL + " = ?";
+        Cursor cursor = db.rawQuery(query, new String[]{email});
+        boolean userExists = cursor != null && cursor.getCount() > 0;
+        if (cursor != null) {
+            cursor.close();
+        }
+        db.close();
+        return userExists;
+    }
+    // Κώδικας για την εισαγωγή χρήστη αν δεν υπάρχει ήδη
+    public boolean addUserIfNotExists(User user) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        // Έλεγχος εάν το email υπάρχει ήδη
+        if (!isUserExists(user.getEmail())) {
+            ContentValues cv = new ContentValues();
+            cv.put(COLUMN_USERNAME, user.getUsername());
+            cv.put(COLUMN_EMAIL, user.getEmail());
+            cv.put(COLUMN_PASSWORD, user.getPassword());
+            cv.put(COLUMN_LOGINDATETIME, getCurrentDateTime());
+
+            long insert = db.insert(USER_TABLE, null, cv);
+            db.close();
+
+            // Επιστροφή true αν η εισαγωγή ήταν επιτυχής.
+            return insert != -1;
+        } else {
+            // Το email υπάρχει ήδη στη βάση δεδομένων.
+            db.close();
+            return false;
+        }
+    }
+
+    public List<User> getAllUsers() {
+        List<User> userList = new ArrayList<>();
+        String query = "SELECT * FROM " + USER_TABLE;
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery(query, null);
+
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                int idColumnIndex = cursor.getColumnIndex(COLUMN_ID);
+                int usernameColumnIndex = cursor.getColumnIndex(COLUMN_USERNAME);
+                int emailColumnIndex = cursor.getColumnIndex(COLUMN_EMAIL);
+                int passwordColumnIndex = cursor.getColumnIndex(COLUMN_PASSWORD);
+                int loginDateTimeColumnIndex = cursor.getColumnIndex(COLUMN_LOGINDATETIME);
+
+                do {
+                    int id = cursor.getInt(idColumnIndex);
+                    String username = cursor.getString(usernameColumnIndex);
+                    String email = cursor.getString(emailColumnIndex);
+                    String password = cursor.getString(passwordColumnIndex);
+                    String loginDateTime = cursor.getString(loginDateTimeColumnIndex);
+
+                    User user = new User(id,username, email, password, loginDateTime);
+                    userList.add(user);
+                } while (cursor.moveToNext());
+            }
+
+            cursor.close();
+        }
+
+        db.close();
+
+        return userList;
+    }
+
+
+    public User getUserByUsername(String username) {
+        User user = null;
+        String query = "SELECT * FROM " + USER_TABLE + " WHERE " + COLUMN_USERNAME + " = ?";
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery(query, new String[]{username});
+
+        if (cursor != null && cursor.moveToFirst()) {
+            int idColumnIndex = cursor.getColumnIndex(COLUMN_ID);
+            int emailColumnIndex = cursor.getColumnIndex(COLUMN_EMAIL);
+            int passwordColumnIndex = cursor.getColumnIndex(COLUMN_PASSWORD);
+            int loginDateTimeColumnIndex = cursor.getColumnIndex(COLUMN_LOGINDATETIME);
+
+
+            int id = cursor.getInt(idColumnIndex);
+            String email = cursor.getString(emailColumnIndex);
+            String password = cursor.getString(passwordColumnIndex);
+            String loginDateTime = cursor.getString(loginDateTimeColumnIndex);
+
+            user = new User(id, username, email, password, loginDateTime);
+
+            cursor.close();
+        }
+        db.close();
+
+        return user;
+    }
+
+    public User getUserByEmail(String email) {
+        User user = null;
+        String query = "SELECT * FROM " + USER_TABLE + " WHERE " + COLUMN_EMAIL + " = ?";
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery(query, new String[]{email});
+
+        if (cursor != null && cursor.moveToFirst()) {
+            int idColumnIndex = cursor.getColumnIndex(COLUMN_ID);
+            int usernameColumnIndex = cursor.getColumnIndex(COLUMN_USERNAME);
+            int passwordColumnIndex = cursor.getColumnIndex(COLUMN_PASSWORD);
+            int loginDateTimeColumnIndex = cursor.getColumnIndex(COLUMN_LOGINDATETIME);
+
+            int id = cursor.getInt(idColumnIndex);
+            String username = cursor.getString(usernameColumnIndex);
+            String password = cursor.getString(passwordColumnIndex);
+            String loginDateTime = cursor.getString(loginDateTimeColumnIndex);
+
+            user = new User(id, username, email, password, loginDateTime);
+
+            cursor.close();
+        }
+        db.close();
+
+        return user;
+    }
+
+
+    public void updatePasswordByEmail(String email, String newPassword) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_PASSWORD, newPassword);
+
+        db.update(USER_TABLE, values, COLUMN_EMAIL + " = ?", new String[]{email});
+        db.close();
+    }
+
+    public boolean isUsernameExists(String username) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = null;
+        boolean exists = false;
+
+        try {
+            String query = "SELECT * FROM " + USER_TABLE + " WHERE " + COLUMN_USERNAME + " = ?";
+            cursor = db.rawQuery(query, new String[]{username});
+
+            if (cursor != null) {
+                exists = cursor.getCount() > 0;
+            }
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+            db.close();
+        }
+
+        return exists;
+    }
+    public String getCurrentDateTime() {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+        Calendar calendar = Calendar.getInstance();
+        return sdf.format(calendar.getTime());
+    }
+
+
+
+    ///////APP GETTERS AND SETTERS
+
 
     // Κώδικας για την εισαγωγή μιας επιλεγμένης εφαρμογής
     public boolean addSelectedApp(AppsInfo appInfo) {
@@ -125,95 +377,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    // Κώδικας για την εισαγωγή του χρήστη στον πίνακα
-    public boolean addOne(User user) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues cv = new ContentValues();
-        cv.put(COLUMN_USERNAME, user.getUsername());
-        cv.put(COLUMN_EMAIL, user.getEmail());
-        cv.put(COLUMN_PASSWORD, user.getPassword());
-        cv.put(COLUMN_LOGINDATE, user.getLoginDate());
-        cv.put(COLUMN_LOGINTIME, user.getLoginTime());
 
-        long insert = db.insert(USER_TABLE, null, cv);
-        // Κλείνουμε τη βάση δεδομένων μετά την εισαγωγή.
-        db.close();
-
-        // Επιστρέφει true αν η εισαγωγή ήταν επιτυχής.
-        return insert != -1;
-    }
-    // Ελέγχος εάν ο χρήστης υπάρχει με βάση το email
-    public boolean isUserExists(String email) {
-        SQLiteDatabase db = this.getReadableDatabase();
-        String query = "SELECT * FROM " + USER_TABLE + " WHERE " + COLUMN_EMAIL + " = ?";
-        Cursor cursor = db.rawQuery(query, new String[]{email});
-        boolean userExists = cursor != null && cursor.getCount() > 0;
-        if (cursor != null) {
-            cursor.close();
-        }
-        db.close();
-        return userExists;
-    }
-    // Κώδικας για την εισαγωγή χρήστη αν δεν υπάρχει ήδη
-    public boolean addUserIfNotExists(User user) {
-        SQLiteDatabase db = this.getWritableDatabase();
-
-        // Έλεγχος εάν το email υπάρχει ήδη
-        if (!isUserExists(user.getEmail())) {
-            ContentValues cv = new ContentValues();
-            cv.put(COLUMN_USERNAME, user.getUsername());
-            cv.put(COLUMN_EMAIL, user.getEmail());
-            cv.put(COLUMN_PASSWORD, user.getPassword());
-            cv.put(COLUMN_LOGINDATE, user.getLoginDate());
-
-            long insert = db.insert(USER_TABLE, null, cv);
-            db.close();
-
-            // Επιστροφή true αν η εισαγωγή ήταν επιτυχής.
-            return insert != -1;
-        } else {
-            // Το email υπάρχει ήδη στη βάση δεδομένων.
-            db.close();
-            return false;
-        }
-    }
-
-    public List<User> getAllUsers() {
-        List<User> userList = new ArrayList<>();
-        String query = "SELECT * FROM " + USER_TABLE;
-
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery(query, null);
-
-        if (cursor != null) {
-            if (cursor.moveToFirst()) {
-                int idColumnIndex = cursor.getColumnIndex(COLUMN_ID);
-                int usernameColumnIndex = cursor.getColumnIndex(COLUMN_USERNAME);
-                int emailColumnIndex = cursor.getColumnIndex(COLUMN_EMAIL);
-                int passwordColumnIndex = cursor.getColumnIndex(COLUMN_PASSWORD);
-                int loginDateColumnIndex = cursor.getColumnIndex(COLUMN_LOGINDATE);
-                int loginTimeColumnIndex = cursor.getColumnIndex(COLUMN_LOGINTIME);
-
-                do {
-                    int id = cursor.getInt(idColumnIndex);
-                    String username = cursor.getString(usernameColumnIndex);
-                    String email = cursor.getString(emailColumnIndex);
-                    String password = cursor.getString(passwordColumnIndex);
-                    String loginDate = cursor.getString(loginDateColumnIndex);
-                    String loginTime = cursor.getString(loginTimeColumnIndex);
-
-                    User user = new User(id, username, email, password, loginDate, loginTime);
-                    userList.add(user);
-                } while (cursor.moveToNext());
-            }
-
-            cursor.close();
-        }
-
-        db.close();
-
-        return userList;
-    }
 
     // Κώδικας για την εισαγωγή δεδομένων στον πίνακα app_info_table
     public boolean addAppInfo(AppsInfo appInfo) {
@@ -271,91 +435,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
         return appInfoList;
     }
-    public User getUserByUsername(String username) {
-        User user = null;
-        String query = "SELECT * FROM " + USER_TABLE + " WHERE " + COLUMN_USERNAME + " = ?";
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery(query, new String[]{username});
 
-        if (cursor != null && cursor.moveToFirst()) {
-            int idColumnIndex = cursor.getColumnIndex(COLUMN_ID);
-            int emailColumnIndex = cursor.getColumnIndex(COLUMN_EMAIL);
-            int passwordColumnIndex = cursor.getColumnIndex(COLUMN_PASSWORD);
-            int loginDateColumnIndex = cursor.getColumnIndex(COLUMN_LOGINDATE);
-            int loginTimeColumnIndex = cursor.getColumnIndex(COLUMN_LOGINTIME);
-
-            int id = cursor.getInt(idColumnIndex);
-            String email = cursor.getString(emailColumnIndex);
-            String password = cursor.getString(passwordColumnIndex);
-            String loginDate = cursor.getString(loginDateColumnIndex);
-            String loginTime = cursor.getString(loginTimeColumnIndex);
-
-            user = new User(id, username, email, password, loginDate, loginTime);
-
-            cursor.close();
-        }
-        db.close();
-
-        return user;
-    }
-
-    public User getUserByEmail(String email) {
-        User user = null;
-        String query = "SELECT * FROM " + USER_TABLE + " WHERE " + COLUMN_EMAIL + " = ?";
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery(query, new String[]{email});
-
-        if (cursor != null && cursor.moveToFirst()) {
-            int idColumnIndex = cursor.getColumnIndex(COLUMN_ID);
-            int usernameColumnIndex = cursor.getColumnIndex(COLUMN_USERNAME);
-            int passwordColumnIndex = cursor.getColumnIndex(COLUMN_PASSWORD);
-            int loginDateColumnIndex = cursor.getColumnIndex(COLUMN_LOGINDATE);
-            int loginTimeColumnIndex = cursor.getColumnIndex(COLUMN_LOGINTIME);
-
-            int id = cursor.getInt(idColumnIndex);
-            String username = cursor.getString(usernameColumnIndex);
-            String password = cursor.getString(passwordColumnIndex);
-            String loginDate = cursor.getString(loginDateColumnIndex);
-            String loginTime = cursor.getString(loginTimeColumnIndex);
-
-            user = new User(id, username, email, password, loginDate, loginTime);
-
-            cursor.close();
-        }
-        db.close();
-
-        return user;
-    }
-
-    public void updatePasswordByEmail(String email, String newPassword) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(COLUMN_PASSWORD, newPassword);
-
-        db.update(USER_TABLE, values, COLUMN_EMAIL + " = ?", new String[]{email});
-        db.close();
-    }
-
-    public boolean isUsernameExists(String username) {
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = null;
-        boolean exists = false;
-
-        try {
-            String query = "SELECT * FROM " + USER_TABLE + " WHERE " + COLUMN_USERNAME + " = ?";
-            cursor = db.rawQuery(query, new String[]{username});
-
-            if (cursor != null) {
-                exists = cursor.getCount() > 0;
-            }
-        } finally {
-            if (cursor != null) {
-                cursor.close();
-            }
-            db.close();
-        }
-
-        return exists;
-    }
 
 }
