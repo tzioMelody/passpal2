@@ -6,6 +6,11 @@ android {
     namespace 'com.example.passpal2'
     compileSdk 34
 
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
     defaultConfig {
         applicationId "com.example.passpal2"
         minSdk 25

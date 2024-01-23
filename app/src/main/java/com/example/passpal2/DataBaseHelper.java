@@ -25,6 +25,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_EMAIL = "email";
     public static final String COLUMN_PASSWORD = "password";
     public static final String COLUMN_LOGINDATETIME = "DateTime";
+    public static final String COLUMN_SALT = "salt";
 
     //App table
     public static final String TABLE_APPS_INFO = "app_info_table";
@@ -39,14 +40,25 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         private String email;
         private String password;
         private String loginDateTime;
+        private String salt;
 
         // Κατασκευαστής
+        public User(int id, String username, String email, String password, String loginDateTime, String salt) {
+            this.id = id;
+            this.username = username;
+            this.email = email;
+            this.password = password;
+            this.loginDateTime = loginDateTime;
+            this.salt = salt;
+        }
+
         public User(int id, String username, String email, String password, String loginDateTime) {
             this.id = id;
             this.username = username;
             this.email = email;
             this.password = password;
             this.loginDateTime = loginDateTime;
+
         }
 
         // Getters και Setters
@@ -89,6 +101,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         public void setLoginDateTime(String loginDateTime) {
             this.loginDateTime = loginDateTime;
         }
+
+        public String getSalt() { return salt; }
     }
 
     public DataBaseHelper(@Nullable Context context) {
@@ -103,7 +117,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 COLUMN_USERNAME + " TEXT, " +
                 COLUMN_EMAIL + " TEXT, " +
                 COLUMN_PASSWORD + " TEXT, " +
-                COLUMN_LOGINDATETIME + " TEXT)";
+                COLUMN_LOGINDATETIME + " TEXT, " +
+                 COLUMN_SALT+ " TEXT)";
 
         // Εκτέλεση της εντολής για τη δημιουργία του πίνακα χρηστών
         db.execSQL(createUserTableStatement);
@@ -130,11 +145,11 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         cv.put(COLUMN_USERNAME, user.getUsername());
         cv.put(COLUMN_EMAIL, user.getEmail());
         cv.put(COLUMN_PASSWORD, user.getPassword());
+        cv.put(COLUMN_SALT, user.getSalt()); // Προσθήκη του salt στο ContentValues
         cv.put(COLUMN_LOGINDATETIME, getCurrentDateTime());
 
         long insert = db.insert(USER_TABLE, null, cv);
         db.close();
-
         return insert != -1;
     }
     // Ελέγχος εάν ο χρήστης υπάρχει με βάση το email
@@ -217,18 +232,18 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
         if (cursor != null && cursor.moveToFirst()) {
             int idColumnIndex = cursor.getColumnIndex(COLUMN_ID);
-            int emailColumnIndex = cursor.getColumnIndex(COLUMN_EMAIL);
+            int usernameColumnIndex = cursor.getColumnIndex(COLUMN_USERNAME);
             int passwordColumnIndex = cursor.getColumnIndex(COLUMN_PASSWORD);
             int loginDateTimeColumnIndex = cursor.getColumnIndex(COLUMN_LOGINDATETIME);
-
+            int saltColumnIndex = cursor.getColumnIndex(COLUMN_SALT);
 
             int id = cursor.getInt(idColumnIndex);
-            String email = cursor.getString(emailColumnIndex);
+            String email = cursor.getString(usernameColumnIndex);
             String password = cursor.getString(passwordColumnIndex);
             String loginDateTime = cursor.getString(loginDateTimeColumnIndex);
+            String salt = cursor.getString(saltColumnIndex);
 
-            user = new User(id, username, email, password, loginDateTime);
-
+            user = new User(id, username, email, password, loginDateTime, salt);
             cursor.close();
         }
         db.close();
@@ -247,13 +262,15 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             int usernameColumnIndex = cursor.getColumnIndex(COLUMN_USERNAME);
             int passwordColumnIndex = cursor.getColumnIndex(COLUMN_PASSWORD);
             int loginDateTimeColumnIndex = cursor.getColumnIndex(COLUMN_LOGINDATETIME);
+            int saltColumnIndex = cursor.getColumnIndex(COLUMN_SALT);
 
             int id = cursor.getInt(idColumnIndex);
             String username = cursor.getString(usernameColumnIndex);
             String password = cursor.getString(passwordColumnIndex);
             String loginDateTime = cursor.getString(loginDateTimeColumnIndex);
+            String salt = cursor.getString(saltColumnIndex);
 
-            user = new User(id, username, email, password, loginDateTime);
+            user = new User(id, username, email, password, loginDateTime, salt);
 
             cursor.close();
         }

@@ -27,6 +27,11 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.util.Base64;
+
 public class RegisterActivity extends AppCompatActivity {
 
     private DataBaseHelper db;
@@ -83,7 +88,7 @@ public class RegisterActivity extends AppCompatActivity {
             String emailToVerify = emails[0];
             HttpURLConnection urlConnection = null;
             try {
-                URL url = new URL("https://api.hunter.io/v2/email-verifier?email=" + emailToVerify + "&api_key=YourApiKeyHere");
+                URL url = new URL("https://api.hunter.io/v2/email-verifier?email=" + emailToVerify + "&api_key=9f387e4dfb8a839b9b246089137cc92244ad5562");
                 urlConnection = (HttpURLConnection) url.openConnection();
                 InputStream in = new BufferedInputStream(urlConnection.getInputStream());
                 BufferedReader reader = new BufferedReader(new InputStreamReader(in));
@@ -151,16 +156,24 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
+        // Δημιουργία salt και hashed password
+        String salt = PasswordUtil.getSalt();
+        String hashedPassword = PasswordUtil.hashPassword(password, salt);
+
         String currentDateTime = getCurrentDateTime();
-        DataBaseHelper.User newUser = new DataBaseHelper.User(0, username, email, password, currentDateTime);
+        // Προσθήκη του νέου χρήστη στη βάση δεδομένων με το hashed password και το salt
+        DataBaseHelper.User newUser = new DataBaseHelper.User(0, username, email, hashedPassword, currentDateTime, salt);
 
         if (db.addOne(newUser)) {
             Toast.makeText(this, "User registered successfully", Toast.LENGTH_SHORT).show();
+            // Μετάβαση στην MainActivity
             startActivity(new Intent(this, MainActivity.class));
         } else {
             Toast.makeText(this, "Failed to register user", Toast.LENGTH_SHORT).show();
         }
     }
+
+
 
     private boolean isPasswordStrong(String password) {
         String passwordPattern = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{8,}$";
@@ -172,4 +185,6 @@ public class RegisterActivity extends AppCompatActivity {
         Calendar calendar = Calendar.getInstance();
         return sdf.format(calendar.getTime());
     }
+
+
 }
