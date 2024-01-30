@@ -61,6 +61,12 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
         }
 
+        public User(int id, String username, String email, String password) {
+
+
+
+        }
+
         // Getters και Setters
         public int getId() {
             return id;
@@ -102,7 +108,9 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             this.loginDateTime = loginDateTime;
         }
 
-        public String getSalt() { return salt; }
+        public String getSalt() {
+            return salt;
+        }
     }
 
     public DataBaseHelper(@Nullable Context context) {
@@ -118,7 +126,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 COLUMN_EMAIL + " TEXT, " +
                 COLUMN_PASSWORD + " TEXT, " +
                 COLUMN_LOGINDATETIME + " TEXT, " +
-                 COLUMN_SALT+ " TEXT)";
+                COLUMN_SALT + " TEXT)";
 
         // Εκτέλεση της εντολής για τη δημιουργία του πίνακα χρηστών
         db.execSQL(createUserTableStatement);
@@ -139,8 +147,10 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     // Κώδικας για την εισαγωγή του χρήστη στον πίνακα
     public boolean addOne(User user) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues cv = new ContentValues();
+        SQLiteDatabase db = null;
+        try {
+            db = this.getWritableDatabase();
+            ContentValues cv = new ContentValues();
 
         cv.put(COLUMN_USERNAME, user.getUsername());
         cv.put(COLUMN_EMAIL, user.getEmail());
@@ -149,9 +159,16 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         cv.put(COLUMN_LOGINDATETIME, getCurrentDateTime());
 
         long insert = db.insert(USER_TABLE, null, cv);
-        db.close();
         return insert != -1;
+    } catch (Exception e) {
+        e.printStackTrace();
+        return false;
+    } finally {
+        if (db != null) {
+            db.close();
+        }
     }
+}
     // Ελέγχος εάν ο χρήστης υπάρχει με βάση το email
     public boolean isUserExists(String email) {
         SQLiteDatabase db = this.getReadableDatabase();
@@ -164,6 +181,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         db.close();
         return userExists;
     }
+
     // Κώδικας για την εισαγωγή χρήστη αν δεν υπάρχει ήδη
     public boolean addUserIfNotExists(User user) {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -210,7 +228,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                     String password = cursor.getString(passwordColumnIndex);
                     String loginDateTime = cursor.getString(loginDateTimeColumnIndex);
 
-                    User user = new User(id,username, email, password, loginDateTime);
+                    User user = new User(id, username, email, password, loginDateTime);
                     userList.add(user);
                 } while (cursor.moveToNext());
             }
@@ -232,18 +250,20 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
         if (cursor != null && cursor.moveToFirst()) {
             int idColumnIndex = cursor.getColumnIndex(COLUMN_ID);
-            int usernameColumnIndex = cursor.getColumnIndex(COLUMN_USERNAME);
+            int emailColumnIndex = cursor.getColumnIndex(COLUMN_EMAIL);
             int passwordColumnIndex = cursor.getColumnIndex(COLUMN_PASSWORD);
-            int loginDateTimeColumnIndex = cursor.getColumnIndex(COLUMN_LOGINDATETIME);
-            int saltColumnIndex = cursor.getColumnIndex(COLUMN_SALT);
+/*            int loginDateTimeColumnIndex = cursor.getColumnIndex(COLUMN_LOGINDATETIME);
+            int saltColumnIndex = cursor.getColumnIndex(COLUMN_SALT);*/
 
             int id = cursor.getInt(idColumnIndex);
-            String email = cursor.getString(usernameColumnIndex);
+            String email = cursor.getString(emailColumnIndex);
             String password = cursor.getString(passwordColumnIndex);
+/*
             String loginDateTime = cursor.getString(loginDateTimeColumnIndex);
-            String salt = cursor.getString(saltColumnIndex);
 
-            user = new User(id, username, email, password, loginDateTime, salt);
+            String salt = cursor.getString(saltColumnIndex);*/
+
+            user = new User(id, username, email, password);
             cursor.close();
         }
         db.close();
@@ -283,10 +303,38 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public void updatePasswordByEmail(String email, String newPassword) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put(COLUMN_PASSWORD, newPassword);
+
+        // Κρυπτογραφήστε τον νέο κωδικό πριν την ενημέρωση
+        String salt = getSaltForUser(email);
+        String hashedPassword = PasswordUtil.hashPassword(newPassword, salt);
+        values.put(COLUMN_PASSWORD, hashedPassword);
 
         db.update(USER_TABLE, values, COLUMN_EMAIL + " = ?", new String[]{email});
         db.close();
+    }
+
+    public String getSaltForUser(String email) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String salt = null;
+        Cursor cursor = null;
+        try {
+            String query = "SELECT " + COLUMN_SALT + " FROM " + USER_TABLE + " WHERE " + COLUMN_EMAIL + " = ?";
+            cursor = db.rawQuery(query, new String[]{email});
+            if (cursor != null && cursor.moveToFirst()) {
+                int saltColumnIndex = cursor.getColumnIndex(COLUMN_SALT);
+                if (saltColumnIndex != -1) {
+                    salt = cursor.getString(saltColumnIndex);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+            db.close();
+        }
+        return salt;
     }
 
     public boolean isUsernameExists(String username) {
@@ -310,12 +358,12 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
         return exists;
     }
+
     public String getCurrentDateTime() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
         Calendar calendar = Calendar.getInstance();
         return sdf.format(calendar.getTime());
     }
-
 
 
     ///////APP GETTERS AND SETTERS
@@ -336,6 +384,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         // Επιστρέφει true αν η εισαγωγή ήταν επιτυχής.
         return insert != -1;
     }
+
     // Κώδικας για την ανάκτηση όλων των επιλεγμένων εφαρμογών
     public List<AppsInfo> getAllSelectedApps() {
         List<AppsInfo> selectedApps = new ArrayList<>();
@@ -375,6 +424,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         db.delete(TABLE_APPS_INFO, COLUMN_IS_SELECTED + " = 1", null);
         db.close();
     }
+
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         if (newVersion > oldVersion) {
@@ -393,7 +443,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             }
         }
     }
-
 
 
     // Κώδικας για την εισαγωγή δεδομένων στον πίνακα app_info_table

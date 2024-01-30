@@ -54,13 +54,6 @@ public class EditSelectedAppActivity extends MainActivity {
         SaveSelectedAppData = findViewById(R.id.SaveSelectedAppData);
         SelectedAppPassword = findViewById(R.id.SelectedAppPassword);
 
-        ImageButton showHideButton = findViewById(R.id.ShowHide);
-        showHideButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                togglePasswordVisibility();
-            }
-        });
 
         GeneratePsw.setOnClickListener(new View.OnClickListener() {
             @Override

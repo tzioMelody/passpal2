@@ -135,10 +135,7 @@
                     android:src="@drawable/load_icon"
                     android:text="PassGnrt"
                     tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck" />
-
-
             </LinearLayout>
-
 
         </LinearLayout>
 
