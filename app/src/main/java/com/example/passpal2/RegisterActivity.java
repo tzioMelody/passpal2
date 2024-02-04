@@ -12,6 +12,7 @@ import com.google.android.material.textfield.TextInputEditText;
 import android.widget.ProgressBar;
 
 import java.lang.ref.WeakReference;
+import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
@@ -26,11 +27,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.util.Base64;
 
 public class RegisterActivity extends AppCompatActivity {
 
@@ -156,20 +152,29 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
-        // Δημιουργία salt και hashed password
-        String salt = PasswordUtil.getSalt();
-        String hashedPassword = PasswordUtil.hashPassword(password, salt);
+        try {
+            // Δημιουργία salt και hashed password
+            byte[] salt = DataBaseHelper.generateSalt();
+            String hashedPassword = DataBaseHelper.hashPassword(password, salt);
 
-        String currentDateTime = getCurrentDateTime();
-        // Προσθήκη του νέου χρήστη στη βάση δεδομένων με το hashed password και το salt
-        DataBaseHelper.User newUser = new DataBaseHelper.User(0, username, email, hashedPassword, currentDateTime, salt);
+            // Κωδικοποίηση το salt για αποθήκευση
+            String saltStr = DataBaseHelper.encodeSalt(salt);
 
-        if (db.addOne(newUser)) {
-            Toast.makeText(this, "User registered successfully", Toast.LENGTH_SHORT).show();
-            // Μετάβαση στην MainActivity
-            startActivity(new Intent(this, MainActivity.class));
-        } else {
-            Toast.makeText(this, "Failed to register user", Toast.LENGTH_SHORT).show();
+            //Αποθήκευση
+            String passwordToStore = hashedPassword + ":" + saltStr;
+
+            DataBaseHelper.User newUser = new DataBaseHelper.User(0, username, email, passwordToStore);
+
+            if (db.addOne(newUser)) {
+                Toast.makeText(this, "User registered successfully", Toast.LENGTH_SHORT).show();
+                // Πάμε MainActivity
+                startActivity(new Intent(this, MainActivity.class));
+            } else {
+                Toast.makeText(this, "Failed to register user", Toast.LENGTH_SHORT).show();
+            }
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Failed to register user due to an error", Toast.LENGTH_SHORT).show();
         }
     }
 

@@ -21,6 +21,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
@@ -33,48 +34,47 @@ import java.util.List;
 import it.xabaras.android.recyclerview.swipedecorator.RecyclerViewSwipeDecorator;
 
 public class MainActivity extends AppCompatActivity {
-
+    private RecyclerView appsRecyclerView;
     private AppSelectionAdapter adapter;
-    private List<AppsObj.AppInfo> selectedApps;
+    private List<AppsObj.AppInfo> selectedApps = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-            setContentView(R.layout.activity_main);
-            getSupportActionBar().setTitle("Pass Pal");
+        getSupportActionBar().setTitle("Pass Pal");
 
         FloatingActionButton appsBtn = findViewById(R.id.appsBtn);
         appsBtn.setOnClickListener(view -> {
+            // Χρησιμοποιήστε το startActivityForResult για να λάβετε αποτελέσματα πίσω από το AppSelectionActivity
             Intent intent = new Intent(MainActivity.this, AppSelectionActivity.class);
-            startActivity(intent);
+            startActivityForResult(intent, 1); // 1 είναι ένας αυθαίρετος κωδικός αίτησης
         });
 
-        RecyclerView appsRecyclerView = findViewById(R.id.appsRecyclerView);
-        selectedApps = new ArrayList<>();
-        adapter = new AppSelectionAdapter(this, selectedApps, selectedApps);
+        appsRecyclerView = findViewById(R.id.appsRecyclerView);
+        appsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        adapter = new AppSelectionAdapter(this, selectedApps);
         appsRecyclerView.setAdapter(adapter);
-
 
         //Swipe items for Edit and Delete
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new SwipeToDeleteCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT));
         itemTouchHelper.attachToRecyclerView(appsRecyclerView);
-
-
-        //Show selected apps from AppSelectionActivity
-        ArrayList<Parcelable> parcelableList = getIntent().getParcelableArrayListExtra("selectedApps");
-        if (parcelableList != null) {
-            for (Parcelable parcelable : parcelableList) {
-                if (parcelable instanceof AppsObj.AppInfo) {
-                    selectedApps.add((AppsObj.AppInfo) parcelable);
-                }
-            }
-            adapter.notifyDataSetChanged();
-        }
-
-
     }
+
+    // Καλείται όταν επιστρέφετε από το AppSelectionActivity με επιλεγμένες εφαρμογές
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 1 && resultCode == RESULT_OK) {
+            ArrayList<AppsObj.AppInfo> apps = data.getParcelableArrayListExtra("selectedApps");
+            if (apps != null) {
+                selectedApps.clear();
+                selectedApps.addAll(apps);
+                adapter.notifyDataSetChanged();
+            }
+        }
+    }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

@@ -1,6 +1,5 @@
 package com.example.passpal2;
 
-
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
@@ -9,38 +8,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AppSelectionViewModel extends ViewModel {
-    private MutableLiveData<List<AppsObj.AppInfo>> selectedAppsLiveData = new MutableLiveData<>();
-    private static final int MAX_SELECTED_APPS = 10;
+    private MutableLiveData<List<AppsObj.AppInfo>> selectedApps = new MutableLiveData<>(new ArrayList<>());
 
     public LiveData<List<AppsObj.AppInfo>> getSelectedAppsLiveData() {
-        return selectedAppsLiveData;
+        return selectedApps;
     }
 
-    public boolean addSelectedApp(AppsObj.AppInfo appInfo) {
-        List<AppsObj.AppInfo> selectedApps = selectedAppsLiveData.getValue();
-        if (selectedApps == null) {
-            selectedApps = new ArrayList<>();
+    public void toggleAppSelection(AppsObj.AppInfo app) {
+        List<AppsObj.AppInfo> currentSelectedApps = selectedApps.getValue();
+        if (currentSelectedApps.contains(app)) {
+            currentSelectedApps.remove(app);
+        } else {
+            currentSelectedApps.add(app);
         }
-
-        if (selectedApps.size() < MAX_SELECTED_APPS && !selectedApps.contains(appInfo)) {
-            selectedApps.add(appInfo);
-            selectedAppsLiveData.setValue(selectedApps);
-            return true;
-        }
-
-        return false;
-    }
-
-    public void removeSelectedApp(AppsObj.AppInfo appInfo) {
-        List<AppsObj.AppInfo> selectedApps = selectedAppsLiveData.getValue();
-        if (selectedApps != null) {
-            selectedApps.remove(appInfo);
-            selectedAppsLiveData.setValue(selectedApps);
-        }
-    }
-
-    public boolean hasReachedMaxSelectedApps() {
-        List<AppsObj.AppInfo> selectedApps = selectedAppsLiveData.getValue();
-        return selectedApps != null && selectedApps.size() >= MAX_SELECTED_APPS;
+        selectedApps.setValue(new ArrayList<>(currentSelectedApps));
     }
 }

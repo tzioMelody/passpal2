@@ -8,8 +8,8 @@
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
-        android:layout_width="399dp"
-        android:layout_height="595dp"
+        android:layout_width="397dp"
+        android:layout_height="623dp"
         android:background="#80FFFFFF" />
 
     <Button
