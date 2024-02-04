@@ -7,60 +7,67 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.ToggleButton;
-
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
 
-public class AppSelectionAdapter extends RecyclerView.Adapter<AppSelectionAdapter.ViewHolder> {
+public class AppSelectionAdapter extends RecyclerView.Adapter<AppSelectionAdapter.AppViewHolder> {
     private Context context;
-    private List<AppsObj.AppInfo> apps;
+    private List<AppsObj.AppInfo> appList;
     private AppSelectionViewModel viewModel;
 
-    public AppSelectionAdapter(Context context, List<AppsObj.AppInfo> apps, AppSelectionViewModel viewModel) {
+    public AppSelectionAdapter(Context context, List<AppsObj.AppInfo> appList, AppSelectionViewModel viewModel) {
         this.context = context;
-        this.apps = apps;
+        this.appList = appList;
         this.viewModel = viewModel;
-    }
-
-    public AppSelectionAdapter(MainActivity context, List<AppsObj.AppInfo> selectedApps) {
-        this.context = context;
-        this.apps = apps;
-
     }
 
     @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public AppViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(context).inflate(R.layout.app_item, parent, false);
-        return new ViewHolder(view);
+        return new AppViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        AppsObj.AppInfo app = apps.get(position);
-        holder.appName.setText(app.getAppName());
-        holder.appIcon.setImageResource(app.getAppIconId());
-        holder.toggleButton.setOnCheckedChangeListener(null);
-        holder.toggleButton.setChecked(viewModel.getSelectedAppsLiveData().getValue().contains(app));
-        holder.toggleButton.setOnCheckedChangeListener((buttonView, isChecked) -> viewModel.toggleAppSelection(app));
+    public void onBindViewHolder(@NonNull AppViewHolder holder, int position) {
+        AppsObj.AppInfo appInfo = appList.get(position);
+        holder.appNameTextView.setText(appInfo.getAppName());
+        holder.appIconImageView.setImageResource(appInfo.getAppIconId());
+
+        boolean isSelected = viewModel.getSelectedAppsLiveData().getValue().contains(appInfo);
+        holder.toggleButton.setChecked(isSelected);
+
+        holder.toggleButton.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                viewModel.addSelectedApp(appInfo);
+            } else {
+                viewModel.removeSelectedApp(appInfo);
+            }
+        });
     }
 
     @Override
     public int getItemCount() {
-        return apps.size();
+        return appList.size();
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView appName;
-        ImageView appIcon;
+    public void updateAppList(List<AppsObj.AppInfo> newAppList) {
+        this.appList = newAppList;
+        // Ειδοποιεί τον adapter για την αλλαγή δεδομένων
+        notifyDataSetChanged();
+    }
+
+    static class AppViewHolder extends RecyclerView.ViewHolder {
+        ImageView appIconImageView;
+        TextView appNameTextView;
         ToggleButton toggleButton;
 
-        public ViewHolder(View itemView) {
+        public AppViewHolder(View itemView) {
             super(itemView);
-            appName = itemView.findViewById(R.id.appNameTextView);
-            appIcon = itemView.findViewById(R.id.appIconImageView);
+            appIconImageView = itemView.findViewById(R.id.appIconImageView);
+            appNameTextView = itemView.findViewById(R.id.appNameTextView);
             toggleButton = itemView.findViewById(R.id.toggleButton);
         }
     }

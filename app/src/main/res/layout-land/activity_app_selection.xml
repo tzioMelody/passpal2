@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
@@ -8,8 +14,8 @@
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
-        android:layout_width="399dp"
-        android:layout_height="610dp"
+        android:layout_width="709dp"
+        android:layout_height="321dp"
         android:background="#80FFFFFF" />
 
     <Button
@@ -20,9 +26,9 @@
         android:layout_alignParentStart="true"
         android:layout_alignParentBottom="true"
         android:layout_gravity="center"
-        android:layout_marginStart="11dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="14dp"
+        android:layout_marginStart="14dp"
+        android:layout_marginEnd="-12dp"
+        android:layout_marginBottom="7dp"
         android:layout_toStartOf="@+id/selectionApp"
         android:background="#00FFFFFF"
         android:text="NEW"
@@ -47,3 +53,4 @@
         app:rippleColor="@color/purple_200" />
 
 </RelativeLayout>
+</ScrollView>

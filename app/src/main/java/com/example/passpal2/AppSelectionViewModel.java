@@ -8,19 +8,34 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AppSelectionViewModel extends ViewModel {
-    private MutableLiveData<List<AppsObj.AppInfo>> selectedApps = new MutableLiveData<>(new ArrayList<>());
+    private MutableLiveData<List<AppsObj.AppInfo>> selectedAppsLiveData = new MutableLiveData<>(new ArrayList<>());
+    private static final int MAX_SELECTED_APPS = 10;
 
     public LiveData<List<AppsObj.AppInfo>> getSelectedAppsLiveData() {
-        return selectedApps;
+        return selectedAppsLiveData;
     }
 
-    public void toggleAppSelection(AppsObj.AppInfo app) {
-        List<AppsObj.AppInfo> currentSelectedApps = selectedApps.getValue();
-        if (currentSelectedApps.contains(app)) {
-            currentSelectedApps.remove(app);
-        } else {
-            currentSelectedApps.add(app);
+    public boolean addSelectedApp(AppsObj.AppInfo appInfo) {
+        List<AppsObj.AppInfo> selectedApps = new ArrayList<>(selectedAppsLiveData.getValue());
+
+        if (selectedApps.size() < MAX_SELECTED_APPS && !selectedApps.contains(appInfo)) {
+            selectedApps.add(appInfo);
+            selectedAppsLiveData.setValue(selectedApps); // Ενημερώστε με τη νέα λίστα
+            return true;
         }
-        selectedApps.setValue(new ArrayList<>(currentSelectedApps));
+
+        return false;
+    }
+
+    public void removeSelectedApp(AppsObj.AppInfo appInfo) {
+        List<AppsObj.AppInfo> selectedApps = new ArrayList<>(selectedAppsLiveData.getValue());
+
+        if (selectedApps.remove(appInfo)) { // Επιστρέφει true αν η λίστα άλλαξε ως αποτέλεσμα αυτής της κλήσης
+            selectedAppsLiveData.setValue(selectedApps); // Ενημερώστε με τη νέα λίστα
+        }
+    }
+
+    public boolean hasReachedMaxSelectedApps() {
+        return selectedAppsLiveData.getValue() != null && selectedAppsLiveData.getValue().size() >= MAX_SELECTED_APPS;
     }
 }
