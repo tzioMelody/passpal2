@@ -6,7 +6,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -15,7 +14,6 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.Toast;
-import com.example.passpal2.Data.Entities.User;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -46,22 +44,31 @@ public class MainActivity extends AppCompatActivity {
 
         FloatingActionButton appsBtn = findViewById(R.id.appsBtn);
         appsBtn.setOnClickListener(view -> {
-            // Χρησιμοποιήστε το startActivityForResult για να λάβετε αποτελέσματα πίσω από το AppSelectionActivity
+            // Use startActivityForResult to receive results back from AppSelectionActivity
             Intent intent = new Intent(MainActivity.this, AppSelectionActivity.class);
-            startActivityForResult(intent, 1); // 1 είναι ένας αυθαίρετος κωδικός αίτησης
+            startActivityForResult(intent, 1); // 1 is an arbitrary request code
         });
 
         appsRecyclerView = findViewById(R.id.appsRecyclerView);
         appsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new AppSelectionAdapter(this, selectedApps);
         appsRecyclerView.setAdapter(adapter);
+
+        adapter = new AppSelectionAdapter(this, selectedApps, selectedApps, new AppSelectionAdapter.OnItemClickListener() {
+
+            public void onItemClick(AppsObj.AppInfo appInfo) {
+                // Here you can implement the functionality you want to execute every time an app is clicked
+                String appName = appInfo.getAppName();
+                Toast.makeText(MainActivity.this, "Clicked on app: " + appName, Toast.LENGTH_SHORT).show();
+            }
+        });
+
 
         //Swipe items for Edit and Delete
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new SwipeToDeleteCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT));
         itemTouchHelper.attachToRecyclerView(appsRecyclerView);
     }
 
-    // Καλείται όταν επιστρέφετε από το AppSelectionActivity με επιλεγμένες εφαρμογές
+    // Called when returning from AppSelectionActivity with selected apps
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -74,7 +81,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -169,7 +175,7 @@ public class MainActivity extends AppCompatActivity {
         LoginPswLy.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //Will recuire a master password so he can go to the login and passwords activity with all apps their usernames and their passwords
+                //Will require a master password so he can go to the login and passwords activity with all apps their usernames and their passwords
                 dialog.dismiss();
 
             }
@@ -183,33 +189,33 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Υποθέτουμε ότι η μεταβλητή bottom_sheet αναφέρεται στο LinearLayout του Bottom Sheet
+        // Assume bottom_sheet variable refers to the LinearLayout of the Bottom Sheet
         LinearLayout bottomSheetLayout = dialog.findViewById(R.id.bottom_sheet);
 
         if (bottomSheetLayout != null) {
             BottomSheetBehavior bottomSheetBehavior = BottomSheetBehavior.from(bottomSheetLayout);
-            // Κάνει το bottom sheet να είναι εμφανές
+            // Makes the bottom sheet visible
             bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
 
-            // Καθορίζει τη συμπεριφορά κατά το κλείσιμο
+            // Defines behavior upon closing
             bottomSheetBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
                 @Override
                 public void onStateChanged(@NonNull View bottomSheet, int newState) {
-                    if (newState == BottomSheetBehavior.STATE_COLLAPSED) {
-                        dialog.dismiss();
-                    }
+
+                    dialog.dismiss();
+
                 }
 
                 @Override
                 public void onSlide(@NonNull View bottomSheet, float slideOffset) {
-                    // Επιπλέον λειτουργικότητα κατά τη συρτή του Bottom Sheet
+                    // Additional functionality during bottom sheet slide
                 }
             });
 
         }
 
         dialog.show();
-        dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT);
+        dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         dialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimation;
         dialog.getWindow().setGravity(Gravity.BOTTOM);
@@ -255,20 +261,20 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onChildDraw(@NonNull Canvas c,@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder,
-                                float dX, float dY, int actionState, boolean isCurrentlyActive){
+        public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder,
+                                float dX, float dY, int actionState, boolean isCurrentlyActive) {
             new RecyclerViewSwipeDecorator.Builder(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
 
-                    //Adding color backgorund and icon for deleteSwipe
-                    .addSwipeLeftBackgroundColor(ContextCompat.getColor(MainActivity.this,R.color.red))
+                    //Adding color background and icon for deleteSwipe
+                    .addSwipeLeftBackgroundColor(ContextCompat.getColor(MainActivity.this, R.color.red))
                     .addSwipeLeftActionIcon(R.drawable.deleteappitem)
 
                     //Adding color background and icon for editSwipe
-                    .addSwipeRightBackgroundColor(ContextCompat.getColor(MainActivity.this,R.color.appGreen))
+                    .addSwipeRightBackgroundColor(ContextCompat.getColor(MainActivity.this, R.color.appGreen))
                     .addSwipeRightActionIcon(R.drawable.editappitem)
                     .create()
                     .decorate();
-            super.onChildDraw(c,recyclerView,viewHolder,dX,dY,actionState,isCurrentlyActive);
+            super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
         }
     }
 
@@ -283,12 +289,10 @@ public class MainActivity extends AppCompatActivity {
     private void editApp(int position) {
         if (position < selectedApps.size()) {
             AppsObj.AppInfo selectedApp = selectedApps.get(position);
-            // Μεταφορά προς το EditSelectedAppActivity
+            // Transfer to the EditSelectedAppActivity
             Intent editIntent = new Intent(MainActivity.this, EditSelectedAppActivity.class);
             editIntent.putExtra("selectedApp", selectedApp);
             startActivity(editIntent);
         }
     }
 }
-
-

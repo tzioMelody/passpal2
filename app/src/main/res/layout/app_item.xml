@@ -24,10 +24,11 @@
 
     <ToggleButton
         android:id="@+id/toggleButton"
-        android:layout_width="40dp"
-        android:layout_height="44dp"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
         android:layout_alignParentEnd="true"
         android:background="@drawable/selector_toggle_button"
-        android:textOn=""
-        android:textOff="" />
+        android:textOff=""
+        android:textOn="" />
 </RelativeLayout>
+
