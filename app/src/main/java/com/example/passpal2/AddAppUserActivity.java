@@ -14,6 +14,8 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.io.IOException;
@@ -36,25 +38,37 @@ public class AddAppUserActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_appadduser);
 
+        // Ορισμός των στοιχείων UI από το layout
         passGenButton = findViewById(R.id.passGnrt);
         saveNewApp = findViewById(R.id.saveNewApp);
         newAppPassword = findViewById(R.id.newAppPassword);
-
         ImageButton showHideButton = findViewById(R.id.showHideBtn);
-        showHideButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                togglePasswordVisibility();
-            }
-        });
+       MaterialButton generatePasswordButton = findViewById(R.id.generatePasswordButton);
 
-        passGenButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                new GeneratePasswordTask().execute();
-            }
-        });
+        // Ορισμός listener για το κουμπί εμφάνισης/απόκρυψης κωδικού
+        showHideButton.setOnClickListener(v -> togglePasswordVisibility());
 
+        // Ορισμός listener για το MaterialButton παραγωγής νέου κωδικού
+        generatePasswordButton.setOnClickListener(v -> new GeneratePasswordTask().execute());
+
+        // Ορισμός listener για το κουμπί αποθήκευσης νέας εφαρμογής
+        saveNewApp.setOnClickListener(v -> saveNewApp());
+
+    }
+
+    private void togglePasswordVisibility() {
+        if (isPasswordVisible) {
+            newAppPassword.setTransformationMethod(PasswordTransformationMethod.getInstance());
+        } else {
+            newAppPassword.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
+        }
+        isPasswordVisible = !isPasswordVisible;
+        // Keep the cursor at the end
+        newAppPassword.setSelection(newAppPassword.getText().length());
+    }
+
+
+    private void saveNewApp() {
         saveNewApp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -69,35 +83,16 @@ public class AddAppUserActivity extends AppCompatActivity {
                 String email = newAppEmail.getText().toString();
                 String password = newAppPassword.getText().toString();
 
-                if (TextUtils.isEmpty(appName)) {
-                    Toast.makeText(AddAppUserActivity.this, "Please enter the name of the app", Toast.LENGTH_SHORT).show();
-                } else if (TextUtils.isEmpty(appLink)) {
-                    Toast.makeText(AddAppUserActivity.this, "Please enter the link of the app", Toast.LENGTH_SHORT).show();
-                } else if (TextUtils.isEmpty(username)) {
-                    Toast.makeText(AddAppUserActivity.this, "Please enter a username!", Toast.LENGTH_SHORT).show();
-                } else if (TextUtils.isEmpty(email)) {
-                    Toast.makeText(AddAppUserActivity.this, "Please enter your email!", Toast.LENGTH_SHORT).show();
-                } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                    Toast.makeText(AddAppUserActivity.this, "Please enter a valid email address!", Toast.LENGTH_SHORT).show();
-                } else if (TextUtils.isEmpty(password)) {
-                    Toast.makeText(AddAppUserActivity.this, "Please enter your password!", Toast.LENGTH_SHORT).show();
-                } else {
-                    new CheckAppLinkValidityTask().execute(appLink, appName);
+                if (TextUtils.isEmpty(appName) || TextUtils.isEmpty(appLink) || TextUtils.isEmpty(username) ||
+                        TextUtils.isEmpty(email) || !Patterns.EMAIL_ADDRESS.matcher(email).matches() || TextUtils.isEmpty(password)) {
+                    Toast.makeText(AddAppUserActivity.this, "Please fill all fields!", Toast.LENGTH_SHORT).show();
+                    return;
                 }
             }
         });
+
     }
 
-    private void togglePasswordVisibility() {
-        if (isPasswordVisible) {
-            newAppPassword.setTransformationMethod(PasswordTransformationMethod.getInstance());
-        } else {
-            newAppPassword.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
-        }
-        isPasswordVisible = !isPasswordVisible;
-        // Keep the cursor at the end
-        newAppPassword.setSelection(newAppPassword.getText().length());
-    }
 
     private class CheckAppLinkValidityTask extends AsyncTask<String, Void, Integer> {
         private String appName;
@@ -105,20 +100,18 @@ public class AddAppUserActivity extends AppCompatActivity {
 
         @Override
         protected Integer doInBackground(String... params) {
-            appName = params[1];
             appLink = params[0];
+            appName = params[1];
             try {
                 URL url = new URL(appLink);
-                HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
-                httpURLConnection.setConnectTimeout(5000);
-                return httpURLConnection.getResponseCode();
-            } catch (Exception e) {
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setConnectTimeout(5000);
+                return connection.getResponseCode();
+            } catch (IOException e) {
                 e.printStackTrace();
-                // Ήπια προστασία για τυχόν σφάλματα
                 return -1;
             }
         }
-
         @Override
         protected void onPostExecute(Integer responseCode) {
             if (responseCode == HttpURLConnection.HTTP_OK) {
@@ -159,21 +152,22 @@ public class AddAppUserActivity extends AppCompatActivity {
         protected void onPostExecute(String result) {
             newAppPassword.setText(result);
         }
-    }
+        private String generatePswd(int len) {
+            String charsCaps = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            String chars = "abcdefghijklmnopqrstuvwxyz";
+            String nums = "0123456789";
+            String symbols = "!@#$%^&*_=+-/€.?<>)";
 
-    private String generatePswd(int len) {
-        String charsCaps = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        String chars = "abcdefghijklmnopqrstuvwxyz";
-        String nums = "0123456789";
-        String symbols = "!@#$%^&*_=+-/€.?<>)";
+            String passSymbols = charsCaps + chars + nums + symbols;
+            Random rnd = new Random();
 
-        String passSymbols = charsCaps + chars + nums + symbols;
-        Random rnd = new Random();
-
-        StringBuilder password = new StringBuilder(len);
-        for (int i = 0; i < len; i++) {
-            password.append(passSymbols.charAt(rnd.nextInt(passSymbols.length())));
+            StringBuilder password = new StringBuilder(len);
+            for (int i = 0; i < len; i++) {
+                password.append(passSymbols.charAt(rnd.nextInt(passSymbols.length())));
+            }
+            return password.toString();
         }
-        return password.toString();
     }
+
+
 }

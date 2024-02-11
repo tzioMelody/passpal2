@@ -1,3 +1,15 @@
 <resources>
     <string name="app_name">passpal</string>
+    <string name="app_nameAdded">App Name</string>
+    <string name="app_link">App Link</string>
+    <string name="username">Username</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="add_photo">Add Photo</string>
+    <string name="generate_password">Generate Password</string>
+    <string name="save">Save</string>
+    <string name="show_password">Show Password</string>
+    <string name="hide_password">Hide Password</string>
+    <string name="generate_new_password">Generate Password</string>
+
 </resources>

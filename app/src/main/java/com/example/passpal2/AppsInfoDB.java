@@ -1,5 +1,6 @@
 package com.example.passpal2;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -38,4 +39,16 @@ public class AppsInfoDB extends SQLiteOpenHelper {
         // Εδώ μπορείτε να προσθέσετε λογική αναβάθμισης της βάσης δεδομένων σας,
         // όπως το DROP του πίνακα και τη δημιουργία του ξανά.
     }
+    public void addUserApp(AppsObj.UserApp userApp) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_APP_NAME, userApp.getAppName());
+        values.put(COLUMN_APP_LINK, userApp.getAppLink());
+        // Μπορείτε να προσθέσετε εδώ περαιτέρω στήλες ανάλογα με την ανάγκη
+
+        db.insert(TABLE_APP_INFO, null, values);
+        db.close();
+    }
+
 }

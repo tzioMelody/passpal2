@@ -1,6 +1,9 @@
 package com.example.passpal2;
 
+import static com.example.passpal2.AppsInfoDB.TABLE_APP_INFO;
+
 import android.content.Intent;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -18,11 +21,16 @@ import com.example.passpal2.databinding.ActivityAppSelectionBinding;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AppSelectionActivity extends AppCompatActivity {
+public class AppSelectionActivity extends AppCompatActivity implements RecyclerViewInterface {
 
-    private AppSelectionAdapter mAdapter;
-    private List<AppInfo> mSelectedApps = new ArrayList<>();
-    private ActivityAppSelectionBinding mBinding;
+    ArrayList<AppsObj> appsObjs = new ArrayList<>();
+    int[] appImages = {R.drawable.app_icon1,R.drawable.app_icon2,R.drawable.app_icon3,R.drawable.app_icon4,
+            R.drawable.app_icon5,R.drawable.app_icon6,R.drawable.app_icon7,R.drawable.app_icon8,R.drawable.app_icon9,
+            R.drawable.app_icon10,R.drawable.app_icon11,R.drawable.app_icon12,R.drawable.app_icon13,R.drawable.app_icon14,
+            R.drawable.app_icon15,R.drawable.app_icon16,R.drawable.app_icon17,R.drawable.app_icon18,R.drawable.app_icon19,R.drawable.app_icon20,
+            R.drawable.app_icon21,R.drawable.app_icon22};
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,6 +86,25 @@ public class AppSelectionActivity extends AppCompatActivity {
             }
         });
 
+        public List<AppsObj.UserApp> getAllUserApps() {
+            List<AppsObj.UserApp> userApps = new ArrayList<>();
+            String selectQuery = "SELECT  * FROM " + TABLE_APP_INFO;
+
+            DataBaseHelper db = this.getWritableDatabase();
+            Cursor cursor = db.rawQuery(selectQuery, null);
+
+            if (cursor.moveToFirst()) {
+                do {
+                    AppsObj.UserApp userApp = new AppsObj.UserApp(cursor.getString(1), cursor.getString(2));
+                    userApps.add(userApp);
+                } while (cursor.moveToNext());
+            }
+
+            cursor.close();
+            db.close();
+            return userApps;
+        }
+
         // Δημιουργία του ViewModel
         AppSelectionViewModel viewModel = new ViewModelProvider(this).get(AppSelectionViewModel.class);
         viewModel.getAppListLiveData().observe(this, new Observer<List<AppInfo>>() {
@@ -86,5 +113,13 @@ public class AppSelectionActivity extends AppCompatActivity {
                 mAdapter.setAppList(appInfos);
             }
         });
+    }
+
+    /**
+     * @param position
+     */
+    @Override
+    public void onItemClick(int position) {
+
     }
 }
