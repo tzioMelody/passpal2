@@ -1,15 +1,61 @@
 <resources>
-    <string name="app_name">passpal</string>
-    <string name="app_nameAdded">App Name</string>
-    <string name="app_link">App Link</string>
-    <string name="username">Username</string>
-    <string name="email">Email</string>
-    <string name="password">Password</string>
-    <string name="add_photo">Add Photo</string>
-    <string name="generate_password">Generate Password</string>
-    <string name="save">Save</string>
-    <string name="show_password">Show Password</string>
-    <string name="hide_password">Hide Password</string>
-    <string name="generate_new_password">Generate Password</string>
+    <string name="app_name">passpal2 </string>
+    <string name="appNames">name</string>
+    <string name="appLinks">link</string>
+
+    //Names for main string
+    <string-array name="appNames">
+        <item>Facebook</item>
+        <item>Instagram</item>
+        <item>Twitter</item>
+        <item>Netflix</item>
+        <item>Discord</item>
+        <item>Pinterest</item>
+        <item>GooglePay</item>
+        <item>YouTube</item>
+        <item>WhatsApp</item>
+        <item>Telegram</item>
+        <item>Paypal</item>
+        <item>Shazam</item>
+        <item>Spotify</item>
+        <item>Viber</item>
+        <item>Snapchat</item>
+        <item>BeReal</item>
+        <item>TikTok</item>
+        <item>Amazon</item>
+        <item>Gmail</item>
+        <item>Shein</item>
+        <item>skroutz</item>
+        <item>Disney+</item>
+    </string-array>
+
+    //Links for second string in
+
+    <string-array name="appLinks">
+
+        <item>www.facebook.com</item>
+        <item>www.instagram.com</item>
+        <item>www.twitter.com</item>
+        <item>www.netflix.com</item>
+        <item>www.discord.com</item>
+        <item>www.pinterest.com</item>
+        <item>www.googlepay.com</item>
+        <item>www.youtube.com</item>
+        <item>www.whatsapp.com</item>
+        <item>www.telegram.com</item>
+        <item>www.paypal.com</item>
+        <item>www.shazam.com</item>
+        <item>www.spotify.com</item>
+        <item>www.viber.com</item>
+        <item>www.snapchat.com</item>
+        <item>www.bereal.com</item>
+        <item>www.tiktok.com</item>
+        <item>www.amazon.com</item>
+        <item>www.gmail.com</item>
+        <item>www.shein.com</item>
+        <item>www.skroutz.com</item>
+        <item>www.disneyplus.com/  </item>
+    </string-array>
 
 </resources>
+

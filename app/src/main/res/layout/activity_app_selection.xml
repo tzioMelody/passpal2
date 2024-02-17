@@ -6,13 +6,16 @@ android:layout_height="match_parent"
 xmlns:app="http://schemas.android.com/apk/res-auto"
 android:padding="8dp">
 
-<androidx.recyclerview.widget.RecyclerView
-    android:id="@+id/recyclerView"
-    android:layout_width="399dp"
-    android:layout_height="610dp"
-    android:background="#80FFFFFF" />
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerView"
+        android:layout_width="399dp"
+        android:layout_height="610dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="25dp"
+        android:background="#80FFFFFF" />
 
-<Button
+    <Button
     android:id="@+id/AddUserApps"
     style="?attr/materialButtonOutlinedStyle"
     android:layout_width="206dp"

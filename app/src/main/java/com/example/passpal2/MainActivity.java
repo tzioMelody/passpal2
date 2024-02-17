@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.health.connect.datatypes.AppInfo;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.Menu;
@@ -33,8 +34,8 @@ import it.xabaras.android.recyclerview.swipedecorator.RecyclerViewSwipeDecorator
 
 public class MainActivity extends AppCompatActivity {
     private RecyclerView appsRecyclerView;
-    private AppSelectionAdapter adapter;
-    private List<AppsObj.AppInfo> selectedApps = new ArrayList<>();
+    private AdapterRecycler adapter;
+    private List<AppsObj> selectedApps = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,30 +51,32 @@ public class MainActivity extends AppCompatActivity {
         });
 
         appsRecyclerView = findViewById(R.id.appsRecyclerView);
-        appsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        appsRecyclerView.setAdapter(adapter);
 
-        adapter = new AppSelectionAdapter(this, selectedApps, selectedApps, new AppSelectionAdapter.OnItemClickListener() {
-
-            public void onItemClick(AppsObj.AppInfo appInfo) {
-                // Here you can implement the functionality you want to execute every time an app is clicked
-                String appName = appInfo.getAppName();
+        // Create adapter here
+        adapter = new AdapterRecycler(this, selectedApps, selectedApps, new AdapterRecycler.OnItemClickListener() {
+            public void onItemClick(AppInfo appInfo) {
+                // Handle item click here
+                String appName = appInfo.getAppNames();
                 Toast.makeText(MainActivity.this, "Clicked on app: " + appName, Toast.LENGTH_SHORT).show();
             }
         });
 
+        // Set adapter to RecyclerView
+        appsRecyclerView.setAdapter(adapter);
+        appsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         //Swipe items for Edit and Delete
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new SwipeToDeleteCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT));
         itemTouchHelper.attachToRecyclerView(appsRecyclerView);
     }
 
+
     // Called when returning from AppSelectionActivity with selected apps
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 1 && resultCode == RESULT_OK) {
-            ArrayList<AppsObj.AppInfo> apps = data.getParcelableArrayListExtra("selectedApps");
+            ArrayList<AppsObj.AppInfo> apps = data.getParcelableArrayListExtra("selected_apps");
             if (apps != null) {
                 selectedApps.clear();
                 selectedApps.addAll(apps);
@@ -247,7 +250,7 @@ public class MainActivity extends AppCompatActivity {
             if (!selectedApps.isEmpty() && position >= 0 && position < selectedApps.size()) {
                 if (direction == ItemTouchHelper.LEFT) {
                     AppsObj.AppInfo deletedApp = selectedApps.get(position);
-                    Snackbar.make(viewHolder.itemView, deletedApp.getAppName() + " deleted!", Snackbar.LENGTH_LONG)
+                    Snackbar.make(viewHolder.itemView, deletedApp.getAppNames() + " deleted!", Snackbar.LENGTH_LONG)
                             .setAction("Undo", view -> {
                                 selectedApps.add(position, deletedApp);
                                 adapter.notifyItemInserted(position);

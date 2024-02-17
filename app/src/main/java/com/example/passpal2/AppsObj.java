@@ -2,18 +2,44 @@ package com.example.passpal2;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class AppsObj {
-    public static final List<AppInfo> COMMON_APPS = new ArrayList<>();
-    public static final List<UserApp> USER_APPS = new ArrayList<>();
+    String AppNames;
+    String AppLinks;
+    int AppImages;
+    boolean isSelected;
 
-    static {
-        appList();
+    public AppsObj(String appNames, String appLinks, int appImages) {
+        AppNames = appNames;
+        AppLinks = appLinks;
+        AppImages = appImages;
+        isSelected = false;
     }
 
-    private static void appList() {
+    public String getAppNames() {
+        return AppNames;
+    }
+
+    public String getAppLinks() {
+        return AppLinks;
+    }
+
+    public int getAppImages() {
+        return AppImages;
+    }
+
+    public boolean isSelected() {
+        return isSelected;
+    }
+
+    public void setSelected(boolean selected) {
+        isSelected = selected;
+    }
+}
+    /*private void appList() {
         COMMON_APPS.add(new AppInfo("Facebook", "https://www.facebook.com", R.drawable.app_icon1));
         COMMON_APPS.add(new AppInfo("Instagram", "https://www.instagram.com", R.drawable.app_icon2));
         COMMON_APPS.add(new AppInfo("Twitter", "https://www.twitter.com", R.drawable.app_icon3));
@@ -114,5 +140,5 @@ public class AppsObj {
 
     public static void addUserApp(String appName, String appLink) {
         USER_APPS.add(new UserApp(appName, appLink));
-    }
-}
+    }*/
+
