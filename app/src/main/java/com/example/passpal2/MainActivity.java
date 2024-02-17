@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
-import android.health.connect.datatypes.AppInfo;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.Menu;
@@ -54,9 +53,10 @@ public class MainActivity extends AppCompatActivity {
 
         // Create adapter here
         adapter = new AdapterRecycler(this, selectedApps, selectedApps, new AdapterRecycler.OnItemClickListener() {
-            public void onItemClick(AppInfo appInfo) {
+            @Override
+            public void onItemClick(AppsObj appsObj) {
                 // Handle item click here
-                String appName = appInfo.getAppNames();
+                String appName = appsObj.getAppNames();
                 Toast.makeText(MainActivity.this, "Clicked on app: " + appName, Toast.LENGTH_SHORT).show();
             }
         });
@@ -76,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 1 && resultCode == RESULT_OK) {
-            ArrayList<AppsObj.AppInfo> apps = data.getParcelableArrayListExtra("selected_apps");
+            ArrayList<AppsObj> apps = data.getParcelableArrayListExtra("selected_apps");
             if (apps != null) {
                 selectedApps.clear();
                 selectedApps.addAll(apps);
@@ -249,7 +249,7 @@ public class MainActivity extends AppCompatActivity {
             int position = viewHolder.getAdapterPosition();
             if (!selectedApps.isEmpty() && position >= 0 && position < selectedApps.size()) {
                 if (direction == ItemTouchHelper.LEFT) {
-                    AppsObj.AppInfo deletedApp = selectedApps.get(position);
+                    AppsObj deletedApp = selectedApps.get(position);
                     Snackbar.make(viewHolder.itemView, deletedApp.getAppNames() + " deleted!", Snackbar.LENGTH_LONG)
                             .setAction("Undo", view -> {
                                 selectedApps.add(position, deletedApp);
@@ -291,7 +291,7 @@ public class MainActivity extends AppCompatActivity {
     //Edit app once swiped right
     private void editApp(int position) {
         if (position < selectedApps.size()) {
-            AppsObj.AppInfo selectedApp = selectedApps.get(position);
+            AppsObj selectedApp = selectedApps.get(position);
             // Transfer to the EditSelectedAppActivity
             Intent editIntent = new Intent(MainActivity.this, EditSelectedAppActivity.class);
             editIntent.putExtra("selectedApp", selectedApp);
