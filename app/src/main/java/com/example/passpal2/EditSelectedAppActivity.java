@@ -5,10 +5,10 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.method.HideReturnsTransformationMethod;
 import android.text.method.PasswordTransformationMethod;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -18,13 +18,16 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.Random;
 
-public class EditSelectedAppActivity extends MainActivity {
+public class EditSelectedAppActivity extends AppCompatActivity {
 
-    private ImageView GeneratePsw;
-    private Button SaveSelectedAppData;
-    private EditText SelectedAppPassword;
+    private ImageView appIconImageView;
+    private TextView appNameTextView;
+    private EditText appLinkEditText;
+    private ImageView generatePsw;
+    private Button saveSelectedAppData;
+    private EditText selectedAppPassword;
 
-    // μεταβλητή για να παρακολουθούμε την ορατότητα του κωδικού
+    // Μεταβλητή για να παρακολουθούμε την ορατότητα του κωδικού
     private boolean isPasswordVisible = false;
 
     @Override
@@ -35,36 +38,42 @@ public class EditSelectedAppActivity extends MainActivity {
         // Λήψη των πληροφοριών από το Intent
         Intent intent = getIntent();
         if (intent != null) {
-            AppsObj.AppInfo selectedApp = intent.getParcelableExtra("selectedApp");
+            AppsObj selectedApp = intent.getParcelableExtra("selectedApp");
 
             // Εύρεση των views στο layout
-            ImageView appIconImageView = findViewById(R.id.appIconImageView);
-            TextView appNameTextView = findViewById(R.id.appNameTextView);
-            EditText appLinkEditText = findViewById(R.id.appLinkEditText);
+            appIconImageView = findViewById(R.id.appIconImageView);
+            appNameTextView = findViewById(R.id.appNameTextView);
+            appLinkEditText = findViewById(R.id.appLinkEditText);
 
             // Ορισμός της εικόνας
-            appIconImageView.setImageResource(selectedApp.getAppIconId());
+            appIconImageView.setImageResource(selectedApp.getAppImages());
             // Ορισμός του ονόματος
-            appNameTextView.setText(selectedApp.getAppName());
+            appNameTextView.setText(selectedApp.getAppNames());
             // Ορισμός του link
-            appLinkEditText.setText(selectedApp.getAppLink());
+            appLinkEditText.setText(selectedApp.getAppLinks());
         }
 
-        GeneratePsw = findViewById(R.id.GeneratePsw);
-        SaveSelectedAppData = findViewById(R.id.SaveSelectedAppData);
-        SelectedAppPassword = findViewById(R.id.SelectedAppPassword);
+        generatePsw = findViewById(R.id.GeneratePsw);
+        saveSelectedAppData = findViewById(R.id.SaveSelectedAppData);
+        selectedAppPassword = findViewById(R.id.SelectedAppPassword);
 
-
-        GeneratePsw.setOnClickListener(new View.OnClickListener() {
+        generatePsw.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                new EditSelectedAppActivity.GeneratePasswordTask().execute();
+                new GeneratePasswordTask().execute();
             }
         });
-        
-}
 
-//Background Thread for generate new password
+        selectedAppPassword.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                togglePasswordVisibility();
+                return false;
+            }
+        });
+    }
+
+    // Background Thread for generate new password
     private class GeneratePasswordTask extends AsyncTask<Void, Void, String> {
         @Override
         protected String doInBackground(Void... voids) {
@@ -74,7 +83,7 @@ public class EditSelectedAppActivity extends MainActivity {
 
         @Override
         protected void onPostExecute(String result) {
-            SelectedAppPassword.setText(result);
+            selectedAppPassword.setText(result);
         }
     }
 
@@ -93,14 +102,15 @@ public class EditSelectedAppActivity extends MainActivity {
         }
         return password.toString();
     }
+
     private void togglePasswordVisibility() {
         if (isPasswordVisible) {
-            SelectedAppPassword.setTransformationMethod(PasswordTransformationMethod.getInstance());
+            selectedAppPassword.setTransformationMethod(PasswordTransformationMethod.getInstance());
         } else {
-            SelectedAppPassword.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
+            selectedAppPassword.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
         }
         isPasswordVisible = !isPasswordVisible;
         // Keep the cursor at the end
-        SelectedAppPassword.setSelection(SelectedAppPassword.getText().length());
+        selectedAppPassword.setSelection(selectedAppPassword.getText().length());
     }
 }

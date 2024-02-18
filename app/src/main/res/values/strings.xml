@@ -2,7 +2,13 @@
     <string name="app_name">passpal2 </string>
     <string name="appNames">name</string>
     <string name="appLinks">link</string>
-
+    <string name="add_photo">Add Photo</string>
+    <string name="app_nameAdded">App Name Added</string>
+    <string name="app_link">App Link</string>
+    <string name="username">Username</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="generate_new_password">Generate New Password</string>
     //Names for main string
     <string-array name="appNames">
         <item>Facebook</item>

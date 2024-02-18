@@ -2,10 +2,13 @@ package com.example.passpal2;
 
 import static com.example.passpal2.AppsInfoDB.TABLE_APP_INFO;
 
+import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -13,13 +16,18 @@ import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class AppSelectionActivity extends AppCompatActivity implements RecyclerViewInterface {
 
+    private AppSelectionViewModel viewModel;
     AdapterRecycler adapter;
     ArrayList<AppsObj> appsObjs = new ArrayList<>();
     ArrayList<AppsObj> selectedApps = new ArrayList<>();
@@ -58,7 +66,17 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
                 selectedAppsList(v);
             }
         });
+        // Εδώ προσθέτουμε κώδικα για να ακούμε τις αλλαγές στα επιλεγμένα στοιχεία και να ενημερώνουμε τη λίστα
+        if (viewModel != null) {
+            // Κάντε χρήση του viewModel εδώ
+            LiveData<List<AppsObj>> selectedAppsLiveData = viewModel.getSelectedAppsLiveData();
+            // Συνεχίστε με τη χρήση του LiveData
+        } else {
+            // Εδώ μπορείτε να αντιμετωπίσετε την περίπτωση που το viewModel είναι null
+            Log.e("AppSelectionActivity", "ViewModel is null");
+        }
     }
+
 
     private void setUpAppData() {
         String[] appNames = getResources().getStringArray(R.array.appNames);
@@ -78,14 +96,11 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
         } else {
             selectedApps.remove(selectedApp);
         }
-        if (selectedApps.size() < 10) {
-            selectedApps.add(selectedApp);
-        } else {
+        if (selectedApps.size() >= 10) {
             // Εμφάνιση μηνύματος ειδοποίησης αν έχουν επιλεγεί ήδη 10 εφαρμογές
             Toast.makeText(AppSelectionActivity.this, "Μπορείτε να επιλέξετε μόνο μέχρι 10 εφαρμογές", Toast.LENGTH_SHORT).show();
         }
     }
-
     @Override
     public void onBackPressed() {
         if (selectedApps.isEmpty()) {
@@ -114,18 +129,49 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
     }
 
     public void selectedAppsList(View view) {
-        // Ελέγχουμε αν η λίστα με τις επιλεγμένες εφαρμογές είναι άδεια
         if (selectedApps.isEmpty()) {
             // Εμφανίζουμε μήνυμα προειδοποίησης
-            Toast.makeText(this, "Παρακαλώ επιλέξτε τουλάχιστον μία εφαρμογή", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Εδω ειναι το λαθος", Toast.LENGTH_SHORT).show();
         } else {
+            // Μετατροπή της λίστας επιλεγμένων εφαρμογών σε λίστα τύπου Parcelable
+            ArrayList<Parcelable> parcelableApps = new ArrayList<>();
+            for (AppsObj app : selectedApps) {
+                parcelableApps.add((Parcelable) app);
+                // Εδώ προσθέτουμε κώδικα για να αποθηκεύουμε την επιλεγμένη εφαρμογή στη βάση
+                // Πρέπει να έχετε πρόσβαση στην κλάση που διαχειρίζεται τη βάση δεδομένων της εφαρμογής σας
+                // Και να χρησιμοποιήσετε τις κατάλληλες μεθόδους για εισαγωγή δεδομένων
+                saveSelectedAppToDatabase(app, userId);
+            }
             // Επιστροφή στο MainActivity με τις επιλεγμένες εφαρμογές
             Intent intent = new Intent();
-            intent.putParcelableArrayListExtra("selected_apps", (ArrayList<? extends Parcelable>) new ArrayList<>(selectedApps));
+            intent.putParcelableArrayListExtra("selected_apps", parcelableApps);
             setResult(RESULT_OK, intent);
             finish();
         }
     }
+
+    private void saveSelectedAppToDatabase(AppsObj app, int userId) {
+        // Ελέγχουμε αν το userId είναι έγκυρο (δηλαδή διαφορετικό του -1)
+        if (userId != -1) {
+            // Δημιουργούμε ένα αντικείμενο βοηθού βάσης δεδομένων
+            DataBaseHelper dbHelper = new DataBaseHelper(this);
+
+            // Εισάγουμε την επιλεγμένη εφαρμογή στη βάση δεδομένων με το συγκεκριμένο userId
+            boolean isInserted = dbHelper.addSelectedAppWithUserId(app, userId);
+            if (isInserted) {
+                // Επιτυχής εισαγωγή
+                Log.d("AppSelectionActivity", "App inserted successfully into database");
+            } else {
+                // Αποτυχία εισαγωγής
+                Log.e("AppSelectionActivity", "Failed to insert app into database");
+            }
+        } else {
+            // Εμφανίζουμε μήνυμα λάθους αν το userId δεν είναι έγκυρο
+            Log.e("AppSelectionActivity", "Invalid user ID");
+        }
+    }
+
+
 
 
     // Λειτουργία κουμπιών

@@ -13,12 +13,13 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class AdapterRecycler extends RecyclerView.Adapter<AdapterRecycler.MyViewHolder>{
     private final RecyclerViewInterface recyclerViewInterface;
     Context context;
     ArrayList<AppsObj> appsObjs;
-
+    ArrayList<AppsObj> selectedApps = new ArrayList<>();
     public AdapterRecycler(Context context, ArrayList<AppsObj> appsObjs, RecyclerViewInterface recyclerViewInterface){
         this.context = context;
         this.appsObjs = appsObjs;
@@ -65,6 +66,12 @@ public class AdapterRecycler extends RecyclerView.Adapter<AdapterRecycler.MyView
         String appName = app.getAppNames();
         Log.d("MyApp", "Application selected: " + appName + ", Position: " + position);
     }
+    // Μέθοδος για να ενημερώνει τη λίστα των επιλεγμένων εφαρμογών
+    public void setSelectedApps(List<AppsObj> selectedApps) {
+        this.selectedApps.clear();
+        this.selectedApps.addAll(selectedApps);
+        notifyDataSetChanged();
+    }
 
     public static class MyViewHolder extends RecyclerView.ViewHolder {
 
@@ -88,4 +95,6 @@ public class AdapterRecycler extends RecyclerView.Adapter<AdapterRecycler.MyView
             });
         }
     }
+
+
 }

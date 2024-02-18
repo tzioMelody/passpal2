@@ -1,6 +1,5 @@
 package com.example.passpal2;
 
-
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
@@ -9,40 +8,30 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AppSelectionViewModel extends ViewModel {
-    private MutableLiveData<List<AppsObj.AppInfo>> selectedAppsLiveData = new MutableLiveData<>();
-    private static final int MAX_SELECTED_APPS = 10;
+    private MutableLiveData<List<AppsObj>> selectedAppsLiveData;
 
-    public LiveData<List<AppsObj.AppInfo>> getSelectedAppsLiveData() {
+    public LiveData<List<AppsObj>> getSelectedAppsLiveData() {
+        if (selectedAppsLiveData == null) {
+            selectedAppsLiveData = new MutableLiveData<>();
+            selectedAppsLiveData.setValue(new ArrayList<>());
+        }
         return selectedAppsLiveData;
     }
 
-    public boolean addSelectedApp(AppsObj.AppInfo appInfo) {
-        List<AppsObj.AppInfo> selectedApps = selectedAppsLiveData.getValue();
-        if (selectedApps == null) {
-            selectedApps = new ArrayList<>();
-        }
-
-        if (selectedApps.size() < MAX_SELECTED_APPS && !selectedApps.contains(appInfo)) {
-            selectedApps.add(appInfo);
-            selectedAppsLiveData.setValue(selectedApps);
-            return true;
-        }
-
-        return false;
-    }
-
-    public void removeSelectedApp(AppsObj.AppInfo appInfo) {
-        List<AppsObj.AppInfo> selectedApps = selectedAppsLiveData.getValue();
-        if (selectedApps != null) {
-            selectedApps.remove(appInfo);
-            selectedAppsLiveData.setValue(selectedApps);
+    public void addSelectedApp(AppsObj app) {
+        List<AppsObj> apps = selectedAppsLiveData.getValue();
+        if (apps != null) {
+            apps.add(app);
+            selectedAppsLiveData.setValue(apps);
         }
     }
 
-    public boolean hasReachedMaxSelectedApps() {
-        List<AppsObj.AppInfo> selectedApps = selectedAppsLiveData.getValue();
-        return selectedApps != null && selectedApps.size() >= MAX_SELECTED_APPS;
+    public void removeSelectedApp(AppsObj app) {
+        List<AppsObj> apps = selectedAppsLiveData.getValue();
+        if (apps != null) {
+            apps.remove(app);
+            selectedAppsLiveData.setValue(apps);
+        }
     }
-
-
 }
+

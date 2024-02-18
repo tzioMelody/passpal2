@@ -6,6 +6,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -27,6 +28,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import it.xabaras.android.recyclerview.swipedecorator.RecyclerViewSwipeDecorator;
@@ -52,14 +54,15 @@ public class MainActivity extends AppCompatActivity {
         appsRecyclerView = findViewById(R.id.appsRecyclerView);
 
         // Create adapter here
-        adapter = new AdapterRecycler(this, selectedApps, selectedApps, new AdapterRecycler.OnItemClickListener() {
+        adapter = new AdapterRecycler(this, new ArrayList<>(selectedApps), new RecyclerViewInterface() {
             @Override
-            public void onItemClick(AppsObj appsObj) {
-                // Handle item click here
-                String appName = appsObj.getAppNames();
-                Toast.makeText(MainActivity.this, "Clicked on app: " + appName, Toast.LENGTH_SHORT).show();
+            public void onItemClick(int position) {
+                //  κλικ στο item του RecyclerView
+                AppsObj selectedApp = selectedApps.get(position);
+                Toast.makeText(MainActivity.this, "Clicked on app: " + selectedApp.getAppNames(), Toast.LENGTH_SHORT).show();
             }
         });
+
 
         // Set adapter to RecyclerView
         appsRecyclerView.setAdapter(adapter);
@@ -76,14 +79,21 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 1 && resultCode == RESULT_OK) {
-            ArrayList<AppsObj> apps = data.getParcelableArrayListExtra("selected_apps");
-            if (apps != null) {
+            ArrayList<Parcelable> parcelables = data.getParcelableArrayListExtra("selected_apps");
+            if (parcelables != null) {
+                List<AppsObj> apps = new ArrayList<>();
+                for (Parcelable parcelable : parcelables) {
+                    if (parcelable instanceof AppsObj) {
+                        apps.add((AppsObj) parcelable);
+                    }
+                }
                 selectedApps.clear();
                 selectedApps.addAll(apps);
                 adapter.notifyDataSetChanged();
             }
         }
     }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -294,7 +304,7 @@ public class MainActivity extends AppCompatActivity {
             AppsObj selectedApp = selectedApps.get(position);
             // Transfer to the EditSelectedAppActivity
             Intent editIntent = new Intent(MainActivity.this, EditSelectedAppActivity.class);
-            editIntent.putExtra("selectedApp", selectedApp);
+            /*editIntent.putExtra("selectedApp", selectedApp);*/
             startActivity(editIntent);
         }
     }

@@ -3,6 +3,8 @@ package com.example.passpal2;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import androidx.appcompat.view.menu.MenuBuilder;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,7 +40,35 @@ public class AppsObj {
     public void setSelected(boolean selected) {
         isSelected = selected;
     }
+
+     // Εσωτερική κλάση UserApp
+    public static class UserApp {
+        private final String appName;
+        private final String appLink;
+
+        public UserApp(String appName, String appLink) {
+            this.appName = appName;
+            this.appLink = appLink;
+        }
+
+        public String getAppName() {
+            return appName;
+        }
+
+        public String getAppLink() {
+            return appLink;
+        }
+    }
+
+    // Στατική λίστα USER_APPS
+    public static List<UserApp> USER_APPS = new ArrayList<>();
+
 }
+
+
+
+
+
     /*private void appList() {
         COMMON_APPS.add(new AppInfo("Facebook", "https://www.facebook.com", R.drawable.app_icon1));
         COMMON_APPS.add(new AppInfo("Instagram", "https://www.instagram.com", R.drawable.app_icon2));
@@ -119,26 +149,5 @@ public class AppsObj {
             return 0;
         }
     }
-
-    public static class UserApp {
-        private final String appName;
-        private final String appLink;
-
-        public UserApp(String appName, String appLink) {
-            this.appName = appName;
-            this.appLink = appLink;
-        }
-
-        public String getAppName() {
-            return appName;
-        }
-
-        public String getAppLink() {
-            return appLink;
-        }
-    }
-
-    public static void addUserApp(String appName, String appLink) {
-        USER_APPS.add(new UserApp(appName, appLink));
-    }*/
+*/
 

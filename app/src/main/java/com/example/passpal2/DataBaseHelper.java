@@ -230,6 +230,22 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     }
 
 
+    // Κώδικας για την εισαγωγή μιας επιλεγμένης εφαρμογής με συγκεκριμένο user_id
+    public boolean addSelectedAppWithUserId(AppsInfo appInfo, int userId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_APP_NAME, appInfo.getAppName());
+        values.put(COLUMN_APP_LINK, appInfo.getAppLink());
+        values.put(COLUMN_IMAGE_RESOURCE, appInfo.getImageResource());
+        values.put(COLUMN_IS_SELECTED, 1);  // Θέστε το isSelected σε 1 για τις επιλεγμένες εφαρμογές
+        values.put("user_id", userId);  // Ορίστε το user_id για την επιλεγμένη εφαρμογή
+
+        long insert = db.insert(TABLE_APPS_INFO, null, values);
+        db.close();
+
+        // Επιστρέφει true αν η εισαγωγή ήταν επιτυχής.
+        return insert != -1;
+    }
 
 
     public User getUserByUsername(String username) {
@@ -255,6 +271,39 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
         return user;
     }
+
+    public boolean addSelectedAppWithUserId(AppsObj app, int userId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("user_id", userId);
+        values.put("app_name", app.getAppNames());
+        values.put("app_link", app.getAppLinks());
+        // Προσθέστε τα υπόλοιπα πεδία ανάλογα με τις ανάγκες σας
+
+        long result = db.insert("selected_apps_table", null, values);
+        db.close();
+
+        return result != -1;
+    }
+
+    public int getUserIdByUsername(String username) {
+        // Αρχικοποίηση με τιμή που υποδηλώνει ότι δεν βρέθηκε χρήστης
+        int userId = -1;
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT " + COLUMN_ID + " FROM " + USER_TABLE + " WHERE " + COLUMN_USERNAME + " = ?", new String[]{username});
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                int columnIndex = cursor.getColumnIndex(COLUMN_ID);
+                if (columnIndex != -1) {
+                    userId = cursor.getInt(columnIndex);
+                }
+            }
+            cursor.close();
+        }
+        db.close();
+        return userId;
+    }
+
 
     public User getUserByEmail(String email) {
         User user = null;
@@ -337,6 +386,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
 
     // Κώδικας για την εισαγωγή μιας επιλεγμένης εφαρμογής
+    // Κώδικας για την εισαγωγή μιας επιλεγμένης εφαρμογής
     public boolean addSelectedApp(AppsInfo appInfo) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -385,14 +435,13 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return selectedApps;
     }
 
-    // Κώδικας για τον αφαιρεί όλες τις επιλεγμένες εφαρμογές
+
+    //  αφαιρεί όλες τις επιλεγμένες εφαρμογές
     public void removeAllSelectedApps() {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(TABLE_APPS_INFO, COLUMN_IS_SELECTED + " = 1", null);
         db.close();
     }
-
-
 
     // Κώδικας για την εισαγωγή δεδομένων στον πίνακα app_info_table
     public boolean addAppInfo(AppsInfo appInfo) {
