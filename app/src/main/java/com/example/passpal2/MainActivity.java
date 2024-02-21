@@ -2,6 +2,7 @@ package com.example.passpal2;
 
 import android.app.Dialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -42,8 +43,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        getSupportActionBar().setTitle("Pass Pal");
 
+        SharedPreferences preferences = getSharedPreferences("user_credentials", MODE_PRIVATE);
+        String username = preferences.getString("username", "");
+
+        // Ορίστε το όνομα χρήστη ως τίτλο στη μπάρα
+        getSupportActionBar().setTitle(username);
         FloatingActionButton appsBtn = findViewById(R.id.appsBtn);
         appsBtn.setOnClickListener(view -> {
             // Use startActivityForResult to receive results back from AppSelectionActivity

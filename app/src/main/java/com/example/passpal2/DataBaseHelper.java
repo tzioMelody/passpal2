@@ -271,6 +271,19 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
         return user;
     }
+    public String getUsernameByUserId(int userId) {
+        String username = null;
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT " + COLUMN_USERNAME + " FROM " + USER_TABLE + " WHERE " + COLUMN_ID + " = ?", new String[]{String.valueOf(userId)});
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                username = cursor.getString(cursor.getColumnIndex(COLUMN_USERNAME));
+            }
+            cursor.close();
+        }
+        db.close();
+        return username;
+    }
 
     public boolean addSelectedAppWithUserId(AppsObj app, int userId) {
         SQLiteDatabase db = this.getWritableDatabase();

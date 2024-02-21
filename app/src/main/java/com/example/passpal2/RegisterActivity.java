@@ -165,8 +165,11 @@ public class RegisterActivity extends AppCompatActivity {
 
             DataBaseHelper.User newUser = new DataBaseHelper.User(0, username, email, passwordToStore);
 
-            if (db.addOne(newUser)) {
+            // εισαγωγή του νέου χρήστη στη βάση
+            int userId = db.addOne(newUser);
+            if (userId != -1) {
                 Toast.makeText(this, "User registered successfully", Toast.LENGTH_SHORT).show();
+
                 // Πάμε MainActivity
                 startActivity(new Intent(this, MainActivity.class));
             } else {
@@ -177,6 +180,7 @@ public class RegisterActivity extends AppCompatActivity {
             Toast.makeText(this, "Failed to register user due to an error", Toast.LENGTH_SHORT).show();
         }
     }
+
 
 
 
