@@ -1,6 +1,8 @@
 package com.example.passpal2;
 
 
+import static com.example.passpal2.AppsInfoDB.TABLE_APP_INFO;
+
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
@@ -277,7 +279,10 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         Cursor cursor = db.rawQuery("SELECT " + COLUMN_USERNAME + " FROM " + USER_TABLE + " WHERE " + COLUMN_ID + " = ?", new String[]{String.valueOf(userId)});
         if (cursor != null) {
             if (cursor.moveToFirst()) {
-                username = cursor.getString(cursor.getColumnIndex(COLUMN_USERNAME));
+                int columnIndex = cursor.getColumnIndex(COLUMN_USERNAME);
+                if (columnIndex != -1) {
+                    username = cursor.getString(columnIndex);
+                }
             }
             cursor.close();
         }
@@ -511,6 +516,23 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         db.close();
 
         return appInfoList;
+    }
+
+    public void saveSelectedAppToDatabase(int userId, List<AppsObj.UserApp> selectedApps) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        for (AppsObj.UserApp app : selectedApps) {
+            ContentValues values = new ContentValues();
+            values.put(COLUMN_ID), userId);
+            values.put(COLUMN_APP_NAME, app.getAppName());
+            values.put(COLUMN_APP_LINK, app.getAppLink());
+            values.put(COLUMN_IMAGE_RESOURCE, app.getImageResource());
+            values.put(COLUMN_IS_SELECTED, app.isSelected() ? 1 : 0);
+
+            db.insert(TABLE_APP_INFO, null, values);
+        }
+
+        db.close();
     }
 
 

@@ -166,12 +166,16 @@ public class RegisterActivity extends AppCompatActivity {
             DataBaseHelper.User newUser = new DataBaseHelper.User(0, username, email, passwordToStore);
 
             // εισαγωγή του νέου χρήστη στη βάση
-            int userId = db.addOne(newUser);
-            if (userId != -1) {
+            if (db.addOne(newUser)) {
                 Toast.makeText(this, "User registered successfully", Toast.LENGTH_SHORT).show();
 
-                // Πάμε MainActivity
-                startActivity(new Intent(this, MainActivity.class));
+                // Παιρνω το ID του
+                int userId = db.getUserIdByUsername(username);
+
+                // Προσθέστε το όνομα χρήστη στο Intent
+                Intent intent = new Intent(this, MainActivity.class);
+                intent.putExtra("username", username);
+                startActivity(intent);
             } else {
                 Toast.makeText(this, "Failed to register user", Toast.LENGTH_SHORT).show();
             }
@@ -180,8 +184,6 @@ public class RegisterActivity extends AppCompatActivity {
             Toast.makeText(this, "Failed to register user due to an error", Toast.LENGTH_SHORT).show();
         }
     }
-
-
 
 
     private boolean isPasswordStrong(String password) {
