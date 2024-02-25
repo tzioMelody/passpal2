@@ -27,8 +27,8 @@
 
             <ImageView
                 android:id="@+id/imageView"
-                android:layout_width="95dp"
-                android:layout_height="100dp"
+                android:layout_width="84dp"
+                android:layout_height="77dp"
                 android:layout_marginEnd="284dp"
                 android:padding="5dp"
                 android:src="@drawable/ic_launcher_background"
@@ -37,12 +37,13 @@
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintVertical_bias="0.0" />
 
+
             <TextView
                 android:id="@+id/appname"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="15dp"
-                android:layout_marginTop="35dp"
+                android:layout_marginStart="68dp"
+                android:layout_marginTop="32dp"
                 android:text="@string/appNames"
                 android:textColor="@color/black"
                 android:textSize="20sp"
@@ -50,13 +51,12 @@
                 app:layout_constraintStart_toEndOf="@+id/imageView"
                 app:layout_constraintTop_toTopOf="parent" />
 
-
             <ToggleButton
                 android:id="@+id/toggleButton"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:layout_alignParentEnd="true"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="16dp"
                 android:layout_marginEnd="16dp"
                 android:background="@drawable/selector_toggle_button"
                 android:textOff=""

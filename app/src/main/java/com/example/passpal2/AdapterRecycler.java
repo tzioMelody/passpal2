@@ -1,5 +1,7 @@
 package com.example.passpal2;
 
+import static java.lang.String.valueOf;
+
 import android.content.Context;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -73,21 +75,24 @@ public class AdapterRecycler extends RecyclerView.Adapter<AdapterRecycler.MyView
             selectedApps.remove(app);
         }
 
-        // Εκτύπωση της λίστας selectedApps στο Logcat
+    }
+    public int getSelectedAppsCount() {
+        return selectedApps.size();
+    }
+    public String getSelectedApps() {
         StringBuilder selectedAppsNames = new StringBuilder();
         for (AppsObj selectedApp : selectedApps) {
             selectedAppsNames.append(selectedApp.getAppNames()).append(", ");
         }
         if (selectedAppsNames.length() > 0) {
-            selectedAppsNames.setLength(selectedAppsNames.length() - 2); // Αφαιρούμε το τελευταίο κόμμα και το κενό
+            selectedAppsNames.setLength(selectedAppsNames.length() - 2);
         }
-        Log.d("MyApp", "Selected Apps: " + selectedAppsNames);
-    }
-    public int getSelectedAppsCount() {
-        return selectedApps.size();
+        Log.d("MyApp", "Selected Apps in method :  " + selectedAppsNames.toString());
+        return selectedAppsNames.toString();
     }
 
-        // Μέθοδος για να ενημερώνει τη λίστα των επιλεγμένων εφαρμογών
+
+    // Μέθοδος για να ενημερώνει τη λίστα των επιλεγμένων εφαρμογών
     public void setSelectedApps(List<AppsObj> selectedApps) {
         this.selectedApps.clear();
         this.selectedApps.addAll(selectedApps);

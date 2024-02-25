@@ -76,39 +76,39 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
 
     @Override
     public void onItemClick(int position) {
-        adapter.toggleItemSelection(position);
-        AppsObj selectedApp = appsObjs.get(position);
-        DataBaseHelper dbHelper = new DataBaseHelper(this);
+        if (adapter != null) {
+            adapter.toggleItemSelection(position);
+            AppsObj selectedApp = appsObjs.get(position);
+            int selectedAppsCount = adapter.getSelectedAppsCount();
 
-        int userId = dbHelper.getUserIdByUsername("exampleUsername");
+            DataBaseHelper dbHelper = new DataBaseHelper(this);
 
-        if (selectedApp.isSelected()) {
-            selectedApps.add(selectedApp);
-        } else {
-            selectedApps.remove(selectedApp);
+            int userId = dbHelper.getUserIdByUsername("exampleUsername");
+            if (selectedAppsCount > 10) {
+                // Εμφάνιση μηνύματος ειδοποίησης αν έχουν επιλεγεί ήδη 10 εφαρμογές
+                Toast.makeText(AppSelectionActivity.this, "Μπορείτε να επιλέξετε μόνο μέχρι 10 εφαρμογές", Toast.LENGTH_SHORT).show();
+            } else if (selectedAppsCount == 0) {
+                // Εμφανίζουμε μήνυμα προειδοποίησης
+                Toast.makeText(this, "Εδω ειναι το λαθος", Toast.LENGTH_SHORT).show();
+            }
+
+            // Εδώ προσθέτουμε κώδικα για να αποθηκεύουμε την επιλεγμένη εφαρμογή στη λίστα selectedApps
+            // Πρέπει να έχετε πρόσβαση στην κλάση που διαχειρίζεται τη βάση δεδομένων της εφαρμογής σας
+            // Και να χρησιμοποιήσετε τις κατάλληλες μεθόδους για εισαγωγή δεδομένων
+            Log.d("MyApp", "UserID " + userId);
+            saveSelectedAppToDatabase(selectedApp, userId);
         }
-
-        // Εδώ προσθέτουμε κώδικα για να αποθηκεύουμε την επιλεγμένη εφαρμογή στη λίστα selectedApps
-        // Πρέπει να έχετε πρόσβαση στην κλάση που διαχειρίζεται τη βάση δεδομένων της εφαρμογής σας
-        // Και να χρησιμοποιήσετε τις κατάλληλες μεθόδους για εισαγωγή δεδομένων
-        Log.d("MyApp", "UserID " + userId);
-        saveSelectedAppToDatabase(selectedApp, userId);
     }
 
     public void SelectBtnClick(View view) {
         int selectedAppsCount = adapter.getSelectedAppsCount();
+        String selectedAppsList = adapter.getSelectedApps();
 
-        if (selectedAppsCount > 10) {
-            //με χρονοκαθυστερηση και δεν αφηνει να προχωρησει στην main οποτε κατι κανουμε
-            // Εμφάνιση μηνύματος ειδοποίησης αν έχουν επιλεγεί ήδη 10 εφαρμογές
-            Toast.makeText(AppSelectionActivity.this, "Μπορείτε να επιλέξετε μόνο μέχρι 10 εφαρμογές", Toast.LENGTH_SHORT).show();
-        } else if (selectedAppsCount == 0) {
-            // Εμφανίζουμε μήνυμα προειδοποίησης
-            Toast.makeText(this, "Εδω ειναι το λαθος", Toast.LENGTH_SHORT).show();
-        } else {
+      if (selectedAppsCount <= 10){
             Toast.makeText(this, "eimaste kala", Toast.LENGTH_SHORT).show();
 
         }
+
     }
 
 

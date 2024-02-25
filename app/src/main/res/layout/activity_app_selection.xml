@@ -8,11 +8,11 @@ android:padding="8dp">
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
-        android:layout_width="399dp"
-        android:layout_height="610dp"
+        android:layout_width="395dp"
+        android:layout_height="582dp"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="25dp"
+        android:layout_marginTop="9dp"
         android:background="#80FFFFFF" />
 
     <Button
@@ -20,16 +20,14 @@ android:padding="8dp">
         style="?attr/materialButtonOutlinedStyle"
         android:layout_width="206dp"
         android:layout_height="60dp"
-        android:layout_below="@+id/recyclerView"
         android:layout_alignParentStart="true"
         android:layout_alignParentBottom="true"
         android:layout_gravity="center"
-        android:layout_marginStart="21dp"
-        android:layout_marginTop="11dp"
-        android:layout_marginEnd="14dp"
-        android:layout_marginBottom="17dp"
+        android:layout_marginStart="27dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="9dp"
         android:layout_toStartOf="@+id/selectionApp"
-        android:background="#FFF"
+        android:background="@color/white"
         android:text="NEW"
         android:textColor="@color/black"
         android:textSize="15sp"
