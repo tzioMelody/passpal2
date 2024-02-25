@@ -65,7 +65,25 @@ public class AdapterRecycler extends RecyclerView.Adapter<AdapterRecycler.MyView
         // Εκτύπωση πληροφοριών στο Logcat
         String appName = app.getAppNames();
         Log.d("MyApp", "Application selected: " + appName + ", Position: " + position);
+
+        // Προσθήκη της εφαρμογής στη λίστα selectedApps
+        if (app.isSelected()) {
+            selectedApps.add(app);
+        } else {
+            selectedApps.remove(app);
+        }
+
+        // Εκτύπωση της λίστας selectedApps στο Logcat
+        StringBuilder selectedAppsNames = new StringBuilder();
+        for (AppsObj selectedApp : selectedApps) {
+            selectedAppsNames.append(selectedApp.getAppNames()).append(", ");
+        }
+        if (selectedAppsNames.length() > 0) {
+            selectedAppsNames.setLength(selectedAppsNames.length() - 2); // Αφαιρούμε το τελευταίο κόμμα και το κενό
+        }
+        Log.d("MyApp", "Selected Apps: " + selectedAppsNames);
     }
+
     // Μέθοδος για να ενημερώνει τη λίστα των επιλεγμένων εφαρμογών
     public void setSelectedApps(List<AppsObj> selectedApps) {
         this.selectedApps.clear();

@@ -1,18 +1,14 @@
 package com.example.passpal2;
 
-import android.os.Parcel;
-import android.os.Parcelable;
-
-import androidx.appcompat.view.menu.MenuBuilder;
-
 import java.util.ArrayList;
 import java.util.List;
 
 public class AppsObj {
-    String AppNames;
-    String AppLinks;
-    int AppImages;
-    boolean isSelected;
+    private int id; // Προσθέστε αυτή την μεταβλητή
+    private String AppNames;
+    private String AppLinks;
+    private int AppImages;
+    private boolean isSelected;
 
     public AppsObj(String appNames, String appLinks, int appImages) {
         AppNames = appNames;
@@ -41,7 +37,15 @@ public class AppsObj {
         isSelected = selected;
     }
 
-     // Εσωτερική κλάση UserApp
+    public int getId() { // Προσθέστε αυτή την μέθοδο
+        return id;
+    }
+
+    public void setId(int id) { // Προσθέστε αυτή την μέθοδο
+        this.id = id;
+    }
+
+    // Εσωτερική κλάση UserApp
     public static class UserApp {
         private final String appName;
         private final String appLink;
@@ -62,8 +66,8 @@ public class AppsObj {
 
     // Στατική λίστα USER_APPS
     public static List<UserApp> USER_APPS = new ArrayList<>();
-
 }
+
 
 
 

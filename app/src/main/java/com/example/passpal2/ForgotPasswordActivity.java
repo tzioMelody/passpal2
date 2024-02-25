@@ -9,7 +9,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
-import com.example.passpal2.Data.Entities.User;
 
 public class ForgotPasswordActivity extends AppCompatActivity {
     private EditText inputEmail, newPassword, ConfirmNewPassword;

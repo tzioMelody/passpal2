@@ -1,7 +1,6 @@
 package com.example.passpal2;
 
 
-import static com.example.passpal2.AppsInfoDB.TABLE_APP_INFO;
 
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
@@ -9,7 +8,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import com.example.passpal2.Data.Entities.AppsInfo;
 
 import androidx.annotation.Nullable;
 
@@ -121,6 +119,18 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         db.execSQL(createAppsInfoTableStatement);
     }
 
+    public void addUserApp(AppsObj userApp) {
+
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_APP_NAME, userApp.getAppNames());
+        values.put(COLUMN_APP_LINK, userApp.getAppLinks());
+        // Μπορείτε να προσθέσετε εδώ περαιτέρω στήλες ανάλογα με την ανάγκη
+
+        db.insert(TABLE_APPS_INFO, null, values);
+        db.close();
+    }
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         if (oldVersion < newVersion) {
@@ -232,13 +242,12 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     }
 
 
-    // Κώδικας για την εισαγωγή μιας επιλεγμένης εφαρμογής με συγκεκριμένο user_id
-    public boolean addSelectedAppWithUserId(AppsInfo appInfo, int userId) {
+    public boolean addSelectedAppWithUserId(AppsObj appInfo, int userId) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put(COLUMN_APP_NAME, appInfo.getAppName());
-        values.put(COLUMN_APP_LINK, appInfo.getAppLink());
-        values.put(COLUMN_IMAGE_RESOURCE, appInfo.getImageResource());
+        values.put(COLUMN_APP_NAME, appInfo.getAppNames());
+        values.put(COLUMN_APP_LINK, appInfo.getAppLinks());
+        values.put(COLUMN_IMAGE_RESOURCE, appInfo.getAppImages());
         values.put(COLUMN_IS_SELECTED, 1);  // Θέστε το isSelected σε 1 για τις επιλεγμένες εφαρμογές
         values.put("user_id", userId);  // Ορίστε το user_id για την επιλεγμένη εφαρμογή
 
@@ -248,6 +257,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         // Επιστρέφει true αν η εισαγωγή ήταν επιτυχής.
         return insert != -1;
     }
+
 
 
     public User getUserByUsername(String username) {
@@ -290,19 +300,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return username;
     }
 
-    public boolean addSelectedAppWithUserId(AppsObj app, int userId) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put("user_id", userId);
-        values.put("app_name", app.getAppNames());
-        values.put("app_link", app.getAppLinks());
-        // Προσθέστε τα υπόλοιπα πεδία ανάλογα με τις ανάγκες σας
 
-        long result = db.insert("selected_apps_table", null, values);
-        db.close();
-
-        return result != -1;
-    }
 
     public int getUserIdByUsername(String username) {
         // Αρχικοποίηση με τιμή που υποδηλώνει ότι δεν βρέθηκε χρήστης
@@ -405,12 +403,12 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     // Κώδικας για την εισαγωγή μιας επιλεγμένης εφαρμογής
     // Κώδικας για την εισαγωγή μιας επιλεγμένης εφαρμογής
-    public boolean addSelectedApp(AppsInfo appInfo) {
+    public boolean addSelectedApp(AppsObj appInfo) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put(COLUMN_APP_NAME, appInfo.getAppName());
-        values.put(COLUMN_APP_LINK, appInfo.getAppLink());
-        values.put(COLUMN_IMAGE_RESOURCE, appInfo.getImageResource());
+        values.put(COLUMN_APP_NAME, appInfo.getAppNames());
+        values.put(COLUMN_APP_LINK, appInfo.getAppLinks());
+        values.put(COLUMN_IMAGE_RESOURCE, appInfo.getAppImages());
         values.put(COLUMN_IS_SELECTED, 1);  // Θέστε το isSelected σε 1 για τις επιλεγμένες εφαρμογές
 
         long insert = db.insert(TABLE_APPS_INFO, null, values);
@@ -421,8 +419,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     }
 
     // Κώδικας για την ανάκτηση όλων των επιλεγμένων εφαρμογών
-    public List<AppsInfo> getAllSelectedApps() {
-        List<AppsInfo> selectedApps = new ArrayList<>();
+    public List<AppsObj> getAllSelectedApps() {
+        List<AppsObj> selectedApps = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
         String query = "SELECT * FROM " + TABLE_APPS_INFO + " WHERE " + COLUMN_IS_SELECTED + " = 1";
         Cursor cursor = db.rawQuery(query, null);
@@ -440,7 +438,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                     String appLink = cursor.getString(appLinkColumnIndex);
                     int imageResource = cursor.getInt(imageResourceColumnIndex);
 
-                    AppsInfo appInfo = new AppsInfo(appName, appLink, imageResource);
+                    AppsObj appInfo = new AppsObj(appName, appLink, imageResource);
                     appInfo.setId(id);
                     appInfo.setSelected(true);
 
@@ -462,12 +460,12 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     }
 
     // Κώδικας για την εισαγωγή δεδομένων στον πίνακα app_info_table
-    public boolean addAppInfo(AppsInfo appInfo) {
+    public boolean addAppInfo(AppsObj appInfo) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues cv = new ContentValues();
-        cv.put(COLUMN_APP_NAME, appInfo.getAppName());
-        cv.put(COLUMN_APP_LINK, appInfo.getAppLink());
-        cv.put(COLUMN_IMAGE_RESOURCE, appInfo.getImageResource());
+        cv.put(COLUMN_APP_NAME, appInfo.getAppNames());
+        cv.put(COLUMN_APP_LINK, appInfo.getAppLinks());
+        cv.put(COLUMN_IMAGE_RESOURCE, appInfo.getAppImages());
         // Μετατροπή της τιμής isSelected σε 1 ή 0.
         cv.put(COLUMN_IS_SELECTED, appInfo.isSelected() ? 1 : 0);
 
@@ -480,8 +478,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     }
 
     // Κώδικας για την ανάκτηση όλων των πληροφοριών εφαρμογών από τον πίνακα app_info_table
-    public List<AppsInfo> getAllAppInfo() {
-        List<AppsInfo> appInfoList = new ArrayList<>();
+    public List<AppsObj> getAllAppInfo() {
+        List<AppsObj> appInfoList = new ArrayList<>();
         String query = "SELECT * FROM " + TABLE_APPS_INFO;
 
         SQLiteDatabase db = this.getReadableDatabase();
@@ -502,7 +500,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                     int imageResource = cursor.getInt(imageResourceColumnIndex);
                     boolean isSelected = cursor.getInt(isSelectedColumnIndex) == 1;
 
-                    AppsInfo appInfo = new AppsInfo(appName, appLink, imageResource);
+                    AppsObj appInfo = new AppsObj(appName, appLink, imageResource);
                     appInfo.setId(id);
                     appInfo.setSelected(isSelected);
 
@@ -518,18 +516,18 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return appInfoList;
     }
 
-    public void saveSelectedAppToDatabase(int userId, List<AppsObj.UserApp> selectedApps) {
+    public void saveSelectedAppToDatabase(int userId, List<AppsObj> selectedApps) {
         SQLiteDatabase db = this.getWritableDatabase();
 
-        for (AppsObj.UserApp app : selectedApps) {
+        for (AppsObj app : selectedApps) {
             ContentValues values = new ContentValues();
-            values.put(COLUMN_ID), userId);
-            values.put(COLUMN_APP_NAME, app.getAppName());
-            values.put(COLUMN_APP_LINK, app.getAppLink());
-            values.put(COLUMN_IMAGE_RESOURCE, app.getImageResource());
+            values.put("user_id", userId);
+            values.put(COLUMN_APP_NAME, app.getAppNames());
+            values.put(COLUMN_APP_LINK, app.getAppLinks());
+            values.put(COLUMN_IMAGE_RESOURCE, app.getAppImages());
             values.put(COLUMN_IS_SELECTED, app.isSelected() ? 1 : 0);
 
-            db.insert(TABLE_APP_INFO, null, values);
+            db.insert(TABLE_APPS_INFO, null, values);
         }
 
         db.close();

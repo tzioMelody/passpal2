@@ -5,7 +5,6 @@ import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.widget.Toast;
 
-import com.example.passpal2.Data.Entities.User;
 
 import java.util.List;
 

@@ -1,10 +1,8 @@
 package com.example.passpal2;
 
-import static com.example.passpal2.AppsInfoDB.TABLE_APP_INFO;
+import static com.example.passpal2.DataBaseHelper.TABLE_APPS_INFO;
 
-import android.content.ContentValues;
 import android.content.Intent;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Parcelable;
@@ -15,10 +13,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-
 import androidx.lifecycle.LiveData;
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -26,8 +21,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AppSelectionActivity extends AppCompatActivity implements RecyclerViewInterface {
+    private static final String SELECTED_APPS_KEY = "selected_apps";
 
-    private AppSelectionViewModel viewModel;
     AdapterRecycler adapter;
     ArrayList<AppsObj> appsObjs = new ArrayList<>();
     ArrayList<AppsObj> selectedApps = new ArrayList<>();
@@ -41,6 +36,8 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_app_selection);
+
+        DataBaseHelper dbHelper = new DataBaseHelper(this);
 
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
 
@@ -66,17 +63,7 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
                 selectedAppsList(v);
             }
         });
-        // Εδώ προσθέτουμε κώδικα για να ακούμε τις αλλαγές στα επιλεγμένα στοιχεία και να ενημερώνουμε τη λίστα
-        if (viewModel != null) {
-            // Κάντε χρήση του viewModel εδώ
-            LiveData<List<AppsObj>> selectedAppsLiveData = viewModel.getSelectedAppsLiveData();
-            // Συνεχίστε με τη χρήση του LiveData
-        } else {
-            // Εδώ μπορείτε να αντιμετωπίσετε την περίπτωση που το viewModel είναι null
-            Log.e("AppSelectionActivity", "ViewModel is null");
-        }
     }
-
 
     private void setUpAppData() {
         String[] appNames = getResources().getStringArray(R.array.appNames);
@@ -91,6 +78,8 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
     public void onItemClick(int position) {
         adapter.toggleItemSelection(position);
         AppsObj selectedApp = appsObjs.get(position);
+        DataBaseHelper dbHelper = new DataBaseHelper(this);
+
         if (selectedApp.isSelected()) {
             selectedApps.add(selectedApp);
         } else {
@@ -100,7 +89,15 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
             // Εμφάνιση μηνύματος ειδοποίησης αν έχουν επιλεγεί ήδη 10 εφαρμογές
             Toast.makeText(AppSelectionActivity.this, "Μπορείτε να επιλέξετε μόνο μέχρι 10 εφαρμογές", Toast.LENGTH_SHORT).show();
         }
+        // Εδώ προσθέτουμε κώδικα για να αποθηκεύουμε την επιλεγμένη εφαρμογή στη λίστα selectedApps
+        // Πρέπει να έχετε πρόσβαση στην κλάση που διαχειρίζεται τη βάση δεδομένων της εφαρμογής σας
+        // Και να χρησιμοποιήσετε τις κατάλληλες μεθόδους για εισαγωγή δεδομένων
+        int userId = dbHelper.getUserIdByUsername("exampleUsername");
+        saveSelectedAppToDatabase(selectedApp, userId);
     }
+
+
+
     @Override
     public void onBackPressed() {
         if (selectedApps.isEmpty()) {
@@ -129,7 +126,8 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
     }
 
     public void selectedAppsList(View view) {
-        if (selectedApps.isEmpty()) {
+        int userId = 123; // Αντικαταστήστε το 123 με το πραγματικό ID του χρήστη
+        if (selectedApps.size() == 0) {
             // Εμφανίζουμε μήνυμα προειδοποίησης
             Toast.makeText(this, "Εδω ειναι το λαθος", Toast.LENGTH_SHORT).show();
         } else {
@@ -171,9 +169,6 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
         }
     }
 
-
-
-
     // Λειτουργία κουμπιών
     public void onAddUserAppsButtonClick(View view) {
         if (selectedApps.isEmpty()) {
@@ -193,10 +188,9 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
                     .show();
         }
     }
-
-
-
 }
+
+
        /* public List<AppsObj.UserApp> getAllUserApps() {
             List<AppsObj.UserApp> userApps = new ArrayList<>();
             String selectQuery = "SELECT  * FROM " + TABLE_APP_INFO;
