@@ -83,8 +83,11 @@ public class AdapterRecycler extends RecyclerView.Adapter<AdapterRecycler.MyView
         }
         Log.d("MyApp", "Selected Apps: " + selectedAppsNames);
     }
+    public int getSelectedAppsCount() {
+        return selectedApps.size();
+    }
 
-    // Μέθοδος για να ενημερώνει τη λίστα των επιλεγμένων εφαρμογών
+        // Μέθοδος για να ενημερώνει τη λίστα των επιλεγμένων εφαρμογών
     public void setSelectedApps(List<AppsObj> selectedApps) {
         this.selectedApps.clear();
         this.selectedApps.addAll(selectedApps);

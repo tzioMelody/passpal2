@@ -302,23 +302,25 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
 
 
+    @SuppressLint("Range")
     public int getUserIdByUsername(String username) {
-        // Αρχικοποίηση με τιμή που υποδηλώνει ότι δεν βρέθηκε χρήστης
-        int userId = -1;
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT " + COLUMN_ID + " FROM " + USER_TABLE + " WHERE " + COLUMN_USERNAME + " = ?", new String[]{username});
-        if (cursor != null) {
-            if (cursor.moveToFirst()) {
-                int columnIndex = cursor.getColumnIndex(COLUMN_ID);
-                if (columnIndex != -1) {
-                    userId = cursor.getInt(columnIndex);
-                }
-            }
+        int userId = -1;
+
+        String[] columns = {COLUMN_ID};
+        String selection = COLUMN_USERNAME + " = ?";
+        String[] selectionArgs = {username};
+
+        Cursor cursor = db.query(USER_TABLE, columns, selection, selectionArgs, null, null, null);
+
+        if (cursor != null && cursor.moveToFirst()) {
+            userId = cursor.getInt(cursor.getColumnIndex(COLUMN_ID));
             cursor.close();
         }
-        db.close();
+
         return userId;
     }
+
 
 
     public User getUserByEmail(String email) {
