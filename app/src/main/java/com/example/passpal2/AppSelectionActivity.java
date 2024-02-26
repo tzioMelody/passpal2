@@ -22,6 +22,7 @@ import java.util.List;
 
 public class AppSelectionActivity extends AppCompatActivity implements RecyclerViewInterface {
     private static final String SELECTED_APPS_KEY = "selected_apps";
+    DataBaseHelper dbHelper = new DataBaseHelper(this);
 
     AdapterRecycler adapter;
     ArrayList<AppsObj> appsObjs = new ArrayList<>();
@@ -44,6 +45,9 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
         setUpAppData();
 
         adapter = new AdapterRecycler(this, appsObjs, this);
+
+        //Αντληση του userID απο την main
+        int userId = getIntent().getIntExtra("USER_ID", -1);
 
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -81,9 +85,8 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
             AppsObj selectedApp = appsObjs.get(position);
             int selectedAppsCount = adapter.getSelectedAppsCount();
 
-            DataBaseHelper dbHelper = new DataBaseHelper(this);
-
-            int userId = dbHelper.getUserIdByUsername("exampleUsername");
+            //Αντληση του userID απο την main
+            int userId = getIntent().getIntExtra("USER_ID", -1);
             if (selectedAppsCount > 10) {
                 // Εμφάνιση μηνύματος ειδοποίησης αν έχουν επιλεγεί ήδη 10 εφαρμογές
                 Toast.makeText(AppSelectionActivity.this, "Μπορείτε να επιλέξετε μόνο μέχρι 10 εφαρμογές", Toast.LENGTH_SHORT).show();
@@ -96,20 +99,36 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
             // Πρέπει να έχετε πρόσβαση στην κλάση που διαχειρίζεται τη βάση δεδομένων της εφαρμογής σας
             // Και να χρησιμοποιήσετε τις κατάλληλες μεθόδους για εισαγωγή δεδομένων
             Log.d("MyApp", "UserID " + userId);
-            saveSelectedAppToDatabase(selectedApp, userId);
+            dbHelper.saveSelectedAppToDatabase(selectedApp, userId);
         }
     }
 
     public void SelectBtnClick(View view) {
         int selectedAppsCount = adapter.getSelectedAppsCount();
-        String selectedAppsList = adapter.getSelectedApps();
+        List<AppsObj> selectedApps = adapter.getSelectedApps();
 
-      if (selectedAppsCount <= 10){
-            Toast.makeText(this, "eimaste kala", Toast.LENGTH_SHORT).show();
+        if (selectedAppsCount <= 10) {
+            Log.d("MyApp", "Apps are under 10 and can be saved " );
+            // Εδώ πρέπει να πάρετε το userId από την προηγούμενη δραστηριότητα
+            int userId = getIntent().getIntExtra("userId", -1);
 
+            // Εδώ πρέπει να καλέσετε την saveSelectedAppToDatabase μέθοδο για κάθε επιλεγμένη εφαρμογή
+            for (AppsObj app : selectedApps) {
+                dbHelper.saveSelectedAppToDatabase(app, userId);
+            }
+
+            Toast.makeText(this, "Επιτυχής εισαγωγή επιλεγμένων εφαρμογών!", Toast.LENGTH_SHORT).show();
+
+            // Περνάμε τη λίστα με τις επιλεγμένες εφαρμογές στο MainActivity
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.putParcelableArrayListExtra("selectedApps", (ArrayList<? extends Parcelable>) selectedApps);
+            startActivity(intent);
+        } else {
+            Toast.makeText(this, "Μπορείτε να επιλέξετε μόνο μέχρι 10 εφαρμογές", Toast.LENGTH_SHORT).show();
         }
-
     }
+
+
 
 
     @Override
@@ -143,7 +162,7 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
 
 
 
-    private void saveSelectedAppToDatabase(AppsObj app, int userId) {
+  /*  private void saveSelectedAppToDatabase(AppsObj app, int userId) {
         // Ελέγχουμε αν το userId είναι έγκυρο (δηλαδή διαφορετικό του -1)
         if (userId != -1) {
             // Δημιουργούμε ένα αντικείμενο βοηθού βάσης δεδομένων
@@ -162,7 +181,7 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
             // Εμφανίζουμε μήνυμα λάθους αν το userId δεν είναι έγκυρο
             Log.e("AppSelectionActivity", "Invalid user ID");
         }
-    }
+    }*/
 
     // Λειτουργία κουμπιών
     public void onAddUserAppsButtonClick(View view) {

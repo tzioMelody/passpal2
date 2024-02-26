@@ -8,6 +8,7 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -29,13 +30,13 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import it.xabaras.android.recyclerview.swipedecorator.RecyclerViewSwipeDecorator;
 
 public class MainActivity extends AppCompatActivity {
     private RecyclerView appsRecyclerView;
+    DataBaseHelper dbHelper = new DataBaseHelper(this);
     private AdapterRecycler adapter;
     private List<AppsObj> selectedApps = new ArrayList<>();
 
@@ -44,16 +45,21 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Ορίστε το όνομα χρήστη ως τίτλο στη μπάρα
         SharedPreferences preferences = getSharedPreferences("user_credentials", MODE_PRIVATE);
         String username = preferences.getString("username", "");
+        getSupportActionBar().setTitle("Welcome, " + username +"!");
 
-        // Ορίστε το όνομα χρήστη ως τίτλο στη μπάρα
-        getSupportActionBar().setTitle(username);
+       // Ανάκτηση του userId χρησιμοποιώντας το username
+        int userId = dbHelper.getUserIdByUsername(username);
+        Intent intentUserID = new Intent(MainActivity.this, AppSelectionActivity.class);
+        intentUserID.putExtra("USER_ID", userId);
+
         FloatingActionButton appsBtn = findViewById(R.id.appsBtn);
         appsBtn.setOnClickListener(view -> {
             // Use startActivityForResult to receive results back from AppSelectionActivity
             Intent intent = new Intent(MainActivity.this, AppSelectionActivity.class);
-            startActivityForResult(intent, 1); // 1 is an arbitrary request code
+            startActivityForResult(intentUserID, 1); // 1 is an arbitrary request code
         });
 
         appsRecyclerView = findViewById(R.id.appsRecyclerView);

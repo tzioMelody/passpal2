@@ -83,43 +83,6 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     // Εσωτερική κλάση για την αντιπροσωπεία του AsyncTask
-    private class RetrieveUserIdTask extends AsyncTask<String, Void, Integer> {
-        private WeakReference<LoginActivity> activityReference;
-
-        RetrieveUserIdTask(LoginActivity context) {
-            activityReference = new WeakReference<>(context);
-        }
-
-        @Override
-        protected Integer doInBackground(String... params) {
-            String username = params[0];
-            DataBaseHelper dbHelper = new DataBaseHelper(LoginActivity.this);
-            DataBaseHelper.User user = dbHelper.getUserByUsername(username);
-            if (user != null) {
-                // Επιστροφή του userId
-                return user.getId();
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Integer userId) {
-            super.onPostExecute(userId);
-            LoginActivity activity = activityReference.get();
-            if (activity == null || activity.isFinishing()) return;
-
-            if (userId != null) {
-
-                activity.saveUserId(userId);
-                // Ενημέρωση του χρήστη για επιτυχή σύνδεση
-                Toast.makeText(activity, "Login successful", Toast.LENGTH_SHORT).show();
-                activity.proceedToMainActivity();
-            } else {
-                // Εμφάνιση μηνύματος σφάλματος αν δεν βρέθηκε το userId
-                Toast.makeText(activity, "Login failed. Please check your username and password.", Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
 
     // Μέθοδος για την αποθήκευση του userId
     private void saveUserId(int userId) {
@@ -137,12 +100,6 @@ public class LoginActivity extends AppCompatActivity {
         editor.apply();
     }
 
-    private void successfulLogin(String username, String password) {
-        DataBaseHelper dbHelper = new DataBaseHelper(LoginActivity.this);
-        saveCredentials(username, password);
-        Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_SHORT).show();
-        proceedToMainActivity();
-    }
 
     private void checkSavedCredentials() {
         SharedPreferences preferences = getSharedPreferences("user_credentials", MODE_PRIVATE);

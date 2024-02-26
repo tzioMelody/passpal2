@@ -79,16 +79,17 @@ public class AdapterRecycler extends RecyclerView.Adapter<AdapterRecycler.MyView
     public int getSelectedAppsCount() {
         return selectedApps.size();
     }
-    public String getSelectedApps() {
-        StringBuilder selectedAppsNames = new StringBuilder();
-        for (AppsObj selectedApp : selectedApps) {
-            selectedAppsNames.append(selectedApp.getAppNames()).append(", ");
+
+    public ArrayList<AppsObj> getSelectedApps() {
+        ArrayList<AppsObj> selectedApps = new ArrayList<>();
+        for (AppsObj selectedApp : this.selectedApps) {
+            if (selectedApp.isSelected()) {
+                selectedApps.add(selectedApp);
+                Log.d("MyApp", "Selected Apps in method :  " + selectedApps.toString());
+
+            }
         }
-        if (selectedAppsNames.length() > 0) {
-            selectedAppsNames.setLength(selectedAppsNames.length() - 2);
-        }
-        Log.d("MyApp", "Selected Apps in method :  " + selectedAppsNames.toString());
-        return selectedAppsNames.toString();
+        return selectedApps;
     }
 
 

@@ -1,10 +1,15 @@
 package com.example.passpal2;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
+import androidx.annotation.NonNull;
+
 import java.util.ArrayList;
 import java.util.List;
 
-public class AppsObj {
-    private int id; // Προσθέστε αυτή την μεταβλητή
+public class AppsObj implements Parcelable {
+    private int id;
     private String AppNames;
     private String AppLinks;
     private int AppImages;
@@ -16,6 +21,26 @@ public class AppsObj {
         AppImages = appImages;
         isSelected = false;
     }
+
+    protected AppsObj(Parcel in) {
+        id = in.readInt();
+        AppNames = in.readString();
+        AppLinks = in.readString();
+        AppImages = in.readInt();
+        isSelected = in.readByte() != 0;
+    }
+
+    public static final Creator<AppsObj> CREATOR = new Creator<AppsObj>() {
+        @Override
+        public AppsObj createFromParcel(Parcel in) {
+            return new AppsObj(in);
+        }
+
+        @Override
+        public AppsObj[] newArray(int size) {
+            return new AppsObj[size];
+        }
+    };
 
     public String getAppNames() {
         return AppNames;
@@ -37,11 +62,11 @@ public class AppsObj {
         isSelected = selected;
     }
 
-    public int getId() { // Προσθέστε αυτή την μέθοδο
+    public int getId() {
         return id;
     }
 
-    public void setId(int id) { // Προσθέστε αυτή την μέθοδο
+    public void setId(int id) {
         this.id = id;
     }
 
@@ -51,6 +76,23 @@ public class AppsObj {
                 "id=" + id +
                 ", AppNames='" + AppNames + '\'' +
                 '}';
+    }
+
+    /**
+     * @return
+     */
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    /**
+     * @param parcel
+     * @param i
+     */
+    @Override
+    public void writeToParcel(@NonNull Parcel parcel, int i) {
+
     }
 
     // Εσωτερική κλάση UserApp
@@ -70,8 +112,6 @@ public class AppsObj {
         public String getAppLink() {
             return appLink;
         }
-
-
     }
 
     // Στατική λίστα USER_APPS
