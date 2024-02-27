@@ -17,6 +17,7 @@ import androidx.annotation.Nullable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 
@@ -416,26 +417,12 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     ///////APP GETTERS AND SETTERS
 
 
-    // Κώδικας για την εισαγωγή μιας επιλεγμένης εφαρμογής
-    // Κώδικας για την εισαγωγή μιας επιλεγμένης εφαρμογής
-    public boolean addSelectedApp(AppsObj appInfo) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(COLUMN_APP_NAME, appInfo.getAppNames());
-        values.put(COLUMN_APP_LINK, appInfo.getAppLinks());
-        values.put(COLUMN_IMAGE_RESOURCE, appInfo.getAppImages());
-        values.put(COLUMN_IS_SELECTED, 1);  // Θέστε το isSelected σε 1 για τις επιλεγμένες εφαρμογές
 
-        long insert = db.insert(TABLE_APPS_INFO, null, values);
-        db.close();
-
-        // Επιστρέφει true αν η εισαγωγή ήταν επιτυχής.
-        return insert != -1;
-    }
 
     // Κώδικας για την ανάκτηση όλων των επιλεγμένων εφαρμογών
     public List<AppsObj> getAllSelectedApps(int userId) {
         List<AppsObj> selectedApps = new ArrayList<>();
+        HashSet<String> addedApps = new HashSet<>(); // Σύνολο για την αποθήκευση των ονομάτων των ήδη προστεθειμένων εφαρμογών
         SQLiteDatabase db = this.getReadableDatabase();
         String query = "SELECT * FROM " + TABLE_APPS_INFO + " WHERE " + COLUMN_IS_SELECTED + " = 1 AND user_id = ?";
         Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(userId)});
@@ -448,16 +435,20 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 int imageResourceColumnIndex = cursor.getColumnIndex(COLUMN_IMAGE_RESOURCE);
 
                 do {
-                    int id = cursor.getInt(idColumnIndex);
                     String appName = cursor.getString(appNameColumnIndex);
-                    String appLink = cursor.getString(appLinkColumnIndex);
-                    int imageResource = cursor.getInt(imageResourceColumnIndex);
+                    // Έλεγχος αν το όνομα της εφαρμογής έχει ήδη προστεθεί
+                    if (!addedApps.contains(appName)) {
+                        int id = cursor.getInt(idColumnIndex);
+                        String appLink = cursor.getString(appLinkColumnIndex);
+                        int imageResource = cursor.getInt(imageResourceColumnIndex);
 
-                    AppsObj appInfo = new AppsObj(appName, appLink, imageResource);
-                    appInfo.setId(id);
-                    appInfo.setSelected(true);
+                        AppsObj appInfo = new AppsObj(appName, appLink, imageResource);
+                        appInfo.setId(id);
+                        appInfo.setSelected(true);
 
-                    selectedApps.add(appInfo);
+                        selectedApps.add(appInfo);
+                        addedApps.add(appName); // Προσθήκη του ονόματος της εφαρμογής στο HashSet για να αποφευχθούν τα διπλότυπα
+                    }
                 } while (cursor.moveToNext());
             }
             cursor.close();
@@ -534,6 +525,19 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return appInfoList;
     }
 
+    public boolean isAppSelected(String appName, int userId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query = "SELECT COUNT(*) FROM " + TABLE_APPS_INFO + " WHERE " + COLUMN_APP_NAME + "=? AND user_id=?";
+        Cursor cursor = db.rawQuery(query, new String[]{appName, String.valueOf(userId)});
+        boolean isSelected = false;
+        if (cursor.moveToFirst()) {
+            // Επιστρέφει true αν βρεθεί έστω και μία εγγραφή
+            isSelected = cursor.getInt(0) > 0;
+        }
+        cursor.close();
+        db.close();
+        return isSelected;
+    }
 
     public boolean saveSelectedAppToDatabase(AppsObj appInfo, int userId) {
 

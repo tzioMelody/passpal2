@@ -1,6 +1,7 @@
 package com.example.passpal2;
 
 import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Canvas;
@@ -32,15 +33,18 @@ import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
 import java.util.List;
+import com.example.passpal2.MainAppsAdapter;
 
 import it.xabaras.android.recyclerview.swipedecorator.RecyclerViewSwipeDecorator;
 
 public class MainActivity extends AppCompatActivity {
+
     private RecyclerView appsRecyclerView;
     DataBaseHelper dbHelper = new DataBaseHelper(this);
-    private AdapterRecycler adapter;
+    private MainAppsAdapter mainAppsAdapter;
     private List<AppsObj> selectedApps = new ArrayList<>();
-
+    private LinearLayoutManager layoutManager;
+    private Context context;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -69,27 +73,21 @@ public class MainActivity extends AppCompatActivity {
         });
 
         appsRecyclerView = findViewById(R.id.appsRecyclerView);
+        layoutManager = new LinearLayoutManager(this);
+        appsRecyclerView.setLayoutManager(layoutManager);
 
         // Create adapter here
-        adapter = new AdapterRecycler(this, new ArrayList<>(selectedApps), new RecyclerViewInterface() {
-            @Override
-            public void onItemClick(int position) {
-                //  κλικ στο item του RecyclerView
-                AppsObj selectedApp = selectedApps.get(position);
-                Toast.makeText(MainActivity.this, "Clicked on app: " + selectedApp.getAppNames(), Toast.LENGTH_SHORT).show();
-            }
-        });
-
+// Create adapter here
+        mainAppsAdapter = new MainAppsAdapter(context, selectedApps, this);
 
         // Set adapter to RecyclerView
-        appsRecyclerView.setAdapter(adapter);
+        appsRecyclerView.setAdapter(mainAppsAdapter);
         appsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         //Swipe items for Edit and Delete
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new SwipeToDeleteCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT));
         itemTouchHelper.attachToRecyclerView(appsRecyclerView);
     }
-
 
     // Called when returning from AppSelectionActivity with selected apps
     @Override
@@ -106,11 +104,16 @@ public class MainActivity extends AppCompatActivity {
                 }
                 selectedApps.clear();
                 selectedApps.addAll(apps);
-                adapter.notifyDataSetChanged();
+                mainAppsAdapter.notifyDataSetChanged();
             }
         }
     }
 
+    // RecyclerViewInterface method implementation
+    public void onItemClick(int position) {
+        AppsObj selectedApp = selectedApps.get(position);
+        Toast.makeText(MainActivity.this, "Clicked on app: " + selectedApp.getAppNames(), Toast.LENGTH_SHORT).show();//να πηγαινει στην αντισοτιχη ιστοσελιδα ή λινκ
+}
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -280,7 +283,7 @@ public class MainActivity extends AppCompatActivity {
                     Snackbar.make(viewHolder.itemView, deletedApp.getAppNames() + " deleted!", Snackbar.LENGTH_LONG)
                             .setAction("Undo", view -> {
                                 selectedApps.add(position, deletedApp);
-                                adapter.notifyItemInserted(position);
+                                mainAppsAdapter.notifyItemInserted(position);
                             }).show();
                     deleteApp(position);
                 } else if (direction == ItemTouchHelper.RIGHT) {
@@ -312,7 +315,7 @@ public class MainActivity extends AppCompatActivity {
     //Works for the undo button so DO NOT delete
     private void deleteApp(int position) {
         selectedApps.remove(position);
-        adapter.notifyItemRemoved(position);
+        mainAppsAdapter.notifyItemRemoved(position);
     }
 
     //Edit app once swiped right
@@ -329,15 +332,20 @@ public class MainActivity extends AppCompatActivity {
     private class FetchAppsTask extends AsyncTask<Integer, Void, List<AppsObj>> {
         @Override
         protected List<AppsObj> doInBackground(Integer... userIds) {
-            // Εδώ υποθέτουμε ότι η μέθοδος getAllSelectedApps της dbHelper επιστρέφει τη λίστα των εφαρμογών βάσει του userId
-            return dbHelper.getAllSelectedApps(userIds[0]);
+            List<AppsObj> apps = dbHelper.getAllSelectedApps(userIds[0]);
+            Log.d("FetchAppsTask", "Επιστρεφόμενες εφαρμογές: " + apps.size()); // Προσθήκη log για το μέγεθος της λίστας
+            Log.d("FetchAppsTask", "Ποιες ειναι οι εφαρμογες :  " + apps);
+
+            return apps;
         }
 
         @Override
         protected void onPostExecute(List<AppsObj> apps) {
             // Ενημέρωση του RecyclerView adapter με τη νέα λίστα εφαρμογών
-            adapter.setSelectedApps(apps);
+            mainAppsAdapter.setSelectedApps(apps);
+            Log.d("FetchAppsTask", "Ενημέρωση adapter με " + apps.size() + " εφαρμογές."); // Προσθήκη log για την ενημέρωση του adapter
         }
     }
+
 
 }
