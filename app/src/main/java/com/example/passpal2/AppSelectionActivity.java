@@ -23,8 +23,8 @@ import java.util.List;
 public class AppSelectionActivity extends AppCompatActivity implements RecyclerViewInterface {
     private static final String SELECTED_APPS_KEY = "selected_apps";
     DataBaseHelper dbHelper = new DataBaseHelper(this);
-
     AdapterRecycler adapter;
+    int userId;
     ArrayList<AppsObj> appsObjs = new ArrayList<>();
     ArrayList<AppsObj> selectedApps = new ArrayList<>();
     int[] appImages = {R.drawable.app_icon1, R.drawable.app_icon2, R.drawable.app_icon3, R.drawable.app_icon4,
@@ -37,8 +37,8 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_app_selection);
-
-        DataBaseHelper dbHelper = new DataBaseHelper(this);
+        // Αντληση του userID από το Intent με τη χρήση του σωστού κλειδιού
+        userId = getIntent().getIntExtra("USER_ID", -1); // Χρησιμοποιήστε το ίδιο κλειδί που περάσατε από την MainActivity
 
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
 
@@ -46,8 +46,6 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
 
         adapter = new AdapterRecycler(this, appsObjs, this);
 
-        //Αντληση του userID απο την main
-        int userId = getIntent().getIntExtra("USER_ID", -1);
 
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -86,7 +84,9 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
             int selectedAppsCount = adapter.getSelectedAppsCount();
 
             //Αντληση του userID απο την main
+/*
             int userId = getIntent().getIntExtra("USER_ID", -1);
+*/
             if (selectedAppsCount > 10) {
                 // Εμφάνιση μηνύματος ειδοποίησης αν έχουν επιλεγεί ήδη 10 εφαρμογές
                 Toast.makeText(AppSelectionActivity.this, "Μπορείτε να επιλέξετε μόνο μέχρι 10 εφαρμογές", Toast.LENGTH_SHORT).show();
@@ -104,30 +104,19 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
     }
 
     public void SelectBtnClick(View view) {
-        int selectedAppsCount = adapter.getSelectedAppsCount();
-        List<AppsObj> selectedApps = adapter.getSelectedApps();
+        ArrayList<AppsObj> selectedApps = adapter.getSelectedApps();
 
-        if (selectedAppsCount <= 10) {
-            Log.d("MyApp", "Apps are under 10 and can be saved " );
-            // Εδώ πρέπει να πάρετε το userId από την προηγούμενη δραστηριότητα
-            int userId = getIntent().getIntExtra("userId", -1);
-
-            // Εδώ πρέπει να καλέσετε την saveSelectedAppToDatabase μέθοδο για κάθε επιλεγμένη εφαρμογή
+        if (selectedApps.size() <= 10) {
             for (AppsObj app : selectedApps) {
                 dbHelper.saveSelectedAppToDatabase(app, userId);
             }
 
             Toast.makeText(this, "Επιτυχής εισαγωγή επιλεγμένων εφαρμογών!", Toast.LENGTH_SHORT).show();
-
-            // Περνάμε τη λίστα με τις επιλεγμένες εφαρμογές στο MainActivity
-            Intent intent = new Intent(this, MainActivity.class);
-            intent.putParcelableArrayListExtra("selectedApps", (ArrayList<? extends Parcelable>) selectedApps);
-            startActivity(intent);
+            finish(); // Τερματισμός της Activity και επιστροφή στην MainActivity
         } else {
             Toast.makeText(this, "Μπορείτε να επιλέξετε μόνο μέχρι 10 εφαρμογές", Toast.LENGTH_SHORT).show();
         }
     }
-
 
 
 

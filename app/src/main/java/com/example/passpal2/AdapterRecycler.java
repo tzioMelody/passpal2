@@ -97,6 +97,8 @@ public class AdapterRecycler extends RecyclerView.Adapter<AdapterRecycler.MyView
     public void setSelectedApps(List<AppsObj> selectedApps) {
         this.selectedApps.clear();
         this.selectedApps.addAll(selectedApps);
+        Log.d("MyApp", "Selected Apps in setselected:  " + selectedApps);
+
         notifyDataSetChanged();
     }
 

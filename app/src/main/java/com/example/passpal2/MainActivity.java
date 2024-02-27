@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.util.Log;
@@ -50,8 +51,12 @@ public class MainActivity extends AppCompatActivity {
         String username = preferences.getString("username", "");
         getSupportActionBar().setTitle("Welcome, " + username +"!");
 
-       // Ανάκτηση του userId χρησιμοποιώντας το username
+        // Ανάκτηση του userId χρησιμοποιώντας το username
         int userId = dbHelper.getUserIdByUsername(username);
+
+        // Εκτέλεση της AsyncTask για την ανάκτηση και εμφάνιση των εφαρμογών
+        new FetchAppsTask().execute(userId);
+
         Intent intentUserID = new Intent(MainActivity.this, AppSelectionActivity.class);
         intentUserID.putExtra("USER_ID", userId);
 
@@ -59,7 +64,8 @@ public class MainActivity extends AppCompatActivity {
         appsBtn.setOnClickListener(view -> {
             // Use startActivityForResult to receive results back from AppSelectionActivity
             Intent intent = new Intent(MainActivity.this, AppSelectionActivity.class);
-            startActivityForResult(intentUserID, 1); // 1 is an arbitrary request code
+            // default
+            startActivityForResult(intentUserID, 1);
         });
 
         appsRecyclerView = findViewById(R.id.appsRecyclerView);
@@ -319,4 +325,19 @@ public class MainActivity extends AppCompatActivity {
             startActivity(editIntent);
         }
     }
+
+    private class FetchAppsTask extends AsyncTask<Integer, Void, List<AppsObj>> {
+        @Override
+        protected List<AppsObj> doInBackground(Integer... userIds) {
+            // Εδώ υποθέτουμε ότι η μέθοδος getAllSelectedApps της dbHelper επιστρέφει τη λίστα των εφαρμογών βάσει του userId
+            return dbHelper.getAllSelectedApps(userIds[0]);
+        }
+
+        @Override
+        protected void onPostExecute(List<AppsObj> apps) {
+            // Ενημέρωση του RecyclerView adapter με τη νέα λίστα εφαρμογών
+            adapter.setSelectedApps(apps);
+        }
+    }
+
 }

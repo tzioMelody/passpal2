@@ -536,11 +536,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
 
     public boolean saveSelectedAppToDatabase(AppsObj appInfo, int userId) {
-        if (userId == -1) {
-            // Επιστρέφουμε false αν το userId δεν είναι έγκυρο.
-            Log.e("DataBaseHelper", "Invalid User ID. Cannot save the app.");
-            return false;
-        }
+
 
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues cv = new ContentValues();
@@ -554,6 +550,11 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         long result = db.insert(TABLE_APPS_INFO, null, cv);
         db.close(); // Κλείνουμε τη βάση μετά την εισαγωγή
 
+      /*  if (userId == -1) {
+            // Επιστρέφουμε false αν το userId δεν είναι έγκυρο.
+            Log.e("DataBaseHelper", "Invalid User ID. Cannot save the app.");
+            return false;
+        }*/
         if (result == -1) {
             Log.e("DataBaseHelper", "Failed to insert app for User ID: " + userId);
             return false; // Επιστρέφουμε false αν η εισαγωγή αποτύχει
