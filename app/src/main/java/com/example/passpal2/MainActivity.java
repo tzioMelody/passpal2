@@ -77,8 +77,8 @@ public class MainActivity extends AppCompatActivity {
         appsRecyclerView.setLayoutManager(layoutManager);
 
         // Create adapter here
-// Create adapter here
-        mainAppsAdapter = new MainAppsAdapter(context, selectedApps, this);
+// Αρχικοποίηση του MainAppsAdapter
+        mainAppsAdapter = new MainAppsAdapter(this, selectedApps);
 
         // Set adapter to RecyclerView
         appsRecyclerView.setAdapter(mainAppsAdapter);
@@ -341,11 +341,15 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(List<AppsObj> apps) {
+            super.onPostExecute(apps);
             // Ενημέρωση του RecyclerView adapter με τη νέα λίστα εφαρμογών
             mainAppsAdapter.setSelectedApps(apps);
-            Log.d("FetchAppsTask", "Ενημέρωση adapter με " + apps.size() + " εφαρμογές."); // Προσθήκη log για την ενημέρωση του adapter
+            Log.d("FetchAppsTask", "Ενημέρωση adapter με " + apps.size() + " εφαρμογές.");
+            for (AppsObj app : apps) {
+                Log.d("FetchApps", "App: " + app.getAppNames() );
+            }
         }
+
+
     }
-
-
 }

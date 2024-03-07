@@ -179,8 +179,8 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
     // Λειτουργία κουμπιών
     public void onAddUserAppsButtonClick(View view) {
         if (selectedApps.isEmpty()) {
-            // Αν η λίστα είναι άδεια, εμφανίζουμε μήνυμα προειδοποίησης
-            Toast.makeText(this, "Παρακαλώ επιλέξτε τουλάχιστον μία εφαρμογή", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(this, AddAppUserActivity.class);
+            startActivity(intent);
         } else {
             // Αν η λίστα δεν είναι άδεια, εμφανίζουμε έναν διάλογο επιβεβαίωσης
             new AlertDialog.Builder(this)

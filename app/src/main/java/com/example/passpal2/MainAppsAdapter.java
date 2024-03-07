@@ -10,68 +10,58 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class MainAppsAdapter extends RecyclerView.Adapter<MainAppsAdapter.AppViewHolder> {
-
+public class MainAppsAdapter extends RecyclerView.Adapter<MainAppsAdapter.ViewHolder> {
     private Context context;
-    private ArrayList<AppsObj> appsList;
-    private final RecyclerViewInterface recyclerViewInterface;
+    private List<AppsObj> appsList;
 
-    public interface RecyclerViewInterface {
-        void onItemClick(int position);
-    }
-
-    public MainAppsAdapter(Context context, ArrayList<AppsObj> appsList, RecyclerViewInterface recyclerViewInterface) {
+    public MainAppsAdapter(Context context, List<AppsObj> appsList) {
         this.context = context;
         this.appsList = appsList;
-        this.recyclerViewInterface = recyclerViewInterface;
     }
 
+
+    /**
+     * @param parent   The ViewGroup into which the new View will be added after it is bound to
+     *                 an adapter position.
+     * @param viewType The view type of the new View.
+     * @return
+     */
     @NonNull
     @Override
-    public AppViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.app_item, parent, false);
-        return new AppViewHolder(view);
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(context).inflate(R.layout.app_item, parent, false);
+        return new ViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull AppViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         AppsObj app = appsList.get(position);
         holder.appName.setText(app.getAppNames());
-        holder.imageView.setImageResource(app.getAppImages());
+        holder.appImage.setImageResource(app.getAppImages());
+        // Απενεργοποίηση του ToggleButton
+/*
+        holder.toggleButton.setChecked(false);
+*/
     }
-
+    public void setSelectedApps(List<AppsObj> apps) {
+        this.appsList = apps; // Ενημέρωση της τρέχουσας λίστας με τη νέα λίστα εφαρμογών
+        notifyDataSetChanged(); // Ειδοποίηση του adapter ότι τα δεδομένα έχουν αλλάξει
+    }
     @Override
     public int getItemCount() {
         return appsList.size();
     }
 
-    public void setSelectedApps(List<AppsObj> appsList) {
-        this.appsList.clear();
-        this.appsList.addAll(appsList);
-        notifyDataSetChanged();
-    }
-
-    public class AppViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-
-        ImageView imageView;
+    public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView appName;
+        ImageView appImage;
 
-        public AppViewHolder(@NonNull View itemView) {
+        public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            imageView = itemView.findViewById(R.id.imageView);
-            appName = itemView.findViewById(R.id.appname);
-            itemView.setOnClickListener(this);
-        }
-
-        @Override
-        public void onClick(View v) {
-            int position = getAdapterPosition();
-            if (position != RecyclerView.NO_POSITION) {
-                recyclerViewInterface.onItemClick(position);
-            }
+            appName = itemView.findViewById(R.id.appname); // Ενημερώστε ανάλογα με το ID του TextView στο layout σας
+            appImage = itemView.findViewById(R.id.imageView); // Ενημερώστε ανάλογα με το ID του ImageView στο layout σας
         }
     }
 }
