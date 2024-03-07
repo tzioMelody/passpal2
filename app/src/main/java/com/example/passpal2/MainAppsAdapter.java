@@ -60,8 +60,8 @@ public class MainAppsAdapter extends RecyclerView.Adapter<MainAppsAdapter.ViewHo
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            appName = itemView.findViewById(R.id.appname); // Ενημερώστε ανάλογα με το ID του TextView στο layout σας
-            appImage = itemView.findViewById(R.id.imageView); // Ενημερώστε ανάλογα με το ID του ImageView στο layout σας
+            appName = itemView.findViewById(R.id.appname);
+            appImage = itemView.findViewById(R.id.imageView);
         }
     }
 }

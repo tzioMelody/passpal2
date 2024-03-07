@@ -50,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Ορίστε το όνομα χρήστη ως τίτλο στη μπάρα
+        // Ονομα χρηστη στην μπαρα
         SharedPreferences preferences = getSharedPreferences("user_credentials", MODE_PRIVATE);
         String username = preferences.getString("username", "");
         getSupportActionBar().setTitle("Welcome, " + username +"!");
@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
         // Ανάκτηση του userId χρησιμοποιώντας το username
         int userId = dbHelper.getUserIdByUsername(username);
 
-        // Εκτέλεση της AsyncTask για την ανάκτηση και εμφάνιση των εφαρμογών
+        // AsyncTask για την ανάκτηση και εμφάνιση των εφαρμογών
         new FetchAppsTask().execute(userId);
 
         Intent intentUserID = new Intent(MainActivity.this, AppSelectionActivity.class);
@@ -66,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
 
         FloatingActionButton appsBtn = findViewById(R.id.appsBtn);
         appsBtn.setOnClickListener(view -> {
-            // Use startActivityForResult to receive results back from AppSelectionActivity
+            // Χρηση startActivityForResult για να παρουμε πισω αποτελεσματα απο την AppSelectionActivity
             Intent intent = new Intent(MainActivity.this, AppSelectionActivity.class);
             // default
             startActivityForResult(intentUserID, 1);
@@ -76,8 +76,7 @@ public class MainActivity extends AppCompatActivity {
         layoutManager = new LinearLayoutManager(this);
         appsRecyclerView.setLayoutManager(layoutManager);
 
-        // Create adapter here
-// Αρχικοποίηση του MainAppsAdapter
+        // Αρχικοποίηση του MainAppsAdapter
         mainAppsAdapter = new MainAppsAdapter(this, selectedApps);
 
         // Set adapter to RecyclerView
@@ -112,7 +111,8 @@ public class MainActivity extends AppCompatActivity {
     // RecyclerViewInterface method implementation
     public void onItemClick(int position) {
         AppsObj selectedApp = selectedApps.get(position);
-        Toast.makeText(MainActivity.this, "Clicked on app: " + selectedApp.getAppNames(), Toast.LENGTH_SHORT).show();//να πηγαινει στην αντισοτιχη ιστοσελιδα ή λινκ
+        //να πηγαινει στην αντισοτιχη ιστοσελιδα ή λινκ
+        Toast.makeText(MainActivity.this, "Clicked on app: " + selectedApp.getAppNames(), Toast.LENGTH_SHORT).show();
 }
 
     @Override

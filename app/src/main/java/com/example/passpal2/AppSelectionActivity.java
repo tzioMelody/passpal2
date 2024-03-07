@@ -38,7 +38,7 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_app_selection);
         // Αντληση του userID από το Intent με τη χρήση του σωστού κλειδιού
-        userId = getIntent().getIntExtra("USER_ID", -1); // Χρησιμοποιήστε το ίδιο κλειδί που περάσατε από την MainActivity
+        userId = getIntent().getIntExtra("USER_ID", -1);
 
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
 
@@ -116,7 +116,8 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
             }
 
             Toast.makeText(this, "Επιτυχής εισαγωγή επιλεγμένων εφαρμογών!", Toast.LENGTH_SHORT).show();
-            finish(); // Τερματισμός της Activity και επιστροφή στην MainActivity
+            // Τερματισμός της Activity και επιστροφή στην MainActivity
+            finish();
         } else {
             Toast.makeText(this, "Μπορείτε να επιλέξετε μόνο μέχρι 10 εφαρμογές", Toast.LENGTH_SHORT).show();
         }
@@ -152,30 +153,6 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
     }
 
 
-
-
-
-  /*  private void saveSelectedAppToDatabase(AppsObj app, int userId) {
-        // Ελέγχουμε αν το userId είναι έγκυρο (δηλαδή διαφορετικό του -1)
-        if (userId != -1) {
-            // Δημιουργούμε ένα αντικείμενο βοηθού βάσης δεδομένων
-            DataBaseHelper dbHelper = new DataBaseHelper(this);
-
-            // Εισάγουμε την επιλεγμένη εφαρμογή στη βάση δεδομένων με το συγκεκριμένο userId
-            boolean isInserted = dbHelper.addSelectedAppWithUserId(app, userId);
-            if (isInserted) {
-                // Επιτυχής εισαγωγή
-                Log.d("AppSelectionActivity", "App inserted successfully into database");
-            } else {
-                // Αποτυχία εισαγωγής
-                Log.e("AppSelectionActivity", "Failed to insert app into database");
-            }
-        } else {
-            // Εμφανίζουμε μήνυμα λάθους αν το userId δεν είναι έγκυρο
-            Log.e("AppSelectionActivity", "Invalid user ID");
-        }
-    }*/
-
     // Λειτουργία κουμπιών
     public void onAddUserAppsButtonClick(View view) {
         if (selectedApps.isEmpty()) {
@@ -187,7 +164,7 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
                     .setTitle("Continue")
                     .setMessage("Are you sure you want to continue? Your selected apps will be lost.")
                     .setPositiveButton(android.R.string.yes, (dialog, which) -> {
-                        // Εάν ο χρήστης επιλέξει να συνεχίσει, πηγαίνουμε στο AddAppUserActivity
+                        // Εάν ο χρήστης συνεχίσει, πηγαίνουμε στο AddAppUserActivity
                         Intent intent = new Intent(this, AddAppUserActivity.class);
                         startActivity(intent);
                     })
