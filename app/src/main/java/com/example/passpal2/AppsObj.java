@@ -42,6 +42,9 @@ public class AppsObj implements Parcelable {
         }
     };
 
+    public int getId() {
+        return id;
+    }
     public String getAppNames() {
         return AppNames;
     }
@@ -62,13 +65,25 @@ public class AppsObj implements Parcelable {
         isSelected = selected;
     }
 
-    public int getId() {
-        return id;
-    }
-
     public void setId(int id) {
         this.id = id;
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+
+    @Override
+    public void writeToParcel(@NonNull Parcel parcel, int i) {
+        parcel.writeInt(id);
+        parcel.writeString(AppNames);
+        parcel.writeString(AppLinks);
+        parcel.writeInt(AppImages);
+        parcel.writeByte((byte) (isSelected ? 1 : 0));
+    }
+
 
     @Override
     public String toString() {
@@ -76,23 +91,6 @@ public class AppsObj implements Parcelable {
                 "id=" + id +
                 ", AppNames='" + AppNames + '\'' +
                 '}';
-    }
-
-    /**
-     * @return
-     */
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    /**
-     * @param parcel
-     * @param i
-     */
-    @Override
-    public void writeToParcel(@NonNull Parcel parcel, int i) {
-
     }
 
     // Εσωτερική κλάση UserApp

@@ -103,6 +103,7 @@
                 android:textColorHint="@color/black"
                 app:errorEnabled="true"
                 app:hintTextColor="@color/black"
+                app:endIconMode="password_toggle"
                 app:startIconDrawable="@drawable/ic_password"
                 app:startIconTint="@null">
 
@@ -123,6 +124,7 @@
                 android:hint="Confirm password"
                 android:textColorHint="@color/black"
                 app:errorEnabled="true"
+                app:endIconMode="password_toggle"
                 app:hintTextColor="@color/black"
                 app:startIconDrawable="@drawable/ic_password"
                 app:startIconTint="@null">

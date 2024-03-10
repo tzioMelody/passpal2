@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -44,6 +45,10 @@ public class RegisterActivity extends AppCompatActivity {
         getSupportActionBar().setTitle("Sign up");
 
         db = new DataBaseHelper(this);
+        // για την σωστή εκκίνηση της βάσης τοπικά στο κινητό
+        db.getWritableDatabase();
+        Log.d("RegisterActivity", "Η βάση δεδομένων έχει δημιουργηθεί και είναι έτοιμη.");
+
 
         inputUsername = findViewById(R.id.inputUsername);
         inputEmail = findViewById(R.id.inputEmail);

@@ -125,6 +125,28 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
         db.execSQL(createUserTableStatement);
         db.execSQL(createAppsInfoTableStatement);
+        // Προσθήκη αρχικών δεδομένων για τον χρήστη
+        ContentValues userValues = new ContentValues();
+        userValues.put(COLUMN_USERNAME, "demoUser");
+        userValues.put(COLUMN_EMAIL, "demo@example.com");
+        // Εδώ πρέπει να χρησιμοποιήσετε τις μεθόδους generateSalt() και hashPassword() για την παραγωγή του hashed password
+        try {
+            byte[] salt = DataBaseHelper.generateSalt();
+            String hashedPassword = DataBaseHelper.hashPassword("demoPassword123", salt);
+            userValues.put(COLUMN_PASSWORD, hashedPassword + ":" + DataBaseHelper.encodeSalt(salt)); // Εισάγετε το hashed password και το salt
+            db.insert(USER_TABLE, null, userValues);
+        }catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        // Προσθήκη αρχικών δεδομένων για μια εφαρμογή
+        ContentValues appValues = new ContentValues();
+        appValues.put(COLUMN_APP_NAME, "Demo App");
+        appValues.put(COLUMN_APP_LINK, "https://demoapp.com");
+        appValues.put(COLUMN_IMAGE_RESOURCE, R.drawable.applogomain); // Αντικαταστήστε με το αντίστοιχο drawable
+        appValues.put(COLUMN_IS_SELECTED, 1); // Επιλεγμένη εφαρμογή
+        // Υποθέτουμε ότι ο πρώτος χρήστης που δημιουργήσαμε έχει το ID 1
+        appValues.put("user_id", 1); // Συσχέτιση με τον χρήστη με ID 1
+        db.insert(TABLE_APPS_INFO, null, appValues);
     }
 
     public void addUserApp(AppsObj userApp, int userId) {
@@ -153,6 +175,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     private static final int SALT_LENGTH = 16;
 
     // Μέθοδος για την παραγωγή ενός salt
+    // Μέθοδος για την παραγωγή ενός salt
     public static byte[] generateSalt() throws NoSuchAlgorithmException {
         SecureRandom sr = SecureRandom.getInstance(SALT_ALGORITHM);
         byte[] salt = new byte[SALT_LENGTH];
@@ -161,20 +184,16 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     }
 
     // Μέθοδος για το hashing του κωδικού με SHA-256
-    public static String hashPassword(String passwordToHash, byte[] salt) {
+    public static String hashPassword(String passwordToHash, byte[] salt) throws NoSuchAlgorithmException {
         String hashedPassword = null;
-        try {
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            md.update(salt);
-            byte[] bytes = md.digest(passwordToHash.getBytes());
-            StringBuilder sb = new StringBuilder();
-            for (byte aByte : bytes) {
-                sb.append(Integer.toString((aByte & 0xff) + 0x100, 16).substring(1));
-            }
-            hashedPassword = sb.toString();
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
+        MessageDigest md = MessageDigest.getInstance("SHA-256");
+        md.update(salt);
+        byte[] bytes = md.digest(passwordToHash.getBytes());
+        StringBuilder sb = new StringBuilder();
+        for (byte aByte : bytes) {
+            sb.append(Integer.toString((aByte & 0xff) + 0x100, 16).substring(1));
         }
+        hashedPassword = sb.toString();
         return hashedPassword;
     }
 
@@ -414,10 +433,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     }
 
 
-    ///////APP GETTERS AND SETTERS
-
-
-
 
     // Κώδικας για την ανάκτηση όλων των επιλεγμένων εφαρμογών
     public List<AppsObj> getAllSelectedApps(int userId) {
@@ -464,6 +479,20 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         db.delete(TABLE_APPS_INFO, COLUMN_IS_SELECTED + " = 1 AND user_id = ?", new String[]{String.valueOf(userId)});
         db.close();
     }
+
+   /* public void deleteApp(String appName, int userId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        // Διαγραφή της εφαρμογής με βάση το όνομα και το userId
+        db.delete(TABLE_APPS_INFO, COLUMN_APP_NAME + "=? AND user_id=?", new String[]{appName, String.valueOf(userId)});
+        db.close();
+    }*/
+
+   public void deleteApp(String appName, int userId) {
+       SQLiteDatabase db = this.getWritableDatabase();
+       // Διαγραφή της εφαρμογής με βάση το όνομα, το userId και τη θέση
+       db.delete(TABLE_APPS_INFO, COLUMN_APP_NAME + "=? AND user_id=? ", new String[]{appName, String.valueOf(userId)});
+       db.close();
+   }
 
 
     // Κώδικας για την εισαγωγή δεδομένων στον πίνακα app_info_table

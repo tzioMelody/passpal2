@@ -26,7 +26,7 @@
     <color name="lightGray">#777</color>
     <color name="lightBlue">#09F</color>
     <color name="veryLightGray">#BBB</color>
-    <color name="smoothGray">#DDE6ED</color>
-    <color name="smoothNavy">#9DB2BF</color>
-    <color name="smoothNavySemiTransparent">#259DB2BF</color>
+    <color name="light_purple">#7B679C</color>
+    <color name="dark_purple">#2B2740</color>
+    <color name="smoothNavySemiTransparent">#256A64C1</color>
 </resources>

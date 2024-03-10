@@ -15,19 +15,17 @@ import java.util.List;
 public class MainAppsAdapter extends RecyclerView.Adapter<MainAppsAdapter.ViewHolder> {
     private Context context;
     private List<AppsObj> appsList;
+    private List<AppsObj> selectedApps;
 
+    public List<AppsObj> getAppsList() {
+        return this.appsList;
+    }
     public MainAppsAdapter(Context context, List<AppsObj> appsList) {
         this.context = context;
         this.appsList = appsList;
+        this.selectedApps = selectedApps;
     }
 
-
-    /**
-     * @param parent   The ViewGroup into which the new View will be added after it is bound to
-     *                 an adapter position.
-     * @param viewType The view type of the new View.
-     * @return
-     */
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -40,15 +38,21 @@ public class MainAppsAdapter extends RecyclerView.Adapter<MainAppsAdapter.ViewHo
         AppsObj app = appsList.get(position);
         holder.appName.setText(app.getAppNames());
         holder.appImage.setImageResource(app.getAppImages());
-        // Απενεργοποίηση του ToggleButton
-/*
-        holder.toggleButton.setChecked(false);
+    }
+
+  /*  public void deleteApp(int position) {
+        if (position >= 0 && position < appsList.size()) {
+            selectedApps.remove(appsList.get(position)); // Αφαίρεση από τη selectedApps
+            appsList.remove(position);
+            notifyItemRemoved(position);
+        }
+    }
 */
-    }
     public void setSelectedApps(List<AppsObj> apps) {
-        this.appsList = apps; // Ενημέρωση της τρέχουσας λίστας με τη νέα λίστα εφαρμογών
-        notifyDataSetChanged(); // Ειδοποίηση του adapter ότι τα δεδομένα έχουν αλλάξει
+        this.appsList = apps;
+        notifyDataSetChanged();
     }
+
     @Override
     public int getItemCount() {
         return appsList.size();

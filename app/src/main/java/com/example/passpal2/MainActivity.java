@@ -1,6 +1,7 @@
 package com.example.passpal2;
 
 import android.app.Dialog;
+import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -18,9 +19,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.ItemTouchHelper;
@@ -37,14 +40,19 @@ import com.example.passpal2.MainAppsAdapter;
 
 import it.xabaras.android.recyclerview.swipedecorator.RecyclerViewSwipeDecorator;
 
-public class MainActivity extends AppCompatActivity {
-
+public class MainActivity extends AppCompatActivity implements RecyclerViewInterface {
+    String username;
     private RecyclerView appsRecyclerView;
     DataBaseHelper dbHelper = new DataBaseHelper(this);
     private MainAppsAdapter mainAppsAdapter;
     private List<AppsObj> selectedApps = new ArrayList<>();
     private LinearLayoutManager layoutManager;
     private Context context;
+    RelativeLayout Main_layout;
+    private List<AppsObj> apps = new ArrayList<>();
+    private static final int EDIT_APP_REQUEST = 2;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,11 +60,13 @@ public class MainActivity extends AppCompatActivity {
 
         // Ονομα χρηστη στην μπαρα
         SharedPreferences preferences = getSharedPreferences("user_credentials", MODE_PRIVATE);
-        String username = preferences.getString("username", "");
+        username = preferences.getString("username", "");
         getSupportActionBar().setTitle("Welcome, " + username +"!");
 
         // Ανάκτηση του userId χρησιμοποιώντας το username
         int userId = dbHelper.getUserIdByUsername(username);
+
+        Main_layout = findViewById(R.id.Main_layout);
 
         // AsyncTask για την ανάκτηση και εμφάνιση των εφαρμογών
         new FetchAppsTask().execute(userId);
@@ -83,10 +93,17 @@ public class MainActivity extends AppCompatActivity {
         appsRecyclerView.setAdapter(mainAppsAdapter);
         appsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        //Swipe items for Edit and Delete
+    /*    //Swipe items for Edit and Delete
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new SwipeToDeleteCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT));
-        itemTouchHelper.attachToRecyclerView(appsRecyclerView);
+        itemTouchHelper.attachToRecyclerView(appsRecyclerView);*/
+
+    /*  // Συνδέστε το ItemTouchHelper με το RecyclerView
+            ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleItemTouchCallback);
+            itemTouchHelper.attachToRecyclerView(appsRecyclerView);*/
     }
+
+
+
 
     // Called when returning from AppSelectionActivity with selected apps
     @Override
@@ -147,13 +164,35 @@ public class MainActivity extends AppCompatActivity {
                     return true;
 
                 case R.id.menu_item3:
-                    // Handle menu item 3
+                    new  AlertDialog.Builder(this)
+                        .setTitle("About")
+                        .setMessage("Ασφάλεια και οργάνωση στην παλάμη σας - αυτό είναι το όραμα του PassPal, της κορυφαίας εφαρμογής διαχείρισης στοιχείων πρόσβασης και εφαρμογών." +
+                                " Με την έκδοση 1.0, το PassPal προσφέρει έναν άρτιο συνδυασμό απλότητας και καινοτομίας, επιτρέποντας σας να εγγραφείτε, να αποθηκεύσετε και να διαχειριστείτε ασφαλώς " +
+                                "τις πληροφορίες πρόσβασης σε αγαπημένες σας εφαρμογές και ιστοσελίδες. Χάρη στην κρυπτογράφηση κορυφαίας τεχνολογίας, τα δεδομένα σας είναι προστατευμένα," +
+                                " ενώ η ενσωματωμένη διασύνδεση με το Hunter API εξασφαλίζει ότι οι διευθύνσεις email που καταχωρίζετε είναι πάντα έγκυρες. " +
+                                "Κατεβάστε το PassPal και βελτιώστε σήμερα τη διαχείριση των ψηφιακών σας προφίλ!")
+                        .setPositiveButton(android.R.string.ok, (dialog, which) -> {
+                            // Αν ο χρήστης επιλέξει να συνεχίσει, καλούμε την super.onBackPressed()
+                            super.onBackPressed();
+                        })
+                        .show();
                     return true;
 
-                    /*
+
                 case R.id.menu_item4:
-                    Intent helpIntent = new Intent(MainActivity.this, HelpActivity.class);
-                    startActivity(helpIntent);
+                    new  AlertDialog.Builder(this)
+                            .setTitle("Help")
+                            .setMessage("Ασφάλεια και οργάνωση στην παλάμη σας - αυτό είναι το όραμα του PassPal, της κορυφαίας εφαρμογής διαχείρισης στοιχείων πρόσβασης και εφαρμογών." +
+                                    " Με την έκδοση 1.0, το PassPal προσφέρει έναν άρτιο συνδυασμό απλότητας και καινοτομίας, επιτρέποντας σας να εγγραφείτε, να αποθηκεύσετε και να διαχειριστείτε ασφαλώς " +
+                                    "τις πληροφορίες πρόσβασης σε αγαπημένες σας εφαρμογές και ιστοσελίδες. Χάρη στην κρυπτογράφηση κορυφαίας τεχνολογίας, τα δεδομένα σας είναι προστατευμένα," +
+                                    " ενώ η ενσωματωμένη διασύνδεση με το Hunter API εξασφαλίζει ότι οι διευθύνσεις email που καταχωρίζετε είναι πάντα έγκυρες. " +
+                                    "Κατεβάστε το PassPal και βελτιώστε σήμερα τη διαχείριση των ψηφιακών σας προφίλ!")
+                            .setPositiveButton(android.R.string.ok, (dialog, which) -> {
+                                // Αν ο χρήστης επιλέξει να συνεχίσει, καλούμε την super.onBackPressed()
+                                super.onBackPressed();
+                            })
+                            .show();
+                    return true;
                     return true;
                 case R.id.menu_item5:
                     performLogout();
@@ -222,15 +261,15 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Assume bottom_sheet variable refers to the LinearLayout of the Bottom Sheet
+
         LinearLayout bottomSheetLayout = dialog.findViewById(R.id.bottom_sheet);
 
         if (bottomSheetLayout != null) {
             BottomSheetBehavior bottomSheetBehavior = BottomSheetBehavior.from(bottomSheetLayout);
-            // Makes the bottom sheet visible
+            // Το κανει ορατο το bottomsheet
             bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
 
-            // Defines behavior upon closing
+
             bottomSheetBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
                 @Override
                 public void onStateChanged(@NonNull View bottomSheet, int newState) {
@@ -261,7 +300,113 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    class SwipeToDeleteCallback extends ItemTouchHelper.SimpleCallback {
+
+
+    private class FetchAppsTask extends AsyncTask<Integer, Void, List<AppsObj>> {
+        @Override
+        protected List<AppsObj> doInBackground(Integer... userIds) {
+            List<AppsObj> apps = dbHelper.getAllSelectedApps(userIds[0]);
+            Log.d("FetchAppsTask", "Επιστρεφόμενες εφαρμογές: " + apps.size());
+            Log.d("FetchAppsTask", "Ποιες ειναι οι εφαρμογες :  " + apps);
+
+            return apps;
+        }
+
+        @Override
+        protected void onPostExecute(List<AppsObj> apps) {
+            super.onPostExecute(apps);
+            // Ενημέρωση του RecyclerView νέα λίστα εφαρμογών
+            mainAppsAdapter.setSelectedApps(apps);
+            attachSwipeToDeleteAndEditHelper();
+
+            Log.d("FetchAppsTask", "Ενημέρωση adapter με " + apps.size() + " εφαρμογές.");
+            for (AppsObj app : apps) {
+                Log.d("FetchApps", "App: " + app.getAppNames() );
+            }
+        }
+
+
+    }
+    //NEW SWIPE TZIO
+       private void attachSwipeToDeleteAndEditHelper() {
+        ItemTouchHelper.SimpleCallback simpleItemTouchCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+            @Override
+            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+                int position = viewHolder.getAdapterPosition();
+                if (direction == ItemTouchHelper.LEFT) {
+                    // Διαγραφή της εφαρμογής
+                    AppsObj app = mainAppsAdapter.getAppsList().get(position);
+                    // Αποθήκευση της εφαρμογής τοπικα για το undo
+                    AppsObj deletedApp = app;
+                    int deletedIndex = position;
+
+                    dbHelper.deleteApp(app.getAppNames(), dbHelper.getUserIdByUsername(username));
+                    mainAppsAdapter.getAppsList().remove(position);
+                    mainAppsAdapter.notifyItemRemoved(position);
+
+                    // Εμφανίζει το Snackbar με την επιλογή Undo
+                    Snackbar.make(appsRecyclerView, "App deleted", Snackbar.LENGTH_LONG)
+                            .setAction("Undo", new View.OnClickListener() {
+                                @Override
+                                public void onClick(View view) {
+                                    // Επαναφορά της διαγραφείσας εφαρμογής
+                                    mainAppsAdapter.getAppsList().add(deletedIndex, deletedApp);
+                                    mainAppsAdapter.notifyItemInserted(deletedIndex);
+                                }
+                            }).show();
+                } else if (direction == ItemTouchHelper.RIGHT) {
+                    // Επεξεργασία της εφαρμογής
+                    AppsObj app = mainAppsAdapter.getAppsList().get(position);
+                    // παιρνει τα δεδομενα της εφαρμογης και τα φορτωνει στην editapp
+                    Intent intent = new Intent(MainActivity.this, EditSelectedAppActivity.class);
+                    intent.putExtra("APP_DATA", app);
+                    startActivityForResult(intent, EDIT_APP_REQUEST);
+
+                }
+            }
+    };
+        new ItemTouchHelper(simpleItemTouchCallback).attachToRecyclerView(appsRecyclerView);
+
+    }
+}
+
+
+    /*ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0,ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+
+
+        @Override
+        public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+            return false;
+        }
+
+
+        @Override
+        public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+
+            int position = viewHolder.getAbsoluteAdapterPosition();
+
+            switch (direction){
+                //delete
+                case ItemTouchHelper.LEFT:
+                    if (!apps.isEmpty() && position >= 0 && position < apps.size()) {
+                        apps.remove(position);
+                        mainAppsAdapter.notifyItemRemoved(position);
+                    }
+
+                    break;
+                //edit
+                case ItemTouchHelper.RIGHT:
+                    break;
+            }
+        }
+    };*/
+
+    /*class SwipeToDeleteCallback extends ItemTouchHelper.SimpleCallback {
 
         SwipeToDeleteCallback(int dragDirs, int swipeDirs) {
             super(dragDirs, swipeDirs);
@@ -314,6 +459,12 @@ public class MainActivity extends AppCompatActivity {
 
     //Works for the undo button so DO NOT delete
     private void deleteApp(int position) {
+        AppsObj deletedApp = selectedApps.get(position);
+        // Διαγραφή από τη βάση δεδομένων
+        int userId = dbHelper.getUserIdByUsername(username);
+        dbHelper.deleteApp(deletedApp.getAppNames(), userId);
+
+        // Διαγραφή από την προβολή λίστας
         selectedApps.remove(position);
         mainAppsAdapter.notifyItemRemoved(position);
     }
@@ -324,32 +475,8 @@ public class MainActivity extends AppCompatActivity {
             AppsObj selectedApp = selectedApps.get(position);
             // Transfer to the EditSelectedAppActivity
             Intent editIntent = new Intent(MainActivity.this, EditSelectedAppActivity.class);
-            /*editIntent.putExtra("selectedApp", selectedApp);*/
+            editIntent.putExtra("selectedApp", selectedApp); // Υποθέτουμε ότι έχετε έναν κατάλληλο constructor ή setters/getters για να περάσετε το αντικείμενο AppsObj
             startActivity(editIntent);
         }
     }
-
-    private class FetchAppsTask extends AsyncTask<Integer, Void, List<AppsObj>> {
-        @Override
-        protected List<AppsObj> doInBackground(Integer... userIds) {
-            List<AppsObj> apps = dbHelper.getAllSelectedApps(userIds[0]);
-            Log.d("FetchAppsTask", "Επιστρεφόμενες εφαρμογές: " + apps.size()); // Προσθήκη log για το μέγεθος της λίστας
-            Log.d("FetchAppsTask", "Ποιες ειναι οι εφαρμογες :  " + apps);
-
-            return apps;
-        }
-
-        @Override
-        protected void onPostExecute(List<AppsObj> apps) {
-            super.onPostExecute(apps);
-            // Ενημέρωση του RecyclerView adapter με τη νέα λίστα εφαρμογών
-            mainAppsAdapter.setSelectedApps(apps);
-            Log.d("FetchAppsTask", "Ενημέρωση adapter με " + apps.size() + " εφαρμογές.");
-            for (AppsObj app : apps) {
-                Log.d("FetchApps", "App: " + app.getAppNames() );
-            }
-        }
-
-
-    }
-}
+*/

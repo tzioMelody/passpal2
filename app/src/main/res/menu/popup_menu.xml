@@ -13,10 +13,10 @@
         android:background="@drawable/about"
         android:title="About"
  />
-    <!--<item
+    <item
         android:id="@+id/menu_item4"
         android:title="Help" />
-    <item
+    <!--<item
         android:id="@+id/menu_item5"
         android:title="Log out" />-->
 </menu>

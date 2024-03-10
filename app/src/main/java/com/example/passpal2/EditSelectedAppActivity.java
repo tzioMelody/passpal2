@@ -23,8 +23,9 @@ public class EditSelectedAppActivity extends AppCompatActivity {
     private ImageView appIconImageView;
     private TextView appNameTextView;
     private EditText appLinkEditText;
-    private ImageView generatePsw;
+    private Button generatePsw;
     private Button saveSelectedAppData;
+    private Button OpenAppWebsiteBtn;
     private EditText selectedAppPassword;
 
     // Μεταβλητή για να παρακολουθούμε την ορατότητα του κωδικού
@@ -38,12 +39,12 @@ public class EditSelectedAppActivity extends AppCompatActivity {
         // Λήψη των πληροφοριών από το Intent
         Intent intent = getIntent();
         if (intent != null) {
-            AppsObj selectedApp = intent.getParcelableExtra("selectedApp");
+            AppsObj selectedApp = intent.getParcelableExtra("APP_DATA");
 
             // Εύρεση των views στο layout
             appIconImageView = findViewById(R.id.appIconImageView);
             appNameTextView = findViewById(R.id.appNameTextView);
-            appLinkEditText = findViewById(R.id.appLinkEditText);
+            appLinkEditText = findViewById(R.id.inputLinkEditedApp);
 
             // Ορισμός της εικόνας
             appIconImageView.setImageResource(selectedApp.getAppImages());
@@ -55,7 +56,10 @@ public class EditSelectedAppActivity extends AppCompatActivity {
 
         generatePsw = findViewById(R.id.GeneratePsw);
         saveSelectedAppData = findViewById(R.id.SaveSelectedAppData);
-        selectedAppPassword = findViewById(R.id.SelectedAppPassword);
+        OpenAppWebsiteBtn = findViewById(R.id.OpenAppWebsite);
+/*
+        selectedAppPassword = findViewById(R.id.passwordEditText); // Διόρθωση του ID
+*/
 
         generatePsw.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -64,16 +68,16 @@ public class EditSelectedAppActivity extends AppCompatActivity {
             }
         });
 
-        selectedAppPassword.setOnTouchListener(new View.OnTouchListener() {
+        /*selectedAppPassword.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 togglePasswordVisibility();
                 return false;
             }
-        });
+        });*/
     }
 
-    // Background Thread for generate new password
+    // generate new password
     private class GeneratePasswordTask extends AsyncTask<Void, Void, String> {
         @Override
         protected String doInBackground(Void... voids) {

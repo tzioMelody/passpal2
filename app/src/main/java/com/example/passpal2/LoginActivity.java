@@ -12,6 +12,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.lang.ref.WeakReference;
+import java.security.NoSuchAlgorithmException;
 
 public class LoginActivity extends AppCompatActivity {
     private EditText inputPassword, inputUserName;
@@ -50,29 +51,26 @@ public class LoginActivity extends AppCompatActivity {
         DataBaseHelper.User user = dbHelper.getUserByUsername(username);
 
         if (user != null) {
-            // Διαχωρισμος του αποθηκευμένου κωδικου και το salt
+            // Διαχωρισμός του αποθηκευμένου κωδικού και του salt
             String storedPassword = user.getPassword();
             String[] parts = storedPassword.split(":");
             if (parts.length == 2) {
-                // Ανακτήστε το salt
-                String salt = parts[1];
-                // Γινεται hash ο κωδικός με το salt
-                String hashedInputPassword = DataBaseHelper.hashPassword(password, DataBaseHelper.decodeSalt(salt));
+                try {
+                    // Ανακτήστε το salt
+                    String salt = parts[1];
+                    // Γίνεται hash ο κωδικός με το salt
+                    String hashedInputPassword = DataBaseHelper.hashPassword(password, DataBaseHelper.decodeSalt(salt));
 
-                // Συγκριση των κωδικων
-                if (hashedInputPassword.equals(parts[0])) {
-
-                    // Αν η σύνδεση είναι επιτυχής, ανακτήστε το ID του χρήστη και το όνομά του
-                    int userId = user.getId();
-                    String loggedInUsername = dbHelper.getUsernameByUserId(userId);
-
-                    // Αποθηκεύστε το ID του χρήστη για μελλοντική χρήση, εάν είναι απαραίτητο
-                    saveUserId(userId);
-
-                    Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_SHORT).show();
-                    proceedToMainActivity();
-                } else {
-                    Toast.makeText(LoginActivity.this, "Login failed. Please check your username and password.", Toast.LENGTH_SHORT).show();
+                    // Σύγκριση των κωδικών
+                    if (hashedInputPassword.equals(parts[0])) {
+                        // Εδώ τοποθετούνται οι εντολές για επιτυχή σύνδεση
+                        Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_SHORT).show();
+                        proceedToMainActivity();
+                    } else {
+                        Toast.makeText(LoginActivity.this, "Login failed. Please check your username and password.", Toast.LENGTH_SHORT).show();
+                    }
+                } catch (NoSuchAlgorithmException e) {
+                    Toast.makeText(LoginActivity.this, "An error occurred while processing the password. Please try again.", Toast.LENGTH_SHORT).show();
                 }
             } else {
                 Toast.makeText(LoginActivity.this, "An error occurred. Please try again.", Toast.LENGTH_SHORT).show();
@@ -81,6 +79,7 @@ public class LoginActivity extends AppCompatActivity {
             Toast.makeText(LoginActivity.this, "Login failed. Please check your username and password.", Toast.LENGTH_SHORT).show();
         }
     }
+
 
     // Εσωτερική κλάση για την αντιπροσωπεία του AsyncTask
 
