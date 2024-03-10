@@ -164,12 +164,16 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        if (oldVersion < 2) {
-            // Προσθήκη της στήλης user_id στον πίνακα app_info_table
-            String alterTable = "ALTER TABLE " + TABLE_APPS_INFO + " ADD COLUMN user_id INTEGER REFERENCES " + USER_TABLE + "(" + COLUMN_ID + ")";
-            db.execSQL(alterTable);
+        if (oldVersion < 3) { // Έλεγχος για νέα έκδοση
+            String addUsernameColumn = "ALTER TABLE " + TABLE_APPS_INFO + " ADD COLUMN app_username TEXT";
+            String addEmailColumn = "ALTER TABLE " + TABLE_APPS_INFO + " ADD COLUMN app_email TEXT";
+            String addPasswordColumn = "ALTER TABLE " + TABLE_APPS_INFO + " ADD COLUMN app_password TEXT";
+            db.execSQL(addUsernameColumn);
+            db.execSQL(addEmailColumn);
+            db.execSQL(addPasswordColumn);
         }
     }
+
 
     private static final String SALT_ALGORITHM = "SHA1PRNG";
     private static final int SALT_LENGTH = 16;
@@ -331,6 +335,20 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         }
         db.close();
         return username;
+    }
+    public boolean updateAppInfo(AppsObj appInfo, int userId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues cv = new ContentValues();
+        cv.put(COLUMN_APP_NAME, appInfo.getAppNames());
+        cv.put(COLUMN_APP_LINK, appInfo.getAppLinks());
+        cv.put(COLUMN_IMAGE_RESOURCE, appInfo.getAppImages());
+        cv.put(COLUMN_IS_SELECTED, appInfo.isSelected() ? 1 : 0); // Ενημέρωση της κατάστασης επιλογής
+
+        // Ενημέρωση βάσει του appId και του userId
+        int rowsAffected = db.update(TABLE_APPS_INFO, cv, COLUMN_ID + " = ? AND user_id = ?", new String[]{String.valueOf(appInfo.getId()), String.valueOf(userId)});
+        db.close();
+
+        return rowsAffected > 0;
     }
 
 
@@ -602,6 +620,19 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         db.close();
         return isSelected;
     }
+    public boolean updateAppCredentials(int appId, int userId, String username, String email, String password) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues cv = new ContentValues();
+        cv.put("app_username", username);
+        cv.put("app_email", email);
+        cv.put("app_password", password);
+
+        // Ενημέρωση βάσει του appId και του userId
+        int result = db.update(TABLE_APPS_INFO, cv, COLUMN_ID + " = ? AND user_id = ?", new String[]{String.valueOf(appId), String.valueOf(userId)});
+        db.close();
+        return result > 0;
+    }
+
 
     public boolean saveSelectedAppToDatabase(AppsObj appInfo, int userId) {
 

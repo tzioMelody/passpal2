@@ -15,7 +15,7 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
+import android.net.Uri;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -28,7 +28,7 @@ public class EditSelectedAppActivity extends AppCompatActivity {
     private ImageView appIconImageView;
     private TextView appNameTextView;
     private EditText appLinkEditText;
-    private EditText inputEmailEditedApp;
+    private EditText inputEmailEditedApp,inputUsernameEditedApp;
     private Button generatePsw;
     private Button saveSelectedAppData;
     private Button OpenAppWebsiteBtn;
@@ -38,8 +38,8 @@ public class EditSelectedAppActivity extends AppCompatActivity {
     // Μεταβλητή για να παρακολουθούμε την ορατότητα του κωδικού
     private boolean isPasswordVisible = false;
     private DataBaseHelper dbHelper = new DataBaseHelper(this);
-
-
+    int appId;
+    int userid;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,13 +48,16 @@ public class EditSelectedAppActivity extends AppCompatActivity {
 
         // Λήψη των πληροφοριών από το Intent
         Intent intent = getIntent();
-        if (intent != null) {
+        if (intent != null && intent.hasExtra("APP_DATA")) {
             AppsObj selectedApp = intent.getParcelableExtra("APP_DATA");
+            appId = intent.getIntExtra("APP_ID", -1);
+           userid = intent.getIntExtra("USER_ID",-1);
 
             // Εύρεση των views στο layout
             appIconImageView = findViewById(R.id.appIconImageView);
             appNameTextView = findViewById(R.id.appNameTextView);
             appLinkEditText = findViewById(R.id.inputLinkEditedApp);
+            inputUsernameEditedApp = findViewById(R.id.inputUsernameEditedApp);
 
             // Ορισμός της εικόνας
             appIconImageView.setImageResource(selectedApp.getAppImages());
@@ -78,28 +81,24 @@ public class EditSelectedAppActivity extends AppCompatActivity {
         saveSelectedAppData.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String email = inputEmailEditedApp.getText().toString(); // Υποθέτω ότι έχεις ένα input field με id inputEmailEditedApp
+                String email = inputEmailEditedApp.getText().toString();
 
                 if (TextUtils.isEmpty(email)) {
                     Toast.makeText(EditSelectedAppActivity.this, "Please fill in the email field", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
-                // Εμφάνιση του ProgressBar και της αναμονής (υποθέτω ότι έχεις προσθέσει ProgressBar και overlayView όπως στην RegisterActivity)
                 progressBar.setVisibility(View.VISIBLE);
                 overlayView.setVisibility(View.VISIBLE);
 
-                // Καλέστε τον AsyncTask για την επαλήθευση του email
                 EmailVerificationTask verificationTask = new EmailVerificationTask(new EmailVerificationTask.EmailVerificationListener() {
                     @Override
                     public void onEmailVerified(boolean isEmailValid) {
                         progressBar.setVisibility(View.GONE);
                         overlayView.setVisibility(View.GONE);
                         if (isEmailValid) {
-                            // Προχωρήστε με την αποθήκευση των αλλαγών αν το email είναι έγκυρο
-                            saveChanges(); // Μια μέθοδος που θα πρέπει να υλοποιήσεις για να αποθηκεύσεις τις αλλαγές
+                            saveChanges();
                         } else {
-                            // Εμφάνιση μηνύματος σφάλματος αν το email δεν είναι έγκυρο
                             Toast.makeText(EditSelectedAppActivity.this, "Invalid email", Toast.LENGTH_SHORT).show();
                         }
                     }
@@ -107,6 +106,21 @@ public class EditSelectedAppActivity extends AppCompatActivity {
                 verificationTask.execute(email);
             }
         });
+
+        OpenAppWebsiteBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String url = appLinkEditText.getText().toString();
+
+                if (!url.startsWith("http://") && !url.startsWith("https://")) {
+                    url = "http://" + url; // Προσθήκη του http αν δεν υπάρχει για να διασφαλιστεί ότι το URL είναι έγκυρο
+                }
+
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                startActivity(browserIntent);
+            }
+        });
+
 
 
         selectedAppPassword.setOnTouchListener(new View.OnTouchListener() {
@@ -117,26 +131,35 @@ public class EditSelectedAppActivity extends AppCompatActivity {
             }
         });
     }
+
+
+
+
     private void saveChanges() {
-        // Παίρνουμε τις τρέχουσες τιμές από τα πεδία εισαγωγής
-        String newName = appNameTextView.getText().toString();
-        String newLink = appLinkEditText.getText().toString();
-        String newEmail = inputEmailEditedApp.getText().toString();
-        String newPassword = selectedAppPassword.getText().toString();
+        String username = inputUsernameEditedApp.getText().toString();
+        String email = inputEmailEditedApp.getText().toString();
+        String password = selectedAppPassword.getText().toString();
 
+        int userId = userid;
+        int appId = this.appId;
 
+        boolean success = dbHelper.updateAppCredentials(appId, userId, username, email, password);
 
-      /*  // Υποθέτωντας ότι έχεις ένα instance της DataBaseHelper με όνομα db
-        boolean isUpdateSuccessful = db.updateAppInfo(updatedApp); // Υποθέτωντας ότι έχεις μια μέθοδο updateAppInfo στην DataBaseHelper
-
-        if (dbHelper.updateAppInfo(updatedAppInfo)) {
-            Toast.makeText(this, "App information updated successfully", Toast.LENGTH_SHORT).show();
-            // Προαιρετικά, μετάβαση πίσω στην προηγούμενη δραστηριότητα ή ενημέρωση του UI
-            finish(); // Κλείνει την τρέχουσα δραστηριότητα και επιστρέφει στην προηγούμενη
+        if (success) {
+            Toast.makeText(this, "Credentials saved successfully", Toast.LENGTH_SHORT).show();
+            // Επιστροφή στην MainActivity
+            Intent intent = new Intent(EditSelectedAppActivity.this, MainActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(intent);
         } else {
-            Toast.makeText(this, "Failed to update app information", Toast.LENGTH_SHORT).show();
-        }*/
+            Toast.makeText(this, "Failed to save credentials", Toast.LENGTH_SHORT).show();
+        }
+        Intent returnIntent = new Intent();
+        returnIntent.putExtra("POSITION", getIntent().getIntExtra("POSITION", -1));
+        setResult(RESULT_OK, returnIntent);
+        finish();
     }
+
 
     @Override
     public void onBackPressed() {

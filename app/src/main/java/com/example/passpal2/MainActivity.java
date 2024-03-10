@@ -51,7 +51,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
     RelativeLayout Main_layout;
     private List<AppsObj> apps = new ArrayList<>();
     private static final int EDIT_APP_REQUEST = 2;
-
+    int userId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,7 +69,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
         getSupportActionBar().setTitle("Welcome, " + username + "!");
 
         // Ανάκτηση του userId χρησιμοποιώντας το username
-        int userId = dbHelper.getUserIdByUsername(username);
+         userId = dbHelper.getUserIdByUsername(username);
 
         Main_layout = findViewById(R.id.Main_layout);
 
@@ -380,123 +380,23 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
                                 }
                             }).show();
                 } else if (direction == ItemTouchHelper.RIGHT) {
-                    // Επεξεργασία της εφαρμογής
-                    AppsObj app = mainAppsAdapter.getAppsList().get(position);
-                    // παιρνει τα δεδομενα της εφαρμογης και τα φορτωνει στην editapp
-                    Intent intent = new Intent(MainActivity.this, EditSelectedAppActivity.class);
-                    intent.putExtra("APP_DATA", app);
-                    startActivityForResult(intent, EDIT_APP_REQUEST);
+                        // Επεξεργασία της εφαρμογής
+                        AppsObj app = mainAppsAdapter.getAppsList().get(position);
+                        // παιρνει τα δεδομενα της εφαρμογης και τα φορτωνει στην editapp
+                        Intent intent = new Intent(MainActivity.this, EditSelectedAppActivity.class);
+                        intent.putExtra("APP_DATA", app);
+                        intent.putExtra("APP_ID", app.getId());
+                        intent.putExtra("USER_ID",userId);
+                        intent.putExtra("POSITION", position);
+                        startActivityForResult(intent, EDIT_APP_REQUEST);
 
                 }
-            }
+
+
+                }
     };
         new ItemTouchHelper(simpleItemTouchCallback).attachToRecyclerView(appsRecyclerView);
 
     }
 }
 
-
-    /*ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0,ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
-
-
-        @Override
-        public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
-            return false;
-        }
-
-
-        @Override
-        public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
-
-            int position = viewHolder.getAbsoluteAdapterPosition();
-
-            switch (direction){
-                //delete
-                case ItemTouchHelper.LEFT:
-                    if (!apps.isEmpty() && position >= 0 && position < apps.size()) {
-                        apps.remove(position);
-                        mainAppsAdapter.notifyItemRemoved(position);
-                    }
-
-                    break;
-                //edit
-                case ItemTouchHelper.RIGHT:
-                    break;
-            }
-        }
-    };*/
-
-    /*class SwipeToDeleteCallback extends ItemTouchHelper.SimpleCallback {
-
-        SwipeToDeleteCallback(int dragDirs, int swipeDirs) {
-            super(dragDirs, swipeDirs);
-        }
-
-        @Override
-        public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
-            return false;
-        }
-
-        //Undo if delete item and put it back at the same position
-        //This is what is using for swipes
-        @Override
-        public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
-            int position = viewHolder.getAdapterPosition();
-            if (!selectedApps.isEmpty() && position >= 0 && position < selectedApps.size()) {
-                if (direction == ItemTouchHelper.LEFT) {
-                    AppsObj deletedApp = selectedApps.get(position);
-                    Snackbar.make(viewHolder.itemView, deletedApp.getAppNames() + " deleted!", Snackbar.LENGTH_LONG)
-                            .setAction("Undo", view -> {
-                                selectedApps.add(position, deletedApp);
-                                mainAppsAdapter.notifyItemInserted(position);
-                            }).show();
-                    deleteApp(position);
-                } else if (direction == ItemTouchHelper.RIGHT) {
-                    // BottomSheet
-                    editApp(position);
-                }
-            }
-        }
-
-        @Override
-        public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder,
-                                float dX, float dY, int actionState, boolean isCurrentlyActive) {
-            new RecyclerViewSwipeDecorator.Builder(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
-
-                    //Adding color background and icon for deleteSwipe
-                    .addSwipeLeftBackgroundColor(ContextCompat.getColor(MainActivity.this, R.color.red))
-                    .addSwipeLeftActionIcon(R.drawable.deleteappitem)
-
-                    //Adding color background and icon for editSwipe
-                    .addSwipeRightBackgroundColor(ContextCompat.getColor(MainActivity.this, R.color.appGreen))
-                    .addSwipeRightActionIcon(R.drawable.editappitem)
-                    .create()
-                    .decorate();
-            super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
-        }
-    }
-
-
-    //Works for the undo button so DO NOT delete
-    private void deleteApp(int position) {
-        AppsObj deletedApp = selectedApps.get(position);
-        // Διαγραφή από τη βάση δεδομένων
-        int userId = dbHelper.getUserIdByUsername(username);
-        dbHelper.deleteApp(deletedApp.getAppNames(), userId);
-
-        // Διαγραφή από την προβολή λίστας
-        selectedApps.remove(position);
-        mainAppsAdapter.notifyItemRemoved(position);
-    }
-
-    //Edit app once swiped right
-    private void editApp(int position) {
-        if (position < selectedApps.size()) {
-            AppsObj selectedApp = selectedApps.get(position);
-            // Transfer to the EditSelectedAppActivity
-            Intent editIntent = new Intent(MainActivity.this, EditSelectedAppActivity.class);
-            editIntent.putExtra("selectedApp", selectedApp); // Υποθέτουμε ότι έχετε έναν κατάλληλο constructor ή setters/getters για να περάσετε το αντικείμενο AppsObj
-            startActivity(editIntent);
-        }
-    }
-*/
