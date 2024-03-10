@@ -69,64 +69,13 @@ public class RegisterActivity extends AppCompatActivity {
         buttonRegister.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String email = inputEmail.getText().toString();
-                progressBar.setVisibility(View.VISIBLE);
-                overlayView.setVisibility(View.VISIBLE);
-                new VerifyEmailTask(RegisterActivity.this).execute(email);
+                attemptRegistration();
             }
         });
     }
 
-    private class VerifyEmailTask extends AsyncTask<String, Void, Boolean> {
-        private WeakReference<RegisterActivity> activityReference;
 
-        VerifyEmailTask(RegisterActivity context) {
-            activityReference = new WeakReference<>(context);
-        }
 
-        @Override
-        protected Boolean doInBackground(String... emails) {
-            String emailToVerify = emails[0];
-            HttpURLConnection urlConnection = null;
-            try {
-                URL url = new URL("https://api.hunter.io/v2/email-verifier?email=" + emailToVerify + "&api_key=9f387e4dfb8a839b9b246089137cc92244ad5562");
-                urlConnection = (HttpURLConnection) url.openConnection();
-                InputStream in = new BufferedInputStream(urlConnection.getInputStream());
-                BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-                StringBuilder result = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    result.append(line);
-                }
-
-                JSONObject jsonObject = new JSONObject(result.toString());
-                JSONObject data = jsonObject.getJSONObject("data");
-                String emailResult = data.getString("result");
-                return emailResult.equals("deliverable");
-            } catch (IOException | JSONException e) {
-                e.printStackTrace();
-                return false;
-            } finally {
-                if (urlConnection != null) {
-                    urlConnection.disconnect();
-                }
-            }
-        }
-
-        @Override
-        protected void onPostExecute(Boolean isEmailValid) {
-            RegisterActivity activity = activityReference.get();
-            if (activity == null || activity.isFinishing()) return;
-
-            activity.progressBar.setVisibility(View.GONE);
-            activity.overlayView.setVisibility(View.GONE);
-            if (isEmailValid) {
-                activity.attemptRegistration();
-            } else {
-                Toast.makeText(activity, "Invalid email", Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
 
     private void attemptRegistration() {
         String username = inputUsername.getText().toString();
@@ -148,7 +97,26 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
-        registerUser(username, email, password);
+        // Εμφάνιση του ProgressBar και της αναμονής
+        progressBar.setVisibility(View.VISIBLE);
+        overlayView.setVisibility(View.VISIBLE);
+
+        // Καλέστε τον AsyncTask για την επαλήθευση του email
+        EmailVerificationTask verificationTask = new EmailVerificationTask(new EmailVerificationTask.EmailVerificationListener() {
+            @Override
+            public void onEmailVerified(boolean isEmailValid) {
+                progressBar.setVisibility(View.GONE);
+                overlayView.setVisibility(View.GONE);
+                if (isEmailValid) {
+                    // Προχωρήστε με την εγγραφή αν το email είναι έγκυρο
+                    registerUser(username, email, password);
+                } else {
+                    // Εμφάνιση μηνύματος σφάλματος αν το email δεν είναι έγκυρο
+                    Toast.makeText(RegisterActivity.this, "Invalid email", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+        verificationTask.execute(email);
     }
 
     private void registerUser(String username, String email, String password) {

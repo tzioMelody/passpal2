@@ -4,24 +4,27 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/background"
     android:fillViewport="true">
 
-    <RelativeLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@drawable/background"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
         tools:context=".EditSelectedAppActivity">
 
         <LinearLayout
             android:id="@+id/EditAppCard"
-            android:layout_width="wrap_content"
-            android:layout_height="516dp"
+            android:layout_width="401dp"
+            android:layout_height="606dp"
             android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
             android:layout_alignParentEnd="true"
             android:layout_alignParentBottom="true"
-            android:layout_marginStart="-1dp"
-            android:layout_marginEnd="1dp"
-            android:layout_marginBottom="203dp"
+            android:layout_marginStart="5dp"
+            android:layout_marginTop="9dp"
+            android:layout_marginEnd="5dp"
+            android:layout_marginBottom="222dp"
             android:background="@drawable/login_card_background"
             android:elevation="4dp"
             android:gravity="center_horizontal"
@@ -102,7 +105,6 @@
                 android:textColorHint="@color/black"
                 app:errorEnabled="true"
                 app:hintTextColor="@color/black"
-                app:startIconDrawable="@drawable/ic_person"
                 app:startIconTint="@null">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -127,7 +129,6 @@
                 android:textColorHint="@color/black"
                 app:errorEnabled="true"
                 app:hintTextColor="@color/black"
-                app:startIconDrawable="@drawable/ic_person"
                 app:startIconTint="@null">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -172,45 +173,51 @@
 
         </LinearLayout>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_above="@+id/SaveSelectedAppData"
-            android:layout_marginBottom="16dp"
-            android:gravity="center_horizontal"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/GeneratePsw"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/generate_new_password"
-                android:textAllCaps="false"
-                android:textColor="@color/white"
-                app:backgroundTint="@color/dark_purple"
-                app:cornerRadius="28dp" />
-
-            <Button
-                android:id="@+id/OpenAppWebsite"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Open app/website"
-                android:textAllCaps="false"
-                android:textColor="@color/white"
-                app:backgroundTint="@color/light_purple"
-                app:cornerRadius="28dp" />
-        </LinearLayout>
 
         <Button
             android:id="@+id/SaveSelectedAppData"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
             android:layout_alignParentBottom="true"
+            android:layout_marginEnd="-2dp"
+            android:layout_marginBottom="33dp"
             android:text="Save"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
-    </RelativeLayout>
+
+        <Button
+            android:id="@+id/GeneratePsw"
+            android:layout_width="180dp"
+            android:layout_height="74dp"
+            android:layout_marginStart="16dp"
+            android:layout_weight="1"
+            android:text="@string/generate_new_password"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            app:backgroundTint="@color/dark_purple"
+            app:cornerRadius="28dp"
+            app:layout_constraintBottom_toTopOf="@+id/SaveSelectedAppData"
+            app:layout_constraintEnd_toStartOf="@+id/OpenAppWebsite"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/EditAppCard"
+            app:layout_constraintVertical_bias="0.453" />
+
+        <Button
+            android:id="@+id/OpenAppWebsite"
+            android:layout_width="184dp"
+            android:layout_height="66dp"
+            android:layout_weight="1"
+            android:text="Open app/website"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            app:backgroundTint="@color/light_purple"
+            app:cornerRadius="28dp"
+            app:layout_constraintBottom_toTopOf="@+id/SaveSelectedAppData"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/EditAppCard"
+            app:layout_constraintVertical_bias="0.385" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>
