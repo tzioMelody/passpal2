@@ -31,7 +31,7 @@ import java.net.URL;
 
 public class RegisterActivity extends AppCompatActivity {
 
-    private DataBaseHelper db;
+    private DataBaseHelper dbHelper = new DataBaseHelper(this);
     private TextInputEditText inputUsername, inputEmail, inputPassword, inputConfirmPassword;
     private Button buttonRegister, alreadyAccount;
     private ProgressBar progressBar;
@@ -44,9 +44,10 @@ public class RegisterActivity extends AppCompatActivity {
 
         getSupportActionBar().setTitle("Sign up");
 
-        db = new DataBaseHelper(this);
         // για την σωστή εκκίνηση της βάσης τοπικά στο κινητό
-        db.getWritableDatabase();
+        dbHelper.getWritableDatabase();
+
+
         Log.d("RegisterActivity", "Η βάση δεδομένων έχει δημιουργηθεί και είναι έτοιμη.");
 
 
@@ -87,7 +88,8 @@ public class RegisterActivity extends AppCompatActivity {
             Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
             return;
         }
-        if (!isPasswordStrong(password)) {
+
+        if (password.length() < 8) {
             Toast.makeText(this, "Password must be at least 8 characters long", Toast.LENGTH_LONG).show();
             return;
         }
@@ -120,7 +122,7 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void registerUser(String username, String email, String password) {
-        if (db.isUserExists(email) || db.isUsernameExists(username)) {
+        if (dbHelper.isUserExists(email) || dbHelper.isUsernameExists(username)) {
             Toast.makeText(this, "User already exists", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -139,11 +141,11 @@ public class RegisterActivity extends AppCompatActivity {
             DataBaseHelper.User newUser = new DataBaseHelper.User(0, username, email, passwordToStore);
 
             // εισαγωγή του νέου χρήστη στη βάση
-            if (db.addOne(newUser)) {
+            if (dbHelper.addOne(newUser)) {
                 Toast.makeText(this, "User registered successfully", Toast.LENGTH_SHORT).show();
 
                 // Παιρνω το ID του
-                int userId = db.getUserIdByUsername(username);
+                int userId = dbHelper.getUserIdByUsername(username);
 
                 // Προσθέστε το όνομα χρήστη στο Intent
                 Intent intent = new Intent(this, MainActivity.class);

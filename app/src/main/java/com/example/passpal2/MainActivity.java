@@ -58,10 +58,15 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Ονομα χρηστη στην μπαρα
-        SharedPreferences preferences = getSharedPreferences("user_credentials", MODE_PRIVATE);
-        username = preferences.getString("username", "");
-        getSupportActionBar().setTitle("Welcome, " + username +"!");
+        // Ανάκτηση του username από το Intent ή SharedPreferences
+        Intent intent = getIntent();
+        username = intent.getStringExtra("username");
+        if (username == null || username.isEmpty()) {
+            // Αν το Intent δεν περιέχει το username, δοκιμάζουμε να το ανακτήσουμε από SharedPreferences
+            SharedPreferences preferences = getSharedPreferences("user_credentials", MODE_PRIVATE);
+            username = preferences.getString("username", "");
+        }
+        getSupportActionBar().setTitle("Welcome, " + username + "!");
 
         // Ανάκτηση του userId χρησιμοποιώντας το username
         int userId = dbHelper.getUserIdByUsername(username);
@@ -71,14 +76,10 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
         // AsyncTask για την ανάκτηση και εμφάνιση των εφαρμογών
         new FetchAppsTask().execute(userId);
 
-        Intent intentUserID = new Intent(MainActivity.this, AppSelectionActivity.class);
-        intentUserID.putExtra("USER_ID", userId);
-
         FloatingActionButton appsBtn = findViewById(R.id.appsBtn);
         appsBtn.setOnClickListener(view -> {
-            // Χρηση startActivityForResult για να παρουμε πισω αποτελεσματα απο την AppSelectionActivity
-            Intent intent = new Intent(MainActivity.this, AppSelectionActivity.class);
-            // default
+            Intent intentUserID = new Intent(MainActivity.this, AppSelectionActivity.class);
+            intentUserID.putExtra("USER_ID", userId);
             startActivityForResult(intentUserID, 1);
         });
 
@@ -93,16 +94,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
         appsRecyclerView.setAdapter(mainAppsAdapter);
         appsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-    /*    //Swipe items for Edit and Delete
-        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new SwipeToDeleteCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT));
-        itemTouchHelper.attachToRecyclerView(appsRecyclerView);*/
-
-    /*  // Συνδέστε το ItemTouchHelper με το RecyclerView
-            ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleItemTouchCallback);
-            itemTouchHelper.attachToRecyclerView(appsRecyclerView);*/
     }
-
-
 
 
     // Called when returning from AppSelectionActivity with selected apps
@@ -339,6 +331,21 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
         }
 
 
+    }
+    public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder,
+                            float dX, float dY, int actionState, boolean isCurrentlyActive) {
+        new RecyclerViewSwipeDecorator.Builder(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
+
+                //Adding color background and icon for deleteSwipe
+                .addSwipeLeftBackgroundColor(ContextCompat.getColor(MainActivity.this, R.color.red))
+                .addSwipeLeftActionIcon(R.drawable.deleteappitem)
+
+                //Adding color background and icon for editSwipe
+                .addSwipeRightBackgroundColor(ContextCompat.getColor(MainActivity.this, R.color.appGreen))
+                .addSwipeRightActionIcon(R.drawable.editappitem)
+                .create()
+                .decorate();
+        super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
     }
     //NEW SWIPE TZIO
        private void attachSwipeToDeleteAndEditHelper() {

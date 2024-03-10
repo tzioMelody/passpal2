@@ -48,37 +48,17 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         DataBaseHelper dbHelper = new DataBaseHelper(LoginActivity.this);
-        DataBaseHelper.User user = dbHelper.getUserByUsername(username);
-
-        if (user != null) {
-            // Διαχωρισμός του αποθηκευμένου κωδικού και του salt
-            String storedPassword = user.getPassword();
-            String[] parts = storedPassword.split(":");
-            if (parts.length == 2) {
-                try {
-                    // Ανακτήστε το salt
-                    String salt = parts[1];
-                    // Γίνεται hash ο κωδικός με το salt
-                    String hashedInputPassword = DataBaseHelper.hashPassword(password, DataBaseHelper.decodeSalt(salt));
-
-                    // Σύγκριση των κωδικών
-                    if (hashedInputPassword.equals(parts[0])) {
-                        // Εδώ τοποθετούνται οι εντολές για επιτυχή σύνδεση
-                        Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_SHORT).show();
-                        proceedToMainActivity();
-                    } else {
-                        Toast.makeText(LoginActivity.this, "Login failed. Please check your username and password.", Toast.LENGTH_SHORT).show();
-                    }
-                } catch (NoSuchAlgorithmException e) {
-                    Toast.makeText(LoginActivity.this, "An error occurred while processing the password. Please try again.", Toast.LENGTH_SHORT).show();
-                }
-            } else {
-                Toast.makeText(LoginActivity.this, "An error occurred. Please try again.", Toast.LENGTH_SHORT).show();
-            }
+        if (dbHelper.checkUserLogin(username, password)) {
+            // Εδώ τοποθετούνται οι εντολές για επιτυχή σύνδεση
+            Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+            startActivity(intent);
+            finish();
         } else {
             Toast.makeText(LoginActivity.this, "Login failed. Please check your username and password.", Toast.LENGTH_SHORT).show();
         }
     }
+
 
 
     // Εσωτερική κλάση για την αντιπροσωπεία του AsyncTask

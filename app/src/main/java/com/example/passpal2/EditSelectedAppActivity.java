@@ -1,5 +1,6 @@
 package com.example.passpal2;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -15,6 +16,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -35,7 +37,7 @@ public class EditSelectedAppActivity extends AppCompatActivity {
     private View overlayView;
     // Μεταβλητή για να παρακολουθούμε την ορατότητα του κωδικού
     private boolean isPasswordVisible = false;
-    private DataBaseHelper db = new DataBaseHelper(this);
+    private DataBaseHelper dbHelper = new DataBaseHelper(this);
 
 
 
@@ -127,13 +129,29 @@ public class EditSelectedAppActivity extends AppCompatActivity {
       /*  // Υποθέτωντας ότι έχεις ένα instance της DataBaseHelper με όνομα db
         boolean isUpdateSuccessful = db.updateAppInfo(updatedApp); // Υποθέτωντας ότι έχεις μια μέθοδο updateAppInfo στην DataBaseHelper
 
-        if (db.updateAppInfo(updatedAppInfo)) {
+        if (dbHelper.updateAppInfo(updatedAppInfo)) {
             Toast.makeText(this, "App information updated successfully", Toast.LENGTH_SHORT).show();
             // Προαιρετικά, μετάβαση πίσω στην προηγούμενη δραστηριότητα ή ενημέρωση του UI
             finish(); // Κλείνει την τρέχουσα δραστηριότητα και επιστρέφει στην προηγούμενη
         } else {
             Toast.makeText(this, "Failed to update app information", Toast.LENGTH_SHORT).show();
         }*/
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        new AlertDialog.Builder(this)
+                .setTitle("Αποθήκευση Αλλαγών") // Ορισμός του τίτλου του παραθύρου
+                .setMessage("Είστε σίγουροι ότι θέλετε να φύγετε; Όλες οι αλλαγές που δεν έχουν αποθηκευτεί θα χαθούν.")
+                .setPositiveButton("Ναι", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        EditSelectedAppActivity.super.onBackPressed();
+                    }
+                })
+                .setNegativeButton("Όχι", null)
+                .show();
     }
 
     // generate new password
