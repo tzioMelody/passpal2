@@ -101,7 +101,14 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 1 && resultCode == RESULT_OK) {
+        if (requestCode == EDIT_APP_REQUEST  && resultCode == RESULT_OK) {
+            if (data.hasExtra("POSITION")) {
+                int position = data.getIntExtra("POSITION", -1);
+                if (position != -1) {
+                    // Προσαρμογή του RecyclerView στη συγκεκριμένη θέση
+                    layoutManager.scrollToPosition(position);
+                }
+            }
             ArrayList<Parcelable> parcelables = data.getParcelableArrayListExtra("selected_apps");
             if (parcelables != null) {
                 List<AppsObj> apps = new ArrayList<>();
@@ -332,7 +339,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
 
 
     }
-    public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder,
+  /*  public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder,
                             float dX, float dY, int actionState, boolean isCurrentlyActive) {
         new RecyclerViewSwipeDecorator.Builder(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
 
@@ -346,7 +353,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
                 .create()
                 .decorate();
         super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
-    }
+    }*/
     //NEW SWIPE TZIO
        private void attachSwipeToDeleteAndEditHelper() {
         ItemTouchHelper.SimpleCallback simpleItemTouchCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
