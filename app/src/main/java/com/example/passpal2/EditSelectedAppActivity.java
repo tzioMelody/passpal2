@@ -124,7 +124,7 @@ public class EditSelectedAppActivity extends AppCompatActivity {
 
 
 
-        // Υποθέτωντας ότι έχεις ένα instance της DataBaseHelper με όνομα db
+      /*  // Υποθέτωντας ότι έχεις ένα instance της DataBaseHelper με όνομα db
         boolean isUpdateSuccessful = db.updateAppInfo(updatedApp); // Υποθέτωντας ότι έχεις μια μέθοδο updateAppInfo στην DataBaseHelper
 
         if (db.updateAppInfo(updatedAppInfo)) {
@@ -133,7 +133,7 @@ public class EditSelectedAppActivity extends AppCompatActivity {
             finish(); // Κλείνει την τρέχουσα δραστηριότητα και επιστρέφει στην προηγούμενη
         } else {
             Toast.makeText(this, "Failed to update app information", Toast.LENGTH_SHORT).show();
-        }
+        }*/
     }
 
     // generate new password

@@ -14,6 +14,11 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import androidx.annotation.Nullable;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -31,6 +36,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     private static final int DATABASE_VERSION = 2;
     private static final String DATABASE_NAME = "passpal.db";
+    private Context mContext;
 
     // User Table Columns
     public static final String USER_TABLE = "USER_TABLE";
@@ -48,7 +54,18 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     public DataBaseHelper(@Nullable Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
+        this.mContext = context;
+        try {
+            if (!checkDatabaseExists()) {
+                this.getReadableDatabase(); // This will create an empty database into the default system path
+                this.close(); // Close the empty db
+                copyDatabase(); // Copy the pre-populated db from assets
+            }
+        } catch (IOException e) {
+            throw new Error("Error copying database");
+        }
     }
+
 
     public static class User {
         private int id;
@@ -147,6 +164,26 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         // Υποθέτουμε ότι ο πρώτος χρήστης που δημιουργήσαμε έχει το ID 1
         appValues.put("user_id", 1); // Συσχέτιση με τον χρήστη με ID 1
         db.insert(TABLE_APPS_INFO, null, appValues);
+    }
+    private boolean checkDatabaseExists() {
+        File dbFile = mContext.getDatabasePath(DATABASE_NAME);
+        return dbFile.exists();
+    }
+    private void copyDatabase() throws IOException {
+        InputStream myInput = mContext.getAssets().open(DATABASE_NAME);
+        String outFileName = mContext.getDatabasePath(DATABASE_NAME).getPath();
+        OutputStream myOutput = new FileOutputStream(outFileName);
+
+        byte[] buffer = new byte[1024];
+        int length;
+        while ((length = myInput.read(buffer)) > 0) {
+            myOutput.write(buffer, 0, length);
+        }
+
+        // Close the streams
+        myOutput.flush();
+        myOutput.close();
+        myInput.close();
     }
 
     public void addUserApp(AppsObj userApp, int userId) {

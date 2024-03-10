@@ -18,6 +18,7 @@ public class EmailVerificationTask extends AsyncTask<String, Void, Boolean> {
     }
 
     public EmailVerificationTask(EmailVerificationListener listener) {
+        Context context = null;
         this.contextReference = new WeakReference<>(context);
         this.listener = listener;
     }
