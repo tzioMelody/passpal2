@@ -620,6 +620,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         db.close();
         return isSelected;
     }
+    //υπαρχουσα εφαρμογη
     public boolean updateAppCredentials(int appId, int userId, String username, String email, String password) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues cv = new ContentValues();
@@ -632,7 +633,24 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         db.close();
         return result > 0;
     }
+//νεα εφαρμογη
+    public boolean addNewAppWithDetails(int userId, String appName, String appLink, String username, String email, String password) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues cv = new ContentValues();
 
+        cv.put(COLUMN_APP_NAME, appName);
+        cv.put(COLUMN_APP_LINK, appLink);
+        cv.put("app_username", username);
+        cv.put("app_email", email);
+        cv.put("app_password", password);
+        cv.put("user_id", userId);
+        cv.put(COLUMN_IS_SELECTED, 1); // Υποθέτουμε ότι η νέα εφαρμογή είναι πάντα επιλεγμένη αρχικά
+
+        long result = db.insert(TABLE_APPS_INFO, null, cv);
+        db.close();
+
+        return result != -1; // Επιστρέφει true αν η εισαγωγή ήταν επιτυχής
+    }
 
     public boolean saveSelectedAppToDatabase(AppsObj appInfo, int userId) {
 

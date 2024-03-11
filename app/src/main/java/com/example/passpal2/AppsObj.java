@@ -14,6 +14,11 @@ public class AppsObj implements Parcelable {
     private String AppLinks;
     private int AppImages;
     private boolean isSelected;
+    // Νέα πεδία
+    private String username;
+    private String email;
+    private String password;
+
 
     public AppsObj(String appNames, String appLinks, int appImages) {
         AppNames = appNames;
@@ -21,13 +26,24 @@ public class AppsObj implements Parcelable {
         AppImages = appImages;
         isSelected = false;
     }
-
+    public AppsObj(String appNames, String appLinks, int appImages, String username, String email, String password) {
+        this.AppNames = appNames;
+        this.AppLinks = appLinks;
+        this.AppImages = appImages;
+        this.isSelected = false;
+        this.username = username;
+        this.email = email;
+        this.password = password;
+    }
     protected AppsObj(Parcel in) {
         id = in.readInt();
         AppNames = in.readString();
         AppLinks = in.readString();
         AppImages = in.readInt();
         isSelected = in.readByte() != 0;
+        username = in.readString();
+        email = in.readString();
+        password = in.readString();
     }
 
     public static final Creator<AppsObj> CREATOR = new Creator<AppsObj>() {
@@ -74,6 +90,30 @@ public class AppsObj implements Parcelable {
         return 0;
     }
 
+    // Getters και Setters για τα νέα πεδία
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
 
     @Override
     public void writeToParcel(@NonNull Parcel parcel, int i) {
@@ -82,6 +122,9 @@ public class AppsObj implements Parcelable {
         parcel.writeString(AppLinks);
         parcel.writeInt(AppImages);
         parcel.writeByte((byte) (isSelected ? 1 : 0));
+        parcel.writeString(username);
+        parcel.writeString(email);
+        parcel.writeString(password);
     }
 
 

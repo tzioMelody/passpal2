@@ -156,8 +156,9 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
     // Λειτουργία κουμπιών
     public void onAddUserAppsButtonClick(View view) {
         if (selectedApps.isEmpty()) {
-            Intent intent = new Intent(this, AddAppUserActivity.class);
-            startActivity(intent);
+            Intent intentUserId = new Intent(this, AddAppUserActivity.class);
+            intentUserId.putExtra("USER_ID", userId);
+            startActivityForResult(intentUserId, 1);
         } else {
             // Αν η λίστα δεν είναι άδεια, εμφανίζουμε έναν διάλογο επιβεβαίωσης
             new AlertDialog.Builder(this)
@@ -165,8 +166,9 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
                     .setMessage("Are you sure you want to continue? Your selected apps will be lost.")
                     .setPositiveButton(android.R.string.yes, (dialog, which) -> {
                         // Εάν ο χρήστης συνεχίσει, πηγαίνουμε στο AddAppUserActivity
-                        Intent intent = new Intent(this, AddAppUserActivity.class);
-                        startActivity(intent);
+                        Intent intentUserId = new Intent(this, AddAppUserActivity.class);
+                        intentUserId.putExtra("USER_ID", userId);
+                        startActivityForResult(intentUserId, 1);
                     })
                     .setNegativeButton(android.R.string.no, null)
                     .show();
