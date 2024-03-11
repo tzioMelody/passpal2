@@ -88,14 +88,11 @@ public class EditSelectedAppActivity extends AppCompatActivity {
                     return;
                 }
 
-                progressBar.setVisibility(View.VISIBLE);
-                overlayView.setVisibility(View.VISIBLE);
+
 
                 EmailVerificationTask verificationTask = new EmailVerificationTask(new EmailVerificationTask.EmailVerificationListener() {
                     @Override
                     public void onEmailVerified(boolean isEmailValid) {
-                        progressBar.setVisibility(View.GONE);
-                        overlayView.setVisibility(View.GONE);
                         if (isEmailValid) {
                             saveChanges();
                         } else {
@@ -139,11 +136,12 @@ public class EditSelectedAppActivity extends AppCompatActivity {
         String username = inputUsernameEditedApp.getText().toString();
         String email = inputEmailEditedApp.getText().toString();
         String password = selectedAppPassword.getText().toString();
+        String link = appLinkEditText.getText().toString();
 
         int userId = userid;
         int appId = this.appId;
 
-        boolean success = dbHelper.updateAppCredentials(appId, userId, username, email, password);
+        boolean success = dbHelper.saveAppCredentials(appId, userId, username, email, password, link);
 
         if (success) {
             Toast.makeText(this, "Credentials saved successfully", Toast.LENGTH_SHORT).show();

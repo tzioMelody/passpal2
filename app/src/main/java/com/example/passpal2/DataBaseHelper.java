@@ -29,7 +29,7 @@ import android.util.Log;
 
 public class DataBaseHelper extends SQLiteOpenHelper {
 
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 3;
     private static final String DATABASE_NAME = "passpal.db";
 
     // User Table Columns
@@ -46,6 +46,18 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_IMAGE_RESOURCE = "imageResource";
     public static final String COLUMN_APP_IMAGE_URI = "AppImageUri";
     public static final String COLUMN_IS_SELECTED = "isSelected";
+
+    //app credentials
+    public static final String APP_CREDENTIALS = "app_credentials";
+    public static final String COLUMN_APP_USERNAME = "app_username";
+    public static final String COLUMN_APP_EMAIL = "app_email";
+    public static final String COLUMN_APP_PASSWORD= "app_password";
+    public static final String COLUMN_NEW_APP_LINK = "app_link";
+
+
+
+
+
 
     public DataBaseHelper(@Nullable Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -105,37 +117,127 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     }
 
+    public class AppCredentials {
+        private int credentialId;
+        private int appId;
+        private int userId;
+        private String username;
+        private String email;
+        private String password;
+        private String appLink;
+
+        // Constructor
+        public AppCredentials(int credentialId, int appId, int userId, String username, String email, String password, String appLink) {
+            this.credentialId = credentialId;
+            this.appId = appId;
+            this.userId = userId;
+            this.username = username;
+            this.email = email;
+            this.password = password;
+            this.appLink = appLink;
+        }
+
+        // Getters and Setters
+        public int getCredentialId() {
+            return credentialId;
+        }
+
+        public void setCredentialId(int credentialId) {
+            this.credentialId = credentialId;
+        }
+
+        public int getAppId() {
+            return appId;
+        }
+
+        public void setAppId(int appId) {
+            this.appId = appId;
+        }
+
+        public int getUserId() {
+            return userId;
+        }
+
+        public void setUserId(int userId) {
+            this.userId = userId;
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
+        }
+
+        public String getEmail() {
+            return email;
+        }
+
+        public void setEmail(String email) {
+            this.email = email;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
+        }
+
+        public String getAppLink() {
+            return appLink;
+        }
+
+        public void setAppLink(String appLink) {
+            this.appLink = appLink;
+        }
+    }
 
     @Override
-    public void onCreate(SQLiteDatabase db) {
-        String createUserTableStatement = "CREATE TABLE " + USER_TABLE + " (" +
-                COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                COLUMN_USERNAME + " TEXT, " +
-                COLUMN_EMAIL + " TEXT, " +
-                COLUMN_PASSWORD + " TEXT)";
+        public void onCreate(SQLiteDatabase db) {
+            String createUserTableStatement = "CREATE TABLE " + USER_TABLE + " (" +
+                    COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    COLUMN_USERNAME + " TEXT, " +
+                    COLUMN_EMAIL + " TEXT, " +
+                    COLUMN_PASSWORD + " TEXT)";
 
-        String createAppsInfoTableStatement = "CREATE TABLE " + TABLE_APPS_INFO + " (" +
-                COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                COLUMN_APP_NAME + " TEXT, " +
-                COLUMN_APP_LINK + " TEXT, " +
-                COLUMN_IMAGE_RESOURCE + " INTEGER, " +
-                COLUMN_APP_IMAGE_URI + " TEXT, " +
-                COLUMN_IS_SELECTED + " INTEGER, " +
-                "user_id INTEGER, " +
-                "FOREIGN KEY(user_id) REFERENCES " + USER_TABLE + "(" + COLUMN_ID + "))";
+            String createAppsInfoTableStatement = "CREATE TABLE " + TABLE_APPS_INFO + " (" +
+                    COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    COLUMN_APP_NAME + " TEXT, " +
+                    COLUMN_APP_LINK + " TEXT, " +
+                    COLUMN_IMAGE_RESOURCE + " INTEGER, " +
+                    COLUMN_APP_IMAGE_URI + " TEXT, " +
+                    COLUMN_IS_SELECTED + " INTEGER, " +
+                    "user_id INTEGER, " +
+                    "FOREIGN KEY(user_id) REFERENCES " + USER_TABLE + "(" + COLUMN_ID + "))";
+
+        String createAppCredentialsTableStatement = "CREATE TABLE APP_CREDENTIALS (" +
+                "credential_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "app_id INTEGER, " +
+                "user_id INTEGER, " + // Προσθήκη του user_id
+                COLUMN_APP_USERNAME + " TEXT, " +
+                COLUMN_APP_EMAIL + " TEXT, " +
+                COLUMN_APP_PASSWORD + " TEXT, " +
+                COLUMN_NEW_APP_LINK + " TEXT, " +
+                "FOREIGN KEY (app_id) REFERENCES " + TABLE_APPS_INFO + "(" + COLUMN_ID + "), " +
+                "FOREIGN KEY (user_id) REFERENCES " + USER_TABLE + "(" + COLUMN_ID + "))";
 
 
         db.execSQL(createUserTableStatement);
         db.execSQL(createAppsInfoTableStatement);
+        db.execSQL(createAppCredentialsTableStatement);
+
         // Προσθήκη αρχικών δεδομένων για τον χρήστη
         ContentValues userValues = new ContentValues();
         userValues.put(COLUMN_USERNAME, "demoUser");
         userValues.put(COLUMN_EMAIL, "demo@example.com");
-        // Εδώ πρέπει να χρησιμοποιήσετε τις μεθόδους generateSalt() και hashPassword() για την παραγωγή του hashed password
+
         try {
             byte[] salt = DataBaseHelper.generateSalt();
             String hashedPassword = DataBaseHelper.hashPassword("demoPassword123", salt);
-            userValues.put(COLUMN_PASSWORD, hashedPassword + ":" + DataBaseHelper.encodeSalt(salt)); // Εισάγετε το hashed password και το salt
+            userValues.put(COLUMN_PASSWORD, hashedPassword + ":" + DataBaseHelper.encodeSalt(salt));
             db.insert(USER_TABLE, null, userValues);
         }catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
@@ -144,11 +246,23 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         ContentValues appValues = new ContentValues();
         appValues.put(COLUMN_APP_NAME, "Demo App");
         appValues.put(COLUMN_APP_LINK, "https://demoapp.com");
-        appValues.put(COLUMN_IMAGE_RESOURCE, R.drawable.applogomain); // Αντικαταστήστε με το αντίστοιχο drawable
+        appValues.put(COLUMN_IMAGE_RESOURCE, R.drawable.applogomain);
         appValues.put(COLUMN_IS_SELECTED, 1); // Επιλεγμένη εφαρμογή
-        // Υποθέτουμε ότι ο πρώτος χρήστης που δημιουργήσαμε έχει το ID 1
-        appValues.put("user_id", 1); // Συσχέτιση με τον χρήστη με ID 1
+        appValues.put("user_id", 1);
         db.insert(TABLE_APPS_INFO, null, appValues);
+    }
+
+    @Override
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        if (oldVersion < 3) {
+            String addUsernameColumn = "ALTER TABLE " + TABLE_APPS_INFO + " ADD COLUMN app_username TEXT";
+            String addEmailColumn = "ALTER TABLE " + TABLE_APPS_INFO + " ADD COLUMN app_email TEXT";
+            String addPasswordColumn = "ALTER TABLE " + TABLE_APPS_INFO + " ADD COLUMN app_password TEXT";
+            db.execSQL(addUsernameColumn);
+            db.execSQL(addEmailColumn);
+            db.execSQL(addPasswordColumn);
+
+        }
     }
 
     public void addUserApp(AppsObj userApp, int userId) {
@@ -157,30 +271,17 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         ContentValues values = new ContentValues();
         values.put(COLUMN_APP_NAME, userApp.getAppNames());
         values.put(COLUMN_APP_LINK, userApp.getAppLinks());
-        // Μπορείτε να προσθέσετε εδώ περαιτέρω στήλες ανάλογα με την ανάγκη
-        values.put("user_id", userId); // Προσθήκη του πεδίου user_id
+        values.put("user_id", userId);
 
         db.insert(TABLE_APPS_INFO, null, values);
         db.close();
     }
 
-    @Override
-    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        if (oldVersion < 3) { // Έλεγχος για νέα έκδοση
-            String addUsernameColumn = "ALTER TABLE " + TABLE_APPS_INFO + " ADD COLUMN app_username TEXT";
-            String addEmailColumn = "ALTER TABLE " + TABLE_APPS_INFO + " ADD COLUMN app_email TEXT";
-            String addPasswordColumn = "ALTER TABLE " + TABLE_APPS_INFO + " ADD COLUMN app_password TEXT";
-            db.execSQL(addUsernameColumn);
-            db.execSQL(addEmailColumn);
-            db.execSQL(addPasswordColumn);
-        }
-    }
 
 
     private static final String SALT_ALGORITHM = "SHA1PRNG";
     private static final int SALT_LENGTH = 16;
 
-    // Μέθοδος για την παραγωγή ενός salt
     // Μέθοδος για την παραγωγή ενός salt
     public static byte[] generateSalt() throws NoSuchAlgorithmException {
         SecureRandom sr = SecureRandom.getInstance(SALT_ALGORITHM);
@@ -225,7 +326,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
             cv.put(COLUMN_USERNAME, user.getUsername());
             cv.put(COLUMN_EMAIL, user.getEmail());
-            cv.put(COLUMN_PASSWORD, hashedPassword + ":" + saltStr); // Αποθηκεύουμε το hashed password και το salt μαζί
+            // Αποθηκεύουμε το hashed password και το salt μαζί
+            cv.put(COLUMN_PASSWORD, hashedPassword + ":" + saltStr);
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
             return false;
@@ -344,7 +446,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         cv.put(COLUMN_APP_NAME, appInfo.getAppNames());
         cv.put(COLUMN_APP_LINK, appInfo.getAppLinks());
         cv.put(COLUMN_IMAGE_RESOURCE, appInfo.getAppImages());
-        cv.put(COLUMN_IS_SELECTED, appInfo.isSelected() ? 1 : 0); // Ενημέρωση της κατάστασης επιλογής
+        //αν εχει επιλεχθει η εφαρμογη ή οχι
+        cv.put(COLUMN_IS_SELECTED, appInfo.isSelected() ? 1 : 0);
 
         // Ενημέρωση βάσει του appId και του userId
         int rowsAffected = db.update(TABLE_APPS_INFO, cv, COLUMN_ID + " = ? AND user_id = ?", new String[]{String.valueOf(appInfo.getId()), String.valueOf(userId)});
@@ -357,10 +460,10 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public boolean checkUserLogin(String username, String password) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.query(
-                USER_TABLE, // Ο πίνακας από τον οποίο θα κάνουμε το ερώτημα
-                new String[]{COLUMN_ID, COLUMN_USERNAME, COLUMN_PASSWORD}, // Οι στήλες που θέλουμε να επιστραφούν
-                COLUMN_USERNAME + "=?", // Η συνθήκη WHERE
-                new String[]{username}, // Οι τιμές για τη συνθήκη WHERE
+                USER_TABLE,
+                new String[]{COLUMN_ID, COLUMN_USERNAME, COLUMN_PASSWORD},
+                COLUMN_USERNAME + "=?",
+                new String[]{username},
                 null, // group by
                 null, // having
                 null // order by
@@ -449,7 +552,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             values.put(COLUMN_PASSWORD, hashedPassword + ":" + saltStr);
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
-            // Χειριστείτε το σφάλμα κατάλληλα
         }
 
         db.update(USER_TABLE, values, COLUMN_EMAIL + " = ?", new String[]{email});
@@ -492,7 +594,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     // Κώδικας για την ανάκτηση όλων των επιλεγμένων εφαρμογών
     public List<AppsObj> getAllSelectedApps(int userId) {
         List<AppsObj> selectedApps = new ArrayList<>();
-        HashSet<String> addedApps = new HashSet<>(); // Σύνολο για την αποθήκευση των ονομάτων των ήδη προστεθειμένων εφαρμογών
+        HashSet<String> addedApps = new HashSet<>();
         SQLiteDatabase db = this.getReadableDatabase();
         String query = "SELECT * FROM " + TABLE_APPS_INFO + " WHERE " + COLUMN_IS_SELECTED + " = 1 AND user_id = ?";
         Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(userId)});
@@ -517,7 +619,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                         appInfo.setSelected(true);
 
                         selectedApps.add(appInfo);
-                        addedApps.add(appName); // Προσθήκη του ονόματος της εφαρμογής στο HashSet για να αποφευχθούν τα διπλότυπα
+                        addedApps.add(appName);
                     }
                 } while (cursor.moveToNext());
             }
@@ -535,12 +637,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         db.close();
     }
 
-   /* public void deleteApp(String appName, int userId) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        // Διαγραφή της εφαρμογής με βάση το όνομα και το userId
-        db.delete(TABLE_APPS_INFO, COLUMN_APP_NAME + "=? AND user_id=?", new String[]{appName, String.valueOf(userId)});
-        db.close();
-    }*/
 
     public void deleteApp(String appName, int userId) {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -562,10 +658,9 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         cv.put("user_id", userId); // Προσθήκη του πεδίου user_id
 
         long insert = db.insert(TABLE_APPS_INFO, null, cv);
-        // Κλείνουμε τη βάση δεδομένων μετά την εισαγωγή.
         db.close();
 
-        // Επιστρέφει true αν η εισαγωγή ήταν επιτυχής.
+        //  true αν η εισαγωγή ήταν επιτυχής.
         return insert != -1;
     }
 
@@ -615,26 +710,31 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         Cursor cursor = db.rawQuery(query, new String[]{appName, String.valueOf(userId)});
         boolean isSelected = false;
         if (cursor.moveToFirst()) {
-            // Επιστρέφει true αν βρεθεί έστω και μία εγγραφή
+            // true αν βρεθεί έστω και μία εγγραφή
             isSelected = cursor.getInt(0) > 0;
         }
         cursor.close();
         db.close();
         return isSelected;
     }
-    //υπαρχουσα εφαρμογη
-    public boolean updateAppCredentials(int appId, int userId, String username, String email, String password) {
+    public boolean saveAppCredentials(int appID, int userID, String username, String email, String password, String appLink) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues cv = new ContentValues();
-        cv.put("app_username", username);
-        cv.put("app_email", email);
-        cv.put("app_password", password);
+        cv.put("app_id", appID);
+        cv.put("user_id", userID);
+        cv.put(COLUMN_APP_USERNAME, username);
+        cv.put(COLUMN_APP_EMAIL, email);
+        cv.put(COLUMN_APP_PASSWORD, password);
+        cv.put(COLUMN_NEW_APP_LINK, appLink);
 
-        // Ενημέρωση βάσει του appId και του userId
-        int result = db.update(TABLE_APPS_INFO, cv, COLUMN_ID + " = ? AND user_id = ?", new String[]{String.valueOf(appId), String.valueOf(userId)});
+        long result = db.insert(APP_CREDENTIALS, null, cv);
         db.close();
-        return result > 0;
+
+        return result != -1;
     }
+
+
+
     public boolean appExists(String appName, String appLink) {
         SQLiteDatabase db = this.getReadableDatabase();
         String query = "SELECT * FROM " + TABLE_APPS_INFO + " WHERE " + COLUMN_APP_NAME + "=? OR " + COLUMN_APP_LINK + "=?";
@@ -655,13 +755,13 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         cv.put("app_email", email);
         cv.put("app_password", password);
         cv.put("user_id", userId);
-        cv.put(COLUMN_IS_SELECTED, 1); // Υποθέτουμε ότι η νέα εφαρμογή είναι πάντα επιλεγμένη αρχικά
-        cv.put(COLUMN_APP_IMAGE_URI, imageUriString); // Προσθήκη του URI της εικόνας
+        cv.put(COLUMN_IS_SELECTED, 1);
+        cv.put(COLUMN_APP_IMAGE_URI, imageUriString);
 
         long result = db.insert(TABLE_APPS_INFO, null, cv);
         db.close();
 
-        return result != -1; // Επιστρέφει true αν η εισαγωγή ήταν επιτυχής
+        return result != -1;
     }
 
 
@@ -674,23 +774,23 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         cv.put(COLUMN_APP_NAME, appInfo.getAppNames());
         cv.put(COLUMN_APP_LINK, appInfo.getAppLinks());
         cv.put(COLUMN_IMAGE_RESOURCE, appInfo.getAppImages());
-        cv.put(COLUMN_IS_SELECTED, 1); // θεωρούμε πως η εφαρμογή είναι επιλεγμένη κατά την εισαγωγή
-        cv.put("user_id", userId); // Προσθέτουμε το userId
+        cv.put(COLUMN_IS_SELECTED, 1);
+        cv.put("user_id", userId);
 
         long result = db.insert(TABLE_APPS_INFO, null, cv);
-        db.close(); // Κλείνουμε τη βάση μετά την εισαγωγή
+        db.close();
 
       /*  if (userId == -1) {
-            // Επιστρέφουμε false αν το userId δεν είναι έγκυρο.
+            // false αν το userId δεν είναι έγκυρο.
             Log.e("DataBaseHelper", "Invalid User ID. Cannot save the app.");
             return false;
         }*/
         if (result == -1) {
             Log.e("DataBaseHelper", "Failed to insert app for User ID: " + userId);
-            return false; // Επιστρέφουμε false αν η εισαγωγή αποτύχει
+            return false; //  εισαγωγή απετυχε
         } else {
             Log.d("DataBaseHelper", "App inserted successfully for User ID: " + userId);
-            return true; // Επιστρέφουμε true αν η εισαγωγή είναι επιτυχής
+            return true; //  εισαγωγή είναι επιτυχής
         }
     }
 

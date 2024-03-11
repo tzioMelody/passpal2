@@ -1,6 +1,7 @@
 package com.example.passpal2;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,6 +31,8 @@ public class MainAppsAdapter extends RecyclerView.Adapter<MainAppsAdapter.ViewHo
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(context).inflate(R.layout.app_item_main, parent, false);
+        Log.d("FetchAppsTask", "view holder first " );
+
         return new ViewHolder(view);
     }
 
@@ -38,6 +41,8 @@ public class MainAppsAdapter extends RecyclerView.Adapter<MainAppsAdapter.ViewHo
         AppsObj app = appsList.get(position);
         holder.appName.setText(app.getAppNames());
         holder.appImage.setImageResource(app.getAppImages());
+        Log.d("FetchAppsTask", "bind view holder");
+
     }
 
   /*  public void deleteApp(int position) {
@@ -50,6 +55,8 @@ public class MainAppsAdapter extends RecyclerView.Adapter<MainAppsAdapter.ViewHo
 */
     public void setSelectedApps(List<AppsObj> apps) {
         this.appsList = apps;
+        Log.d("FetchAppsTask", "setselectedapp");
+
         notifyDataSetChanged();
     }
 
