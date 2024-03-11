@@ -4,6 +4,7 @@ import static com.example.passpal2.DataBaseHelper.getUserId;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -41,6 +42,8 @@ public class AddAppUserActivity extends AppCompatActivity {
     String username;
     String email;
     String password;
+    ImageButton addAppPhotoButton;
+    private Uri imageUri;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,32 +54,35 @@ public class AddAppUserActivity extends AppCompatActivity {
         saveNewApp = findViewById(R.id.saveNewApp);
         newAppPassword = findViewById(R.id.newAppPassword);
         ImageButton showHideButton = findViewById(R.id.showHideBtn);
-       MaterialButton generatePasswordButton = findViewById(R.id.generatePasswordButton);
+        MaterialButton generatePasswordButton = findViewById(R.id.generatePasswordButton);
+        addAppPhotoButton = findViewById(R.id.addAppPhoto);
 
         userId = getIntent().getIntExtra("USER_ID", -1);
-        // Ορισμός listener για το κουμπί εμφάνισης/απόκρυψης κωδικού
-        showHideButton.setOnClickListener(v -> togglePasswordVisibility());
 
         generatePasswordButton.setOnClickListener(v -> {
             new GeneratePasswordTask(this, password -> newAppPassword.setText(password)).execute();
         });
 
+        addAppPhotoButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openImageSelector();
+            }
+        });
 
         // Ορισμός listener για το κουμπί αποθήκευσης νέας εφαρμογής
         saveNewApp.setOnClickListener(v -> saveNewApp());
 
     }
-
-    private void togglePasswordVisibility() {
-        if (isPasswordVisible) {
-            newAppPassword.setTransformationMethod(PasswordTransformationMethod.getInstance());
-        } else {
-            newAppPassword.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK && data != null) {
+            imageUri = data.getData(); // Λήψη του URI της επιλεγμένης εικόνας
+            addAppPhotoButton.setImageURI(imageUri);
         }
-        isPasswordVisible = !isPasswordVisible;
-        // Keep the cursor at the end
-        newAppPassword.setSelection(newAppPassword.getText().length());
     }
+
 
 
     private void saveNewApp() {
@@ -92,12 +98,32 @@ public class AddAppUserActivity extends AppCompatActivity {
          email = newAppEmail.getText().toString();
          password = newAppPassword.getText().toString();
 
+        if (dbHelper.appExists(appName, appLink)) {
+            Toast.makeText(this, "This app name or link already exists.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         // Έλεγχος των πεδίων
         if (TextUtils.isEmpty(appName) || TextUtils.isEmpty(appLink) || TextUtils.isEmpty(username) ||
                 TextUtils.isEmpty(email) || !Patterns.EMAIL_ADDRESS.matcher(email).matches() || TextUtils.isEmpty(password)) {
             Toast.makeText(AddAppUserActivity.this, "Please fill all fields correctly!", Toast.LENGTH_SHORT).show();
             return;
         }
+        String imageUriString = imageUri != null ? imageUri.toString() : null;
+        boolean success = dbHelper.addNewAppWithDetails(userId, appName, appLink, username, email, password, imageUriString);
+
+        if (success) {
+            Toast.makeText(AddAppUserActivity.this, "App added successfully", Toast.LENGTH_SHORT).show();
+
+            // Δημιουργία νέου αντικειμένου UserApp και προσθήκη στη λίστα
+            AppsObj.UserApp newUserApp = new AppsObj.UserApp(appName, appLink); // Υποθέτοντας ότι χρησιμοποιείτε την εσωτερική κλάση UserApp
+            AppsObj.USER_APPS.add(newUserApp);
+
+            Intent intent = new Intent(AddAppUserActivity.this, AppSelectionActivity.class);
+            startActivity(intent);
+            finish();
+        }
+
 
         // Ελέγχουμε την εγκυρότητα του email
         new EmailVerificationTask(isEmailValid -> {
@@ -110,6 +136,28 @@ public class AddAppUserActivity extends AppCompatActivity {
         }).execute(email);
     }
 
+    private void openImageSelector() {
+        final CharSequence[] options = { "Τραβήξτε φωτογραφία", "Επιλέξτε από την συλλογή", "Ακύρωση" };
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(AddAppUserActivity.this);
+        builder.setTitle("Προσθέστε την εικόνα σας");
+
+        builder.setItems(options, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int item) {
+                if (options[item].equals("Τραβήξτε φωτογραφία")) {
+                    Intent takePicture = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+                    startActivityForResult(takePicture, 0);
+                } else if (options[item].equals("Επιλέξτε από την συλλογή")) {
+                    Intent pickPhoto = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                    startActivityForResult(pickPhoto , 1);
+                } else if (options[item].equals("Ακύρωση")) {
+                    dialog.dismiss();
+                }
+            }
+        });
+        builder.show();
+    }
 
     private class CheckAppLinkValidityTask extends AsyncTask<String, Void, Integer> {
         private String appName;
@@ -138,7 +186,9 @@ public class AddAppUserActivity extends AppCompatActivity {
                 newApp.setUsername(username);
                 newApp.setEmail(email);
                 newApp.setPassword(password);
-                boolean success = dbHelper.addNewAppWithDetails(userId, appName, appLink, username, email, password);
+
+                String imageUriString = imageUri != null ? imageUri.toString() : null;
+                boolean success = dbHelper.addNewAppWithDetails(userId, appName, appLink, username, email, password, imageUriString);
 
                 if (success) {
                     Toast.makeText(AddAppUserActivity.this, "App added successfully", Toast.LENGTH_SHORT).show();
@@ -150,6 +200,7 @@ public class AddAppUserActivity extends AppCompatActivity {
                 Toast.makeText(AddAppUserActivity.this, "The app link is not valid.", Toast.LENGTH_SHORT).show();
             }
         }
+
     }
 
         private void saveNewUserAppToDatabase(AppsObj.UserApp newUserApp) {
@@ -163,7 +214,6 @@ public class AddAppUserActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
         new AlertDialog.Builder(this)
                 .setTitle("Αποθήκευση Αλλαγών") // Ορισμός του τίτλου του παραθύρου
                 .setMessage("Είστε σίγουροι ότι θέλετε να φύγετε; Όλες οι αλλαγές που δεν έχουν αποθηκευτεί θα χαθούν.")
@@ -173,9 +223,15 @@ public class AddAppUserActivity extends AppCompatActivity {
                         AddAppUserActivity.super.onBackPressed();
                     }
                 })
-                .setNegativeButton("Όχι", null)
+                .setNegativeButton("Όχι", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                })
                 .show();
     }
+
 }
 
 

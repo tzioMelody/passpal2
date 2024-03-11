@@ -200,7 +200,6 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
                                     "Ειλικρινά,\n" +
                                     "η ομάδα PassPal")
                             .setPositiveButton(android.R.string.ok, (dialog, which) -> {
-                                // Αν ο χρήστης επιλέξει να συνεχίσει, καλούμε την super.onBackPressed()
                                 super.onBackPressed();
                             })
                             .show();

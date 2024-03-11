@@ -52,6 +52,10 @@ public class AdapterRecycler extends RecyclerView.Adapter<AdapterRecycler.MyView
             toggleItemSelection(position);
         });
     }
+    public void addApp(AppsObj newApp) {
+        appsObjs.add(newApp);
+        notifyDataSetChanged();
+    }
 
     @Override
     public int getItemCount() {

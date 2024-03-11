@@ -29,7 +29,7 @@ public class MainAppsAdapter extends RecyclerView.Adapter<MainAppsAdapter.ViewHo
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.app_item, parent, false);
+        View view = LayoutInflater.from(context).inflate(R.layout.app_item_main, parent, false);
         return new ViewHolder(view);
     }
 

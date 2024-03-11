@@ -147,23 +147,22 @@ public class EditSelectedAppActivity extends AppCompatActivity {
 
         if (success) {
             Toast.makeText(this, "Credentials saved successfully", Toast.LENGTH_SHORT).show();
-            // Επιστροφή στην MainActivity
-            Intent intent = new Intent(EditSelectedAppActivity.this, MainActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            startActivity(intent);
+            // Επιστροφή στην MainActivity με τα ενημερωμένα δεδομένα
+            Intent returnIntent = new Intent();
+            returnIntent.putExtra("APP_ID", appId);
+            returnIntent.putExtra("UPDATED_APP_NAME", appNameTextView.getText().toString());
+            setResult(RESULT_OK, returnIntent);
+            finish();
+
         } else {
             Toast.makeText(this, "Failed to save credentials", Toast.LENGTH_SHORT).show();
         }
-        Intent returnIntent = new Intent();
-        returnIntent.putExtra("POSITION", getIntent().getIntExtra("POSITION", -1));
-        setResult(RESULT_OK, returnIntent);
-        finish();
+
     }
 
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
         new AlertDialog.Builder(this)
                 .setTitle("Αποθήκευση Αλλαγών") // Ορισμός του τίτλου του παραθύρου
                 .setMessage("Είστε σίγουροι ότι θέλετε να φύγετε; Όλες οι αλλαγές που δεν έχουν αποθηκευτεί θα χαθούν.")
@@ -173,9 +172,15 @@ public class EditSelectedAppActivity extends AppCompatActivity {
                         EditSelectedAppActivity.super.onBackPressed();
                     }
                 })
-                .setNegativeButton("Όχι", null)
+                .setNegativeButton("Όχι", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                })
                 .show();
     }
+
 
     // generate new password
     private class GeneratePasswordTask extends AsyncTask<Void, Void, String> {

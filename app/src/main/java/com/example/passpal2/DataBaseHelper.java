@@ -44,6 +44,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_APP_NAME = "AppName";
     public static final String COLUMN_APP_LINK = "AppLink";
     public static final String COLUMN_IMAGE_RESOURCE = "imageResource";
+    public static final String COLUMN_APP_IMAGE_URI = "AppImageUri";
     public static final String COLUMN_IS_SELECTED = "isSelected";
 
     public DataBaseHelper(@Nullable Context context) {
@@ -118,9 +119,10 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 COLUMN_APP_NAME + " TEXT, " +
                 COLUMN_APP_LINK + " TEXT, " +
                 COLUMN_IMAGE_RESOURCE + " INTEGER, " +
+                COLUMN_APP_IMAGE_URI + " TEXT, " +
                 COLUMN_IS_SELECTED + " INTEGER, " +
                 "user_id INTEGER, " +
-                "FOREIGN KEY(user_id) REFERENCES " + USER_TABLE + "(" + COLUMN_ID + "))"; // Προσθήκη σύνδεσης με τον πίνακα USER_TABLE
+                "FOREIGN KEY(user_id) REFERENCES " + USER_TABLE + "(" + COLUMN_ID + "))";
 
 
         db.execSQL(createUserTableStatement);
@@ -633,8 +635,17 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         db.close();
         return result > 0;
     }
-//νεα εφαρμογη
-    public boolean addNewAppWithDetails(int userId, String appName, String appLink, String username, String email, String password) {
+    public boolean appExists(String appName, String appLink) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query = "SELECT * FROM " + TABLE_APPS_INFO + " WHERE " + COLUMN_APP_NAME + "=? OR " + COLUMN_APP_LINK + "=?";
+        Cursor cursor = db.rawQuery(query, new String[]{appName, appLink});
+        boolean exists = cursor.moveToFirst();
+        cursor.close();
+        return exists;
+    }
+
+    //νεα εφαρμογη
+    public boolean addNewAppWithDetails(int userId, String appName, String appLink, String username, String email, String password, String imageUriString) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues cv = new ContentValues();
 
@@ -645,12 +656,14 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         cv.put("app_password", password);
         cv.put("user_id", userId);
         cv.put(COLUMN_IS_SELECTED, 1); // Υποθέτουμε ότι η νέα εφαρμογή είναι πάντα επιλεγμένη αρχικά
+        cv.put(COLUMN_APP_IMAGE_URI, imageUriString); // Προσθήκη του URI της εικόνας
 
         long result = db.insert(TABLE_APPS_INFO, null, cv);
         db.close();
 
         return result != -1; // Επιστρέφει true αν η εισαγωγή ήταν επιτυχής
     }
+
 
     public boolean saveSelectedAppToDatabase(AppsObj appInfo, int userId) {
 

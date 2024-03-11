@@ -4,6 +4,8 @@ import static com.example.passpal2.DataBaseHelper.TABLE_APPS_INFO;
 
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
+import android.health.connect.datatypes.AppInfo;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.util.Log;
@@ -11,6 +13,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.LiveData;
@@ -75,6 +78,29 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
             appsObjs.add(new AppsObj(appNames[i], appLinks[i], appImages[i]));
         }
     }
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Intent intent = getIntent();
+        if (intent != null && intent.hasExtra("AppName") && intent.hasExtra("AppImageUri")) {
+            String appName = intent.getStringExtra("AppName");
+            String appImageUriString = intent.getStringExtra("AppImageUri");
+            Uri appImageUri = appImageUriString != null ? Uri.parse(appImageUriString) : null;
+
+            // Δημιουργία του νέου αντικειμένου AppsObj
+            int appImageResId = R.drawable.default_app_icon; // Χρησιμοποιήστε την προκαθορισμένη εικόνα αν δεν έχετε μια άλλη
+            AppsObj newApp = new AppsObj(appName, "App Link Placeholder", appImageResId);
+            newApp.setSelected(true); // Υποθέτοντας ότι θέλετε να σημειώσετε τη νέα εφαρμογή ως επιλεγμένη
+
+            // Προσθήκη στη λίστα του adapter
+            // Υποθέτω ότι έχετε ήδη έναν adapter ονομαζόμενο 'adapter' που χειρίζεται την λίστα των AppsObj
+            adapter.addApp(newApp);
+
+            // Ενημέρωση του adapter
+            adapter.notifyDataSetChanged();
+        }
+    }
+
 
     @Override
     public void onItemClick(int position) {
