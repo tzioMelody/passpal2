@@ -49,7 +49,6 @@ public class LoginActivity extends AppCompatActivity {
 
         DataBaseHelper dbHelper = new DataBaseHelper(LoginActivity.this);
         if (dbHelper.checkUserLogin(username, password)) {
-            // Εδώ τοποθετούνται οι εντολές για επιτυχή σύνδεση
             Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_SHORT).show();
             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
             startActivity(intent);
@@ -59,9 +58,6 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-
-
-    // Εσωτερική κλάση για την αντιπροσωπεία του AsyncTask
 
     // Μέθοδος για την αποθήκευση του userId
     private void saveUserId(int userId) {

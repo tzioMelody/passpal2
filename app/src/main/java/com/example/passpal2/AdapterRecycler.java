@@ -64,11 +64,9 @@ public class AdapterRecycler extends RecyclerView.Adapter<AdapterRecycler.MyView
 
     public void toggleItemSelection(int position) {
         AppsObj app = appsObjs.get(position);
-        // Αλλάζει την κατάσταση επιλογής
         app.setSelected(!app.isSelected());
         // Ενημερώνει το συγκεκριμένο στοιχείο
         notifyItemChanged(position);
-        // Εκτύπωση πληροφοριών στο Logcat
         String appName = app.getAppNames();
         Log.d("MyApp", "Application selected: " + appName + ", Position: " + position);
 

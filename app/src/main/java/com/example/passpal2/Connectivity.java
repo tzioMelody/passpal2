@@ -24,10 +24,10 @@ public class Connectivity extends AsyncTask<Void, Void, Boolean> {
     @Override
     protected void onPostExecute(Boolean isOnline) {
         if (isOnline) {
-            // Αν υπάρχει σύνδεση στο διαδίκτυο, εκτέλεσε λειτουργίες βάσης δεδομένων
+            // Αν υπάρχει σύνδεση στο διαδίκτυο
             performDatabaseOperation();
         } else {
-            // Αν ΔΕΝ υπάρχει σύνδεση, εμφάνισε μήνυμα στον χρήστη
+            // Αν ΔΕΝ υπάρχει σύνδεση
             showToast("No internet connection. Please check your network settings.");
         }
     }
@@ -51,7 +51,7 @@ public class Connectivity extends AsyncTask<Void, Void, Boolean> {
 
         List<DataBaseHelper.User> userList = userDB.getAllUsers();
         for (DataBaseHelper.User user : userList) {
-            // Κάνε ό,τι χρειάζεται με τον κάθε χρήστη
+            // ....
         }
     }
 

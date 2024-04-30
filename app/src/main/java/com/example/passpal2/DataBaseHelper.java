@@ -47,15 +47,15 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_APP_IMAGE_URI = "AppImageUri";
     public static final String COLUMN_IS_SELECTED = "isSelected";
 
-    //app credentials
-    public static final String APP_CREDENTIALS = "app_credentials";
-    public static final String COLUMN_APP_USERNAME = "app_username";
-    public static final String COLUMN_APP_EMAIL = "app_email";
-    public static final String COLUMN_APP_PASSWORD= "app_password";
-    public static final String COLUMN_NEW_APP_LINK = "app_link";
-
-
-
+    // Constants for App Credentials Table Columns
+    public static final String TABLE_APP_CREDENTIALS = "app_credentials"; // Added constant for the table name
+    public static final String COLUMN_USER_ID = "user_id"; // Use consistent naming for columns
+    public static final String COLUMN_APP_NAME_CREDENTIALS = "app_name";
+    public static final String COLUMN_APP_LINK_CREDENTIALS = "app_link";
+    public static final String COLUMN_USERNAME_CREDENTIALS = "username";
+    public static final String COLUMN_EMAIL_CREDENTIALS = "email";
+    public static final String COLUMN_PASSWORD_CREDENTIALS = "password";
+    public static final String COLUMN_IMAGE_URI_STRING = "image_uri_string";
 
 
 
@@ -118,40 +118,33 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     }
 
     public class AppCredentials {
-        private int credentialId;
-        private int appId;
+        private int id;
         private int userId;
+        private String appName;
+        private String appLink;
         private String username;
         private String email;
         private String password;
-        private String appLink;
+        private String imageUriString;
 
         // Constructor
-        public AppCredentials(int credentialId, int appId, int userId, String username, String email, String password, String appLink) {
-            this.credentialId = credentialId;
-            this.appId = appId;
+        public AppCredentials(int userId, String appName, String appLink, String username, String email, String password, String imageUriString) {
             this.userId = userId;
+            this.appName = appName;
+            this.appLink = appLink;
             this.username = username;
             this.email = email;
             this.password = password;
-            this.appLink = appLink;
+            this.imageUriString = imageUriString;
         }
 
         // Getters and Setters
-        public int getCredentialId() {
-            return credentialId;
+        public int getId() {
+            return id;
         }
 
-        public void setCredentialId(int credentialId) {
-            this.credentialId = credentialId;
-        }
-
-        public int getAppId() {
-            return appId;
-        }
-
-        public void setAppId(int appId) {
-            this.appId = appId;
+        public void setId(int id) {
+            this.id = id;
         }
 
         public int getUserId() {
@@ -160,6 +153,22 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
         public void setUserId(int userId) {
             this.userId = userId;
+        }
+
+        public String getAppName() {
+            return appName;
+        }
+
+        public void setAppName(String appName) {
+            this.appName = appName;
+        }
+
+        public String getAppLink() {
+            return appLink;
+        }
+
+        public void setAppLink(String appLink) {
+            this.appLink = appLink;
         }
 
         public String getUsername() {
@@ -186,14 +195,15 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             this.password = password;
         }
 
-        public String getAppLink() {
-            return appLink;
+        public String getImageUriString() {
+            return imageUriString;
         }
 
-        public void setAppLink(String appLink) {
-            this.appLink = appLink;
+        public void setImageUriString(String imageUriString) {
+            this.imageUriString = imageUriString;
         }
     }
+
 
     @Override
         public void onCreate(SQLiteDatabase db) {
@@ -213,21 +223,19 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                     "user_id INTEGER, " +
                     "FOREIGN KEY(user_id) REFERENCES " + USER_TABLE + "(" + COLUMN_ID + "))";
 
-        String createAppCredentialsTableStatement = "CREATE TABLE APP_CREDENTIALS (" +
-                "credential_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "app_id INTEGER, " +
-                "user_id INTEGER, " + // Προσθήκη του user_id
-                COLUMN_APP_USERNAME + " TEXT, " +
-                COLUMN_APP_EMAIL + " TEXT, " +
-                COLUMN_APP_PASSWORD + " TEXT, " +
-                COLUMN_NEW_APP_LINK + " TEXT, " +
-                "FOREIGN KEY (app_id) REFERENCES " + TABLE_APPS_INFO + "(" + COLUMN_ID + "), " +
-                "FOREIGN KEY (user_id) REFERENCES " + USER_TABLE + "(" + COLUMN_ID + "))";
-
+        String CREATE_APP_CREDENTIALS_TABLE = "CREATE TABLE " + TABLE_APP_CREDENTIALS + "("
+                + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
+                + COLUMN_USER_ID + " INTEGER, "
+                + COLUMN_APP_NAME_CREDENTIALS + " TEXT, "
+                + COLUMN_APP_LINK_CREDENTIALS + " TEXT, "
+                + COLUMN_USERNAME_CREDENTIALS + " TEXT, "
+                + COLUMN_EMAIL_CREDENTIALS + " TEXT, "
+                + COLUMN_PASSWORD_CREDENTIALS + " TEXT, "
+                + COLUMN_IMAGE_URI_STRING + " TEXT" + ")";
 
         db.execSQL(createUserTableStatement);
         db.execSQL(createAppsInfoTableStatement);
-        db.execSQL(createAppCredentialsTableStatement);
+        db.execSQL(CREATE_APP_CREDENTIALS_TABLE);
 
         // Προσθήκη αρχικών δεδομένων για τον χρήστη
         ContentValues userValues = new ContentValues();
@@ -589,6 +597,23 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return sdf.format(calendar.getTime());
     }
 
+    public boolean saveAppCredentials(int appId, int userId, String username, String email, String password, String link) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues cv = new ContentValues();
+
+        cv.put(COLUMN_USER_ID, userId);
+        cv.put(COLUMN_APP_NAME_CREDENTIALS, username);
+        cv.put(COLUMN_EMAIL_CREDENTIALS, email);
+        cv.put(COLUMN_PASSWORD_CREDENTIALS, password);
+        cv.put(COLUMN_APP_LINK_CREDENTIALS, link);
+
+        // Ενημέρωση της εφαρμογής με βάση το appId
+        int rowsAffected = db.update(TABLE_APP_CREDENTIALS, cv, COLUMN_ID + " = ?", new String[]{String.valueOf(appId)});
+        db.close();
+
+        return rowsAffected > 0;
+    }
+
 
 
     // Κώδικας για την ανάκτηση όλων των επιλεγμένων εφαρμογών
@@ -645,6 +670,23 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         db.close();
     }
 
+    // Κώδικας για την εισαγωγή δεδομένων στον πίνακα app_credentials
+
+    public boolean addAppCredential(AppCredentials credential) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("user_id", credential.getUserId());
+        values.put("app_name", credential.getAppName());
+        values.put("app_link", credential.getAppLink());
+        values.put("username", credential.getUsername());
+        values.put("email", credential.getEmail());
+        values.put("password", credential.getPassword());
+        values.put("image_uri_string", credential.getImageUriString());
+
+        long result = db.insert(TABLE_APP_CREDENTIALS, null, values);
+        db.close();
+        return result != -1;
+    }
 
     // Κώδικας για την εισαγωγή δεδομένων στον πίνακα app_info_table
     public boolean addAppInfo(AppsObj appInfo, int userId) {
@@ -717,21 +759,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         db.close();
         return isSelected;
     }
-    public boolean saveAppCredentials(int appID, int userID, String username, String email, String password, String appLink) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues cv = new ContentValues();
-        cv.put("app_id", appID);
-        cv.put("user_id", userID);
-        cv.put(COLUMN_APP_USERNAME, username);
-        cv.put(COLUMN_APP_EMAIL, email);
-        cv.put(COLUMN_APP_PASSWORD, password);
-        cv.put(COLUMN_NEW_APP_LINK, appLink);
 
-        long result = db.insert(APP_CREDENTIALS, null, cv);
-        db.close();
 
-        return result != -1;
-    }
 
 
 

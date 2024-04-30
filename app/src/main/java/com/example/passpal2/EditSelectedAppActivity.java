@@ -59,11 +59,8 @@ public class EditSelectedAppActivity extends AppCompatActivity {
             appLinkEditText = findViewById(R.id.inputLinkEditedApp);
             inputUsernameEditedApp = findViewById(R.id.inputUsernameEditedApp);
 
-            // Ορισμός της εικόνας
             appIconImageView.setImageResource(selectedApp.getAppImages());
-            // Ορισμός του ονόματος
             appNameTextView.setText(selectedApp.getAppNames());
-            // Ορισμός του link
             appLinkEditText.setText(selectedApp.getAppLinks());
         }
         inputEmailEditedApp = findViewById(R.id.inputEmailEditedApp);
@@ -145,7 +142,6 @@ public class EditSelectedAppActivity extends AppCompatActivity {
 
         if (success) {
             Toast.makeText(this, "Credentials saved successfully", Toast.LENGTH_SHORT).show();
-            // Επιστροφή στην MainActivity με τα ενημερωμένα δεδομένα
             Intent returnIntent = new Intent();
             returnIntent.putExtra("APP_ID", appId);
             returnIntent.putExtra("UPDATED_APP_NAME", appNameTextView.getText().toString());
@@ -161,8 +157,9 @@ public class EditSelectedAppActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
+        super.onBackPressed();
         new AlertDialog.Builder(this)
-                .setTitle("Αποθήκευση Αλλαγών") // Ορισμός του τίτλου του παραθύρου
+                .setTitle("Αποθήκευση Αλλαγών")
                 .setMessage("Είστε σίγουροι ότι θέλετε να φύγετε; Όλες οι αλλαγές που δεν έχουν αποθηκευτεί θα χαθούν.")
                 .setPositiveButton("Ναι", new DialogInterface.OnClickListener() {
                     @Override

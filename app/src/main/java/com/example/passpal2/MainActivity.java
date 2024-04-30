@@ -62,7 +62,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
         Intent intent = getIntent();
         username = intent.getStringExtra("username");
         if (username == null || username.isEmpty()) {
-            // Αν το Intent δεν περιέχει το username, δοκιμάζουμε να το ανακτήσουμε από SharedPreferences
+
             SharedPreferences preferences = getSharedPreferences("user_credentials", MODE_PRIVATE);
             username = preferences.getString("username", "");
         }

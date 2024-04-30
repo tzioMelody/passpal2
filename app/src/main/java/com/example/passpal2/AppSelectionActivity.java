@@ -88,12 +88,10 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
             Uri appImageUri = appImageUriString != null ? Uri.parse(appImageUriString) : null;
 
             // Δημιουργία του νέου αντικειμένου AppsObj
-            int appImageResId = R.drawable.default_app_icon; // Χρησιμοποιήστε την προκαθορισμένη εικόνα αν δεν έχετε μια άλλη
+            int appImageResId = R.drawable.default_app_icon;
             AppsObj newApp = new AppsObj(appName, "App Link Placeholder", appImageResId);
-            newApp.setSelected(true); // Υποθέτοντας ότι θέλετε να σημειώσετε τη νέα εφαρμογή ως επιλεγμένη
+            newApp.setSelected(true);
 
-            // Προσθήκη στη λίστα του adapter
-            // Υποθέτω ότι έχετε ήδη έναν adapter ονομαζόμενο 'adapter' που χειρίζεται την λίστα των AppsObj
             adapter.addApp(newApp);
 
             // Ενημέρωση του adapter
@@ -106,27 +104,21 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
     public void onItemClick(int position) {
         if (adapter != null) {
             AppsObj selectedApp = appsObjs.get(position);
-            // Υποθέτουμε ότι αυτή η γραμμή είναι ενεργοποιημένη για να λαμβάνετε το userID
             int userId = getIntent().getIntExtra("USER_ID", -1);
 
-            // Ελέγχουμε αν η εφαρμογή έχει ήδη επιλεγεί
             if (!dbHelper.isAppSelected(String.valueOf(selectedApp), userId)) {
                 adapter.toggleItemSelection(position);
                 int selectedAppsCount = adapter.getSelectedAppsCount();
 
                 if (selectedAppsCount > 10) {
-                    // Εμφάνιση μηνύματος ειδοποίησης αν έχουν επιλεγεί ήδη 10 εφαρμογές
                     Toast.makeText(AppSelectionActivity.this, "Μπορείτε να επιλέξετε μόνο μέχρι 10 εφαρμογές", Toast.LENGTH_SHORT).show();
                 } else if (selectedAppsCount == 0) {
-                    // Εμφάνιση μηνύματος προειδοποίησης
                     Toast.makeText(this, "Εδω ειναι το λαθος", Toast.LENGTH_SHORT).show();
                 } else {
-                    // Αποθηκεύουμε την επιλεγμένη εφαρμογή στη βάση δεδομένων
                     Log.d("MyApp", "UserID " + userId);
                     dbHelper.saveSelectedAppToDatabase(selectedApp, userId);
                 }
             } else {
-                // Εμφάνιση μηνύματος ότι η εφαρμογή έχει ήδη επιλεγεί
                 Toast.makeText(AppSelectionActivity.this, "Η εφαρμογή έχει ήδη επιλεγεί", Toast.LENGTH_SHORT).show();
             }
         }
@@ -154,7 +146,6 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
     @Override
     public void onBackPressed() {
         if (selectedApps.isEmpty()) {
-            // Αν η λίστα είναι άδεια, εμφανίζουμε ένα διάλογο επιβεβαίωσης
             new AlertDialog.Builder(this)
                     .setTitle("Exit")
                     .setMessage("You haven't picked any apps are you sure you want to go?")
@@ -165,12 +156,10 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
                     .setNegativeButton(android.R.string.no, null)
                     .show();
         } else {
-            // Αν η λίστα δεν είναι άδεια, εμφανίζουμε ένα διάλογο επιβεβαίωσης
             new AlertDialog.Builder(this)
                     .setTitle("Exit")
                     .setMessage("Are you sure you want to continue? Your choosen apps will be lost.")
                     .setPositiveButton(android.R.string.yes, (dialog, which) -> {
-                        // Αν ο χρήστης επιλέξει να συνεχίσει, καλούμε την super.onBackPressed()
                         super.onBackPressed();
                     })
                     .setNegativeButton(android.R.string.no, null)
@@ -186,12 +175,10 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
             intentUserId.putExtra("USER_ID", userId);
             startActivityForResult(intentUserId, 1);
         } else {
-            // Αν η λίστα δεν είναι άδεια, εμφανίζουμε έναν διάλογο επιβεβαίωσης
             new AlertDialog.Builder(this)
                     .setTitle("Continue")
                     .setMessage("Are you sure you want to continue? Your selected apps will be lost.")
                     .setPositiveButton(android.R.string.yes, (dialog, which) -> {
-                        // Εάν ο χρήστης συνεχίσει, πηγαίνουμε στο AddAppUserActivity
                         Intent intentUserId = new Intent(this, AddAppUserActivity.class);
                         intentUserId.putExtra("USER_ID", userId);
                         startActivityForResult(intentUserId, 1);

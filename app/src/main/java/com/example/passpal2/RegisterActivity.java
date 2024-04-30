@@ -99,21 +99,17 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
-        // Εμφάνιση του ProgressBar και της αναμονής
         progressBar.setVisibility(View.VISIBLE);
         overlayView.setVisibility(View.VISIBLE);
 
-        // Καλέστε τον AsyncTask για την επαλήθευση του email
         EmailVerificationTask verificationTask = new EmailVerificationTask(new EmailVerificationTask.EmailVerificationListener() {
             @Override
             public void onEmailVerified(boolean isEmailValid) {
                 progressBar.setVisibility(View.GONE);
                 overlayView.setVisibility(View.GONE);
                 if (isEmailValid) {
-                    // Προχωρήστε με την εγγραφή αν το email είναι έγκυρο
                     registerUser(username, email, password);
                 } else {
-                    // Εμφάνιση μηνύματος σφάλματος αν το email δεν είναι έγκυρο
                     Toast.makeText(RegisterActivity.this, "Invalid email", Toast.LENGTH_SHORT).show();
                 }
             }
@@ -147,7 +143,7 @@ public class RegisterActivity extends AppCompatActivity {
                 // Παιρνω το ID του
                 int userId = dbHelper.getUserIdByUsername(username);
 
-                // Προσθέστε το όνομα χρήστη στο Intent
+                // όνομα χρήστη στο Intent
                 Intent intent = new Intent(this, MainActivity.class);
                 intent.putExtra("username", username);
                 startActivity(intent);

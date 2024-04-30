@@ -1,9 +1,13 @@
 package com.example.passpal2;
 
+import static com.example.passpal2.DataBaseHelper.COLUMN_APP_IMAGE_URI;
+import static com.example.passpal2.DataBaseHelper.TABLE_APP_CREDENTIALS;
 import static com.example.passpal2.DataBaseHelper.getUserId;
 
+import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -70,7 +74,6 @@ public class AddAppUserActivity extends AppCompatActivity {
             }
         });
 
-        // Ορισμός listener για το κουμπί αποθήκευσης νέας εφαρμογής
         saveNewApp.setOnClickListener(v -> saveNewApp());
 
     }
@@ -78,10 +81,24 @@ public class AddAppUserActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK && data != null) {
-            imageUri = data.getData(); // Λήψη του URI της επιλεγμένης εικόνας
+            imageUri = data.getData();
             addAppPhotoButton.setImageURI(imageUri);
+
+            // Ανάκτηση του ονόματος της εφαρμογής από το EditText
+            EditText newAppnameEditText = findViewById(R.id.newAppname);
+            String appName = newAppnameEditText.getText().toString();
+
+            if (imageUri != null) {
+                addAppPhotoButton.setImageURI(imageUri);
+                saveImageUriInDatabase(imageUri.toString(), appName);
+            } else {
+                // Κάντε κάτι άλλο ή εμφανίστε ένα μήνυμα σφάλματος
+                Toast.makeText(this, "No image selected!", Toast.LENGTH_SHORT).show();
+            }
+
         }
     }
+
 
 
 
@@ -115,9 +132,7 @@ public class AddAppUserActivity extends AppCompatActivity {
         if (success) {
             Toast.makeText(AddAppUserActivity.this, "App added successfully", Toast.LENGTH_SHORT).show();
 
-            // Δημιουργία νέου αντικειμένου UserApp και προσθήκη στη λίστα
-            AppsObj.UserApp newUserApp = new AppsObj.UserApp(appName, appLink); // Υποθέτοντας ότι χρησιμοποιείτε την εσωτερική κλάση UserApp
-            AppsObj.USER_APPS.add(newUserApp);
+            AppsObj.UserApp newUserApp = new AppsObj.UserApp(appName, appLink);
 
             Intent intent = new Intent(AddAppUserActivity.this, AppSelectionActivity.class);
             startActivity(intent);
@@ -158,6 +173,32 @@ public class AddAppUserActivity extends AppCompatActivity {
         });
         builder.show();
     }
+    public boolean updateAppImageUri(int userId, String appName, String imageUri) {
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        ContentValues cv = new ContentValues();
+        cv.put(COLUMN_APP_IMAGE_URI, imageUri);
+
+        // Ενημέρωση της εικόνας με βάση το userId και το όνομα της εφαρμογής
+        int rowsAffected = db.update(TABLE_APP_CREDENTIALS, cv, "user_id = ? AND app_name = ?", new String[]{String.valueOf(userId), appName});
+        db.close();
+        return rowsAffected > 0;
+    }
+
+    private void saveImageUriInDatabase(String imageUri, String appName) {
+        if (imageUri != null && appName != null && !appName.isEmpty()) {
+            boolean isUpdated = updateAppImageUri(userId, appName, imageUri);
+            if (isUpdated) {
+                Toast.makeText(this, "Image saved successfully!", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Failed to save the image.", Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            Toast.makeText(this, "App name or image URI is missing.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+
+
 
     private class CheckAppLinkValidityTask extends AsyncTask<String, Void, Integer> {
         private String appName;
@@ -192,7 +233,7 @@ public class AddAppUserActivity extends AppCompatActivity {
 
                 if (success) {
                     Toast.makeText(AddAppUserActivity.this, "App added successfully", Toast.LENGTH_SHORT).show();
-                    finish(); // Επιστροφή στην προηγούμενη δραστηριότητα
+                    finish();
                 } else {
                     Toast.makeText(AddAppUserActivity.this, "Failed to add the app", Toast.LENGTH_SHORT).show();
                 }
@@ -204,18 +245,17 @@ public class AddAppUserActivity extends AppCompatActivity {
     }
 
         private void saveNewUserAppToDatabase(AppsObj.UserApp newUserApp) {
-            // Παράδειγμα υλοποίησης σώζοντας τα δεδομένα στη λίστα `USER_APPS`:
             AppsObj.USER_APPS.add(newUserApp);
 
-            // Το στέλνουμε στην AppSelectionActivity να εμφανιστεί η νέα εφαρμογή
             Intent intent = new Intent(AddAppUserActivity.this, AppSelectionActivity.class);
             startActivity(intent);
         }
 
     @Override
     public void onBackPressed() {
+        super.onBackPressed();
         new AlertDialog.Builder(this)
-                .setTitle("Αποθήκευση Αλλαγών") // Ορισμός του τίτλου του παραθύρου
+                .setTitle("Αποθήκευση Αλλαγών")
                 .setMessage("Είστε σίγουροι ότι θέλετε να φύγετε; Όλες οι αλλαγές που δεν έχουν αποθηκευτεί θα χαθούν.")
                 .setPositiveButton("Ναι", new DialogInterface.OnClickListener() {
                     @Override

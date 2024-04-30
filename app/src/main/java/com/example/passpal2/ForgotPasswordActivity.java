@@ -48,7 +48,6 @@ public class ForgotPasswordActivity extends AppCompatActivity {
                 } else if (!newPasswordText.equals(confirmNewPasswordText)) {
                     Toast.makeText(ForgotPasswordActivity.this, "Passwords do not match.", Toast.LENGTH_SHORT).show();
                 } else {
-                    // Εκκινήστε το AsyncTask για την ενημέρωση του κωδικού πρόσβασης
                     new UpdatePasswordTask(email, newPasswordText).execute();
                 }
             }
@@ -66,7 +65,6 @@ public class ForgotPasswordActivity extends AppCompatActivity {
 
         @Override
         protected Void doInBackground(Void... voids) {
-            // Εδώ μπορείτε να κάνετε την ενημέρωση του νέου κωδικού πρόσβασης στη βάση δεδομένων
             DataBaseHelper dbHelper = new DataBaseHelper(ForgotPasswordActivity.this);
             dbHelper.updatePasswordByEmail(email, newPassword);
             return null;
