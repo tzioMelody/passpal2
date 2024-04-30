@@ -111,9 +111,9 @@ public class AddAppUserActivity extends AppCompatActivity {
 
         String appName = newAppname.getText().toString();
         String appLink = newAppLink.getText().toString();
-         username = newAppUsername.getText().toString();
-         email = newAppEmail.getText().toString();
-         password = newAppPassword.getText().toString();
+        username = newAppUsername.getText().toString();
+        email = newAppEmail.getText().toString();
+        password = newAppPassword.getText().toString();
 
         if (dbHelper.appExists(appName, appLink)) {
             Toast.makeText(this, "This app name or link already exists.", Toast.LENGTH_SHORT).show();
@@ -244,12 +244,12 @@ public class AddAppUserActivity extends AppCompatActivity {
 
     }
 
-        private void saveNewUserAppToDatabase(AppsObj.UserApp newUserApp) {
-            AppsObj.USER_APPS.add(newUserApp);
+    private void saveNewUserAppToDatabase(AppsObj.UserApp newUserApp) {
+        AppsObj.USER_APPS.add(newUserApp);
 
-            Intent intent = new Intent(AddAppUserActivity.this, AppSelectionActivity.class);
-            startActivity(intent);
-        }
+        Intent intent = new Intent(AddAppUserActivity.this, AppSelectionActivity.class);
+        startActivity(intent);
+    }
 
     @Override
     public void onBackPressed() {
