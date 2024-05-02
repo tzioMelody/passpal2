@@ -5,9 +5,11 @@ import static com.example.passpal2.DataBaseHelper.TABLE_APP_CREDENTIALS;
 import static com.example.passpal2.DataBaseHelper.getUserId;
 
 import android.content.ContentValues;
+import android.content.ContextWrapper;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -27,14 +29,18 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Random;
 
 public class AddAppUserActivity extends AppCompatActivity {
-
+    private static final int REQUEST_IMAGE_CAPTURE = 1; 
+    private static final int PICK_IMAGE = 2;
     private ImageView passGenButton;
     private FloatingActionButton saveNewApp;
     private EditText newAppPassword;
@@ -81,26 +87,62 @@ public class AddAppUserActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK && data != null) {
-            imageUri = data.getData();
-            addAppPhotoButton.setImageURI(imageUri);
-
-            // Ανάκτηση του ονόματος της εφαρμογής από το EditText
-            EditText newAppnameEditText = findViewById(R.id.newAppname);
-            String appName = newAppnameEditText.getText().toString();
-
-            if (imageUri != null) {
-                addAppPhotoButton.setImageURI(imageUri);
-                saveImageUriInDatabase(imageUri.toString(), appName);
-            } else {
-                // Κάντε κάτι άλλο ή εμφανίστε ένα μήνυμα σφάλματος
-                Toast.makeText(this, "No image selected!", Toast.LENGTH_SHORT).show();
+            if (requestCode == REQUEST_IMAGE_CAPTURE) {
+                Bundle extras = data.getExtras();
+                if (extras != null) {
+                    Bitmap imageBitmap = (Bitmap) extras.get("data");
+                    addAppPhotoButton.setImageBitmap(imageBitmap);
+                    // Αποθηκεύει την εικόνα και επιστρέφει τη διαδρομή
+                    String imagePath = saveImageToFile(imageBitmap);
+                    saveImageUriInDatabase(imagePath, "App Name");
+                }
+            } else if (requestCode == PICK_IMAGE) {
+                Uri selectedImageUri = data.getData();
+                if (selectedImageUri != null) {
+                    addAppPhotoButton.setImageURI(selectedImageUri);
+                    saveImageUriInDatabase(selectedImageUri.toString(), "App Name");  // Αντικαταστήστε με την πραγματική όνομα της εφαρμογής αν χρειάζεται
+                }
             }
-
+        } else {
+            Toast.makeText(this, "No image selected!", Toast.LENGTH_SHORT).show();
         }
     }
 
 
+    private String saveImageToFile(Bitmap bitmap) {
+        ContextWrapper wrapper = new ContextWrapper(getApplicationContext());
+        File file = wrapper.getDir("Images",MODE_PRIVATE);
+        file = new File(file, "UniqueFileName" + ".jpg");  // Δημιουργία ενός μοναδικού ονόματος αρχείου
 
+        try {
+            OutputStream stream = null;
+            stream = new FileOutputStream(file);
+            bitmap.compress(Bitmap.CompressFormat.JPEG,100,stream);
+            stream.flush();
+            stream.close();
+        } catch (IOException e) // Εξαίρεση εάν δεν μπορεί να γράψει
+        {
+            e.printStackTrace();
+        }
+
+        Uri savedImageURI = Uri.parse(file.getAbsolutePath());
+        return savedImageURI.toString();
+    }
+
+
+    private void saveImageUriInDatabase(String imageUri, String appName) {
+        // Κώδικας για την αποθήκευση του URI ή διαδρομής στη βάση δεδομένων
+        if (imageUri != null && appName != null && !appName.isEmpty()) {
+            boolean isUpdated = updateAppImageUri(userId, appName, imageUri);
+            if (isUpdated) {
+                Toast.makeText(this, "Image saved successfully!", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Failed to save the image.", Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            Toast.makeText(this, "App name or image URI is missing.", Toast.LENGTH_SHORT).show();
+        }
+    }
 
     private void saveNewApp() {
         EditText newAppUsername = findViewById(R.id.newAppUsername);
@@ -183,21 +225,6 @@ public class AddAppUserActivity extends AppCompatActivity {
         db.close();
         return rowsAffected > 0;
     }
-
-    private void saveImageUriInDatabase(String imageUri, String appName) {
-        if (imageUri != null && appName != null && !appName.isEmpty()) {
-            boolean isUpdated = updateAppImageUri(userId, appName, imageUri);
-            if (isUpdated) {
-                Toast.makeText(this, "Image saved successfully!", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(this, "Failed to save the image.", Toast.LENGTH_SHORT).show();
-            }
-        } else {
-            Toast.makeText(this, "App name or image URI is missing.", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-
 
 
     private class CheckAppLinkValidityTask extends AsyncTask<String, Void, Integer> {
