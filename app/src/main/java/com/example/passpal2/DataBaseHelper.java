@@ -38,6 +38,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_USERNAME = "username";
     public static final String COLUMN_EMAIL = "email";
     public static final String COLUMN_PASSWORD = "password";
+    public static final String COLUMN_MASTER_PASSWORD = "master_password";
+
 
     // App Info Table Columns
     public static final String TABLE_APPS_INFO = "app_info_table";
@@ -68,6 +70,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         private String username;
         private String email;
         private String password;
+        private String masterPassword;
 
 
         // Κατασκευαστής
@@ -76,7 +79,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             this.username = username;
             this.email = email;
             this.password = password;
-
+            this.masterPassword = masterPassword;
 
         }
 
@@ -113,6 +116,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         public void setPassword(String password) {
             this.password = password;
         }
+        public String getMasterPassword() {return masterPassword;}
+        public void setMasterPassword(String masterPassword) {this.masterPassword = masterPassword;}
 
 
     }
@@ -211,7 +216,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                     COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     COLUMN_USERNAME + " TEXT, " +
                     COLUMN_EMAIL + " TEXT, " +
-                    COLUMN_PASSWORD + " TEXT)";
+                    COLUMN_PASSWORD + " TEXT, " +
+                    COLUMN_MASTER_PASSWORD + " TEXT)";
 
             String createAppsInfoTableStatement = "CREATE TABLE " + TABLE_APPS_INFO + " (" +
                     COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -334,8 +340,9 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
             cv.put(COLUMN_USERNAME, user.getUsername());
             cv.put(COLUMN_EMAIL, user.getEmail());
-            // Αποθηκεύουμε το hashed password και το salt μαζί
             cv.put(COLUMN_PASSWORD, hashedPassword + ":" + saltStr);
+            cv.put(COLUMN_MASTER_PASSWORD, user.getMasterPassword());
+
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
             return false;
@@ -419,11 +426,13 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             int idColumnIndex = cursor.getColumnIndex(COLUMN_ID);
             int emailColumnIndex = cursor.getColumnIndex(COLUMN_EMAIL);
             int passwordColumnIndex = cursor.getColumnIndex(COLUMN_PASSWORD);
+            int masterPasswordColumnIndex = cursor.getColumnIndex(COLUMN_MASTER_PASSWORD);
 
 
             int id = cursor.getInt(idColumnIndex);
             String email = cursor.getString(emailColumnIndex);
             String password = cursor.getString(passwordColumnIndex);
+            String masterPassword = cursor.getString(masterPasswordColumnIndex);
 
             user = new User(id, username, email, password);
             cursor.close();
@@ -432,6 +441,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
         return user;
     }
+
+
     public String getUsernameByUserId(int userId) {
         String username = null;
         SQLiteDatabase db = this.getReadableDatabase();
