@@ -1,12 +1,15 @@
 package com.example.passpal2;
 
+import android.app.Dialog;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.textfield.TextInputEditText;
@@ -143,6 +146,8 @@ public class RegisterActivity extends AppCompatActivity {
                 // Παιρνω το ID του
                 int userId = dbHelper.getUserIdByUsername(username);
 
+                showMasterPasswordDialog();
+
                 // όνομα χρήστη στο Intent
                 Intent intent = new Intent(this, MainActivity.class);
                 intent.putExtra("username", username);
@@ -168,5 +173,30 @@ public class RegisterActivity extends AppCompatActivity {
         return sdf.format(calendar.getTime());
     }
 
+    public void showMasterPasswordDialog() {
+        Dialog dialog = new Dialog(this);
+        dialog.setContentView(R.layout.master_password_dialog);
+        dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        dialog.setCancelable(false);
+
+        EditText masterPassword = dialog.findViewById(R.id.masterPassword);
+        EditText confirmMasterPassword = dialog.findViewById(R.id.confirmMasterPassword);
+        Button submitButton = dialog.findViewById(R.id.submitMasterPassword);
+
+        submitButton.setOnClickListener(v -> {
+            String password = masterPassword.getText().toString();
+            String confirmPassword = confirmMasterPassword.getText().toString();
+
+            if (password.equals(confirmPassword)) {
+                // Αποθήκευση του master password στη βάση
+                saveMasterPassword(password);
+                dialog.dismiss();
+            } else {
+                Toast.makeText(getApplicationContext(), "Passwords do not match", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        dialog.show();
+    }
 
 }

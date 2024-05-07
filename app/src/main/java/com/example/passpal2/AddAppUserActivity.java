@@ -16,6 +16,7 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.text.method.HideReturnsTransformationMethod;
 import android.text.method.PasswordTransformationMethod;
+import android.util.Log;
 import android.util.Patterns;
 import android.view.View;
 import android.widget.EditText;
@@ -87,9 +88,15 @@ public class AddAppUserActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK && data != null) {
+            Log.d("MyApp", "on activity  result");
+
             if (requestCode == REQUEST_IMAGE_CAPTURE) {
+                Log.d("MyApp", "image capture " );
+
                 Bundle extras = data.getExtras();
                 if (extras != null) {
+                    Log.d("NewApp", "image SAVED " );
+
                     Bitmap imageBitmap = (Bitmap) extras.get("data");
                     addAppPhotoButton.setImageBitmap(imageBitmap);
                     // Αποθηκεύει την εικόνα και επιστρέφει τη διαδρομή
@@ -97,6 +104,8 @@ public class AddAppUserActivity extends AppCompatActivity {
                     saveImageUriInDatabase(imagePath, "App Name");
                 }
             } else if (requestCode == PICK_IMAGE) {
+                Log.d("MyApp", "image pick " );
+
                 Uri selectedImageUri = data.getData();
                 if (selectedImageUri != null) {
                     addAppPhotoButton.setImageURI(selectedImageUri);
@@ -144,7 +153,7 @@ public class AddAppUserActivity extends AppCompatActivity {
         }
     }
 
-    private void saveNewApp() {
+   /* private void saveNewApp() {
         EditText newAppUsername = findViewById(R.id.newAppUsername);
         EditText newAppEmail = findViewById(R.id.newAppEmail);
         EditText newAppname = findViewById(R.id.newAppname);
@@ -192,6 +201,40 @@ public class AddAppUserActivity extends AppCompatActivity {
             }
         }).execute(email);
     }
+*/
+   private void saveNewApp() {
+       String appName = ((EditText)findViewById(R.id.newAppname)).getText().toString();
+       String appLink = ((EditText)findViewById(R.id.newAppLink)).getText().toString();
+       username = ((EditText)findViewById(R.id.newAppUsername)).getText().toString();
+       email = ((EditText)findViewById(R.id.newAppEmail)).getText().toString();
+       password = ((EditText)findViewById(R.id.newAppPassword)).getText().toString();
+       String imageUriString = imageUri != null ? imageUri.toString() : null;
+
+       if (TextUtils.isEmpty(appName) || TextUtils.isEmpty(appLink) || TextUtils.isEmpty(username) ||
+               TextUtils.isEmpty(email) || !Patterns.EMAIL_ADDRESS.matcher(email).matches() || TextUtils.isEmpty(password)) {
+           Toast.makeText(this, "Please fill all fields correctly!", Toast.LENGTH_SHORT).show();
+           return;
+       }
+
+       if (dbHelper.appExists(appName, appLink)) {
+           Toast.makeText(this, "This app name or link already exists.", Toast.LENGTH_SHORT).show();
+           return;
+       }
+
+       boolean success = dbHelper.addNewAppWithDetails(userId, appName, appLink, username, email, password, imageUriString);
+
+       if (success) {
+           Toast.makeText(this, "App added successfully", Toast.LENGTH_SHORT).show();
+           Intent intent = new Intent(this, AppSelectionActivity.class);
+           intent.putExtra("newAppName", appName);
+           intent.putExtra("newAppLink", appLink);
+           intent.putExtra("newImageUri", imageUriString);
+           startActivity(intent);
+           finish();
+       } else {
+           Toast.makeText(this, "Failed to add the app", Toast.LENGTH_SHORT).show();
+       }
+   }
 
     private void openImageSelector() {
         final CharSequence[] options = { "Τραβήξτε φωτογραφία", "Επιλέξτε από την συλλογή", "Ακύρωση" };

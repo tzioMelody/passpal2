@@ -9,6 +9,9 @@
     <string name="email">Email</string>
     <string name="password">Password</string>
     <string name="generate_new_password">Generate New Password</string>
+    <string name="master_password">Master Password</string>
+    <string name="confirm_master_password">Confirm master password</string>
+    <string name="submit">Submit</string>
     //Names for main string
     <string-array name="appNames">
         <item>Facebook</item>
