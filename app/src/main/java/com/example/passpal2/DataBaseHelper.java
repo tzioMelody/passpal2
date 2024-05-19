@@ -33,17 +33,18 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_PASSWORD = "password";
     public static final String COLUMN_LAST_LOGIN = "last_login";
 
-    // App Info Table Columns
+// App Info Table Columns
     public static final String TABLE_APPS_INFO = "app_info_table";
     public static final String COLUMN_APP_NAME = "AppName";
     public static final String COLUMN_APP_LINK = "AppLink";
     public static final String COLUMN_IMAGE_RESOURCE = "imageResource";
     public static final String COLUMN_APP_IMAGE_URI = "AppImageUri";
     public static final String COLUMN_IS_SELECTED = "isSelected";
+    public static final String COLUMN_USER_ID = "user_id";
 
     // Constants for App Credentials Table Columns
     public static final String TABLE_APP_CREDENTIALS = "app_credentials";
-    public static final String COLUMN_USER_ID = "user_id";
+    public static final String COLUMN_USERID = "user_id";
     public static final String COLUMN_APP_NAME_CREDENTIALS = "app_name";
     public static final String COLUMN_APP_LINK_CREDENTIALS = "app_link";
     public static final String COLUMN_USERNAME_CREDENTIALS = "username";
@@ -54,6 +55,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     // Master Password Table Columns
     public static final String MASTER_PASSWORD_TABLE = "MASTER_PASSWORD_TABLE";
     public static final String COLUMN_MASTER_PASSWORD = "master_password";
+    public static final String COLUMN_USERMASTERID = "user_id";
+
 
     // SQL Statements for Table Creation
     private static final String CREATE_USER_TABLE = "CREATE TABLE " + USER_TABLE + " ("
@@ -68,7 +71,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             + COLUMN_APP_LINK + " TEXT, "
             + COLUMN_IMAGE_RESOURCE + " INTEGER, "
             + COLUMN_APP_IMAGE_URI + " TEXT, "
-            + COLUMN_IS_SELECTED + " INTEGER)";
+            + COLUMN_IS_SELECTED + " INTEGER, "
+            + COLUMN_USER_ID + " INTEGER)";
 
     private static final String CREATE_APP_CREDENTIALS_TABLE = "CREATE TABLE " + TABLE_APP_CREDENTIALS + " ("
             + COLUMN_USER_ID + " INTEGER, "
@@ -477,33 +481,21 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public List<User> getAllUsers() {
         List<User> userList = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.query(USER_TABLE, null, null, null, null, null, null);
-
-        if (cursor != null) {
-            while (cursor.moveToNext()) {
-                int idIndex = cursor.getColumnIndex(COLUMN_ID);
-                int usernameIndex = cursor.getColumnIndex(COLUMN_USERNAME);
-                int emailIndex = cursor.getColumnIndex(COLUMN_EMAIL);
-                int passwordIndex = cursor.getColumnIndex(COLUMN_PASSWORD);
-                int lastLoginIndex = cursor.getColumnIndex(COLUMN_LAST_LOGIN);
-
-                if (idIndex != -1 && usernameIndex != -1 && emailIndex != -1 && passwordIndex != -1 && lastLoginIndex != -1) {
-                    int id = cursor.getInt(idIndex);
-                    String username = cursor.getString(usernameIndex);
-                    String email = cursor.getString(emailIndex);
-                    String password = cursor.getString(passwordIndex);
-                    String lastLogin = cursor.getString(lastLoginIndex);
-
-                    User user = new User(id, username, email, password, lastLogin);
-                    userList.add(user);
-                }
-            }
-            cursor.close();
+        Cursor cursor = db.rawQuery("SELECT * FROM " + USER_TABLE, null);
+        if (cursor.moveToFirst()) {
+            do {
+                int id = cursor.getInt(cursor.getColumnIndex(COLUMN_ID));
+                String username = cursor.getString(cursor.getColumnIndex(COLUMN_USERNAME));
+                String email = cursor.getString(cursor.getColumnIndex(COLUMN_EMAIL));
+                String password = cursor.getString(cursor.getColumnIndex(COLUMN_PASSWORD));
+                String lastLogin = cursor.getString(cursor.getColumnIndex(COLUMN_LAST_LOGIN));
+                User user = new User(id, username, email, password, lastLogin);
+                userList.add(user);
+            } while (cursor.moveToNext());
         }
-        db.close();
+        cursor.close();
         return userList;
     }
-
     public void updatePasswordByEmail(Context context, String email, String newPassword) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -811,12 +803,16 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 String storedPassword = cursor.getString(passwordIndex);
                 cursor.close();
 
+                // Split the stored password into hashed password and salt
                 String[] parts = storedPassword.split(":");
                 String hashedPassword = parts[0];
                 String salt = parts[1];
 
                 try {
-                    return PasswordUtil.hashPassword(password, PasswordUtil.decodeSalt(salt)).equals(hashedPassword);
+                    // Check if the hashed password matches
+                    boolean isPasswordCorrect = PasswordUtil.hashPassword(password, PasswordUtil.decodeSalt(salt)).equals(hashedPassword);
+                    Log.d("checkUser", "Password match: " + isPasswordCorrect);
+                    return isPasswordCorrect;
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -826,6 +822,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         }
         return false;
     }
+
 
     public void updateLastLogin(String username) {
         SQLiteDatabase db = this.getWritableDatabase();

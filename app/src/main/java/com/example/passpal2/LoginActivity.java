@@ -64,10 +64,14 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
-        if (dbHelper.checkUser(username, password)) {
+        boolean isUserValid = dbHelper.checkUser(username, password);
+        Log.d("LoginDebug", "User valid: " + isUserValid);
+
+        if (isUserValid) {
             dbHelper.updateLastLogin(username);
 
             long userId = dbHelper.getUserIdByUsername(username);
+            Log.d("LoginDebug", "UserID: " + userId);
 
             Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_SHORT).show();
             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
