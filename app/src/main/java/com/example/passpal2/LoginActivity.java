@@ -1,22 +1,25 @@
 package com.example.passpal2;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.os.AsyncTask;
 import android.os.Bundle;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import java.lang.ref.WeakReference;
-import java.security.NoSuchAlgorithmException;
+import com.example.passpal2.R;
+import com.google.android.material.textfield.TextInputEditText;
 
 public class LoginActivity extends AppCompatActivity {
-    private EditText inputPassword, inputUserName;
-    private Button loginButton, donthaveaccountButton, forgotPasswordButton;
+
+    private TextInputEditText usernameEditText, passwordEditText;
+    private ProgressBar progressBar;
+    private Button logInBtn, forgotPasswordBtn, donthaveaccountBtn;
+    private DataBaseHelper dbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,33 +27,52 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
         getSupportActionBar().setTitle("Login");
 
-        inputUserName = findViewById(R.id.usernameEditText);
-        inputPassword = findViewById(R.id.passwordEditText);
-        loginButton = findViewById(R.id.logInBtn);
-        donthaveaccountButton = findViewById(R.id.donthaveaccountBtn);
-        forgotPasswordButton = findViewById(R.id.forgotPasswordBtn);
+        initializeViews();
 
-        // Έλεγχος για αυτόματη σύνδεση
-        checkSavedCredentials();
+        dbHelper = new DataBaseHelper(this);
+        dbHelper.getWritableDatabase();
 
-        loginButton.setOnClickListener(v -> loginUser());
-        donthaveaccountButton.setOnClickListener(v -> startActivity(new Intent(LoginActivity.this, RegisterActivity.class)));
-        forgotPasswordButton.setOnClickListener(v -> startActivity(new Intent(LoginActivity.this, ForgotPasswordActivity.class)));
+
+        logInBtn.setOnClickListener(v -> attemptLogin());
+        donthaveaccountBtn.setOnClickListener(v -> navigateToRegister());
+        forgotPasswordBtn.setOnClickListener(v -> startActivity(new Intent(LoginActivity.this, ForgotPasswordActivity.class)));
+
     }
 
-    private void loginUser() {
-        String username = inputUserName.getText().toString().trim();
-        String password = inputPassword.getText().toString().trim();
+    private void initializeViews() {
+        usernameEditText = findViewById(R.id.usernameEditText);
+        passwordEditText = findViewById(R.id.passwordEditText);
+        logInBtn = findViewById(R.id.logInBtn);
+        forgotPasswordBtn = findViewById(R.id.forgotPasswordBtn);
+        donthaveaccountBtn = findViewById(R.id.donthaveaccountBtn);
+        progressBar = findViewById(R.id.progressBar);
+    }
 
-        if (username.isEmpty() || password.isEmpty()) {
-            Toast.makeText(LoginActivity.this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
+    private void navigateToRegister() {
+        startActivity(new Intent(LoginActivity.this, RegisterActivity.class));
+    }
+
+    private void attemptLogin() {
+        String username = usernameEditText.getText().toString().trim();
+        String password = passwordEditText.getText().toString().trim();
+
+        Log.d("LoginDebug", "Username: " + username);
+        Log.d("LoginDebug", "Password: " + password);
+
+        if (TextUtils.isEmpty(username) || TextUtils.isEmpty(password)) {
+            showToast("All fields are required");
             return;
         }
 
-        DataBaseHelper dbHelper = new DataBaseHelper(LoginActivity.this);
-        if (dbHelper.checkUserLogin(username, password)) {
+        if (dbHelper.checkUser(username, password)) {
+            dbHelper.updateLastLogin(username);
+
+            long userId = dbHelper.getUserIdByUsername(username);
+
             Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_SHORT).show();
             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+            intent.putExtra("user_id", userId);
+            intent.putExtra("username", username);
             startActivity(intent);
             finish();
         } else {
@@ -58,47 +80,7 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-
-    // Μέθοδος για την αποθήκευση του userId
-    private void saveUserId(int userId) {
-        SharedPreferences preferences = getSharedPreferences("user_credentials", MODE_PRIVATE);
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.putInt("userId", userId);
-        editor.apply();
-    }
-
-    private void saveCredentials(String username, String password) {
-        SharedPreferences preferences = getSharedPreferences("user_credentials", MODE_PRIVATE);
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.putString("username", username);
-        editor.putString("password", password);
-        editor.apply();
-    }
-
-
-    private void checkSavedCredentials() {
-        SharedPreferences preferences = getSharedPreferences("user_credentials", MODE_PRIVATE);
-        String username = preferences.getString("username", null);
-        String password = preferences.getString("password", null);
-
-        if (username != null && password != null) {
-            loginUserWithSharedPreferences(username, password);
-        }
-    }
-
-    private void loginUserWithSharedPreferences(String username, String password) {
-        DataBaseHelper dbHelper = new DataBaseHelper(LoginActivity.this);
-        DataBaseHelper.User user = dbHelper.getUserByUsername(username);
-
-        if (user != null && user.getPassword().equals(password)) {
-            Toast.makeText(LoginActivity.this, "Automatic login successful", Toast.LENGTH_SHORT).show();
-            proceedToMainActivity();
-        }
-    }
-
-    private void proceedToMainActivity() {
-        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-        startActivity(intent);
-        finish();
+    private void showToast(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 }

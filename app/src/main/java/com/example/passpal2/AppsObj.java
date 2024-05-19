@@ -14,6 +14,7 @@ public class AppsObj implements Parcelable {
     private String AppLinks;
     private int AppImages;
     private boolean isSelected;
+
     // Νέα πεδία
     private String username;
     private String email;
@@ -57,6 +58,10 @@ public class AppsObj implements Parcelable {
             return new AppsObj[size];
         }
     };
+
+    public AppsObj(String appName, String appLink, String s, String username, String email, String password) {
+
+    }
 
     public int getId() {
         return id;

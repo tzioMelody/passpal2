@@ -5,18 +5,17 @@
     <item
         android:id="@+id/menu_item1"
         android:title="Options" />
-  <item
-        android:id="@+id/menu_item2"
-        android:title="Log out" />
     <item
         android:id="@+id/menu_item3"
         android:background="@drawable/about"
-        android:title="About"
- />
+        android:title="About" />
     <item
         android:id="@+id/menu_item4"
         android:title="Help" />
-    <!--<item
+    <item
+        android:id="@+id/menu_item2"
+        android:title="Log out" />
+    <item
         android:id="@+id/menu_item5"
-        android:title="Log out" />-->
+        android:title="Delete account" />
 </menu>

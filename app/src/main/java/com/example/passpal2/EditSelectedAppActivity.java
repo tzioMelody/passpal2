@@ -1,7 +1,9 @@
 package com.example.passpal2;
 
+
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -15,45 +17,42 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.net.Uri;
+
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.example.passpal2.R;
 
 import java.util.Random;
 
 public class EditSelectedAppActivity extends AppCompatActivity {
-
     private ImageView appIconImageView;
     private TextView appNameTextView;
     private EditText appLinkEditText;
-    private EditText inputEmailEditedApp,inputUsernameEditedApp;
+    private EditText inputEmailEditedApp, inputUsernameEditedApp;
     private Button generatePsw;
     private Button saveSelectedAppData;
-    private Button OpenAppWebsiteBtn;
+    private Button openAppWebsiteBtn;
     private ProgressBar progressBar;
     private EditText selectedAppPassword;
-    private View overlayView;
-    // Μεταβλητή για να παρακολουθούμε την ορατότητα του κωδικού
     private boolean isPasswordVisible = false;
-    private DataBaseHelper dbHelper = new DataBaseHelper(this);
+    private DataBaseHelper dbHelper;
     int appId;
-    int userid;
+    int userId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_app);
 
-        // Λήψη των πληροφοριών από το Intent
+        dbHelper = new DataBaseHelper(this);
+
         Intent intent = getIntent();
         if (intent != null && intent.hasExtra("APP_DATA")) {
             AppsObj selectedApp = intent.getParcelableExtra("APP_DATA");
             appId = intent.getIntExtra("APP_ID", -1);
-           userid = intent.getIntExtra("USER_ID",-1);
+            userId = intent.getIntExtra("USER_ID", -1);
 
-            // Εύρεση των views στο layout
             appIconImageView = findViewById(R.id.appIconImageView);
             appNameTextView = findViewById(R.id.appNameTextView);
             appLinkEditText = findViewById(R.id.inputLinkEditedApp);
@@ -66,79 +65,53 @@ public class EditSelectedAppActivity extends AppCompatActivity {
         inputEmailEditedApp = findViewById(R.id.inputEmailEditedApp);
         generatePsw = findViewById(R.id.GeneratePsw);
         saveSelectedAppData = findViewById(R.id.SaveSelectedAppData);
-        OpenAppWebsiteBtn = findViewById(R.id.OpenAppWebsite);
+        openAppWebsiteBtn = findViewById(R.id.OpenAppWebsite);
         selectedAppPassword = findViewById(R.id.passwordEditText);
 
-        generatePsw.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                new GeneratePasswordTask().execute();
-            }
-        });
-        saveSelectedAppData.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String email = inputEmailEditedApp.getText().toString();
+        generatePsw.setOnClickListener(view -> new GeneratePasswordTask().execute());
+        saveSelectedAppData.setOnClickListener(v -> {
+            String email = inputEmailEditedApp.getText().toString();
 
-                if (TextUtils.isEmpty(email)) {
-                    Toast.makeText(EditSelectedAppActivity.this, "Please fill in the email field", Toast.LENGTH_SHORT).show();
-                    return;
+            if (TextUtils.isEmpty(email)) {
+                Toast.makeText(EditSelectedAppActivity.this, "Please fill in the email field", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            EmailVerificationTask verificationTask = new EmailVerificationTask(isEmailValid -> {
+                if (isEmailValid) {
+                    saveChanges();
+                } else {
+                    Toast.makeText(EditSelectedAppActivity.this, "Invalid email", Toast.LENGTH_SHORT).show();
                 }
-
-
-
-                EmailVerificationTask verificationTask = new EmailVerificationTask(new EmailVerificationTask.EmailVerificationListener() {
-                    @Override
-                    public void onEmailVerified(boolean isEmailValid) {
-                        if (isEmailValid) {
-                            saveChanges();
-                        } else {
-                            Toast.makeText(EditSelectedAppActivity.this, "Invalid email", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
-                verificationTask.execute(email);
-            }
+            });
+            verificationTask.execute(email);
         });
 
-        OpenAppWebsiteBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                String url = appLinkEditText.getText().toString();
+        openAppWebsiteBtn.setOnClickListener(view -> {
+            String url = appLinkEditText.getText().toString();
 
-                if (!url.startsWith("http://") && !url.startsWith("https://")) {
-                    url = "http://" + url; // Προσθήκη του http αν δεν υπάρχει για να διασφαλιστεί ότι το URL είναι έγκυρο
-                }
-
-                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                startActivity(browserIntent);
+            if (!url.startsWith("http://") && !url.startsWith("https://")) {
+                url = "http://" + url;
             }
+
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+            startActivity(browserIntent);
         });
 
-
-
-        selectedAppPassword.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                togglePasswordVisibility();
-                return false;
-            }
+        selectedAppPassword.setOnTouchListener((v, event) -> {
+            togglePasswordVisibility();
+            return false;
         });
     }
-
-
-
 
     private void saveChanges() {
         String username = inputUsernameEditedApp.getText().toString();
         String email = inputEmailEditedApp.getText().toString();
         String password = selectedAppPassword.getText().toString();
         String link = appLinkEditText.getText().toString();
+        String appName = appNameTextView.getText().toString();
 
-        int userId = userid;
-        int appId = this.appId;
-
-        boolean success = dbHelper.saveAppCredentials(appId, userId, username, email, password, link);
+        boolean success = dbHelper.saveAppCredentials(userId, appName, username, email, password, link);
 
         if (success) {
             Toast.makeText(this, "Credentials saved successfully", Toast.LENGTH_SHORT).show();
@@ -147,37 +120,21 @@ public class EditSelectedAppActivity extends AppCompatActivity {
             returnIntent.putExtra("UPDATED_APP_NAME", appNameTextView.getText().toString());
             setResult(RESULT_OK, returnIntent);
             finish();
-
         } else {
             Toast.makeText(this, "Failed to save credentials", Toast.LENGTH_SHORT).show();
         }
-
     }
-
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
         new AlertDialog.Builder(this)
                 .setTitle("Αποθήκευση Αλλαγών")
                 .setMessage("Είστε σίγουροι ότι θέλετε να φύγετε; Όλες οι αλλαγές που δεν έχουν αποθηκευτεί θα χαθούν.")
-                .setPositiveButton("Ναι", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        EditSelectedAppActivity.super.onBackPressed();
-                    }
-                })
-                .setNegativeButton("Όχι", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                })
+                .setPositiveButton("Ναι", (dialog, which) -> EditSelectedAppActivity.super.onBackPressed())
+                .setNegativeButton("Όχι", (dialog, which) -> dialog.dismiss())
                 .show();
     }
 
-
-    // generate new password
     private class GeneratePasswordTask extends AsyncTask<Void, Void, String> {
         @Override
         protected String doInBackground(Void... voids) {
@@ -214,7 +171,6 @@ public class EditSelectedAppActivity extends AppCompatActivity {
             selectedAppPassword.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
         }
         isPasswordVisible = !isPasswordVisible;
-        // Keep the cursor at the end
         selectedAppPassword.setSelection(selectedAppPassword.getText().length());
     }
 }

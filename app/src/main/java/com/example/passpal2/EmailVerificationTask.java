@@ -2,12 +2,14 @@ package com.example.passpal2;
 
 import android.content.Context;
 import android.os.AsyncTask;
+
 import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.lang.ref.WeakReference;
 
 public class EmailVerificationTask extends AsyncTask<String, Void, Boolean> {
     private WeakReference<Context> contextReference;
