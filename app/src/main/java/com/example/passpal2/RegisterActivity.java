@@ -1,6 +1,5 @@
 package com.example.passpal2;
 
-
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -97,16 +96,17 @@ public class RegisterActivity extends AppCompatActivity implements EmailVerifica
             return;
         }
 
-        // Χρήση της PasswordUtils για τη δημιουργία του password προς αποθήκευση
         try {
-            String passwordToStore = PasswordUtil.createPasswordToStore(password);
-            // Ορίζουμε το lastLogin ως κενή συμβολοσειρά ή null κατά την εγγραφή του χρήστη
+            byte[] salt = DataBaseHelper.generateSalt();
+            String hashedPassword = DataBaseHelper.hashPassword(password, salt);
+            String saltStr = DataBaseHelper.encodeSalt(salt);
+            String passwordToStore = hashedPassword + ":" + saltStr;
+
             DataBaseHelper.User newUser = new DataBaseHelper.User(0, username, email, passwordToStore, "");
 
-            if (dbHelper.addOne(newUser)) {
+            long userId = dbHelper.insertUser(username, email, passwordToStore);
+            if (userId != -1) {
                 showToast("User registered successfully");
-
-                long userId = dbHelper.getUserIdByUsername(username);
 
                 Intent intent = new Intent(RegisterActivity.this, MasterPasswordActivity.class);
                 intent.putExtra("user_id", userId);

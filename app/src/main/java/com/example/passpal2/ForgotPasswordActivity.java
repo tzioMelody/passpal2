@@ -42,6 +42,8 @@ public class ForgotPasswordActivity extends AppCompatActivity {
             }
         });
 
+        // Μέρος της ForgotPasswordActivity.java
+
         resetPassBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -53,7 +55,7 @@ public class ForgotPasswordActivity extends AppCompatActivity {
 
                 if (TextUtils.isEmpty(email) || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
                     Toast.makeText(ForgotPasswordActivity.this, "Please enter a valid email address.", Toast.LENGTH_SHORT).show();
-                } else if (!dbHelper.isEmailExists(email)) {
+                } else if (!dbHelper.isUserExists(email)) {  // Αλλαγή εδώ
                     Toast.makeText(ForgotPasswordActivity.this, "Email not found in database.", Toast.LENGTH_SHORT).show();
                 } else if (TextUtils.isEmpty(newPasswordText) || newPasswordText.length() < 8) {
                     Toast.makeText(ForgotPasswordActivity.this, "Password should be at least 8 characters.", Toast.LENGTH_SHORT).show();
@@ -64,6 +66,7 @@ public class ForgotPasswordActivity extends AppCompatActivity {
                 }
             }
         });
+
 
 
 
@@ -83,7 +86,7 @@ public class ForgotPasswordActivity extends AppCompatActivity {
         @Override
         protected Boolean doInBackground(Void... voids) {
             DataBaseHelper dbHelper = new DataBaseHelper(context);
-            dbHelper.updatePasswordByEmail(context, email, newPassword);
+            dbHelper.updatePasswordByEmail(email, newPassword);  // Αλλαγή εδώ
             return true;
         }
 

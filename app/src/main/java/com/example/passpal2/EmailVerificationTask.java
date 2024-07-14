@@ -24,9 +24,29 @@ public class EmailVerificationTask extends AsyncTask<String, Void, Boolean> {
         this.contextReference = new WeakReference<>(context);
         this.listener = listener;
     }
-
+    @Override
+    protected void onPreExecute() {
+        Context context = contextReference.get();
+        if (context != null) {
+            new Connectivity(context, new Connectivity.ConnectivityListener() {
+                @Override
+                public void onConnectionChecked(boolean isConnected) {
+                    if (!isConnected) {
+                        cancel(true);
+                        if (listener != null) {
+                            listener.onEmailVerified(false);
+                        }
+                    }
+                }
+            }).execute();
+        }
+    }
     @Override
     protected Boolean doInBackground(String... emails) {
+        if (isCancelled()) {
+            return false;
+        }
+
         String emailToVerify = emails[0];
         HttpURLConnection urlConnection = null;
         try {

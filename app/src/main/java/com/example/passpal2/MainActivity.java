@@ -1,6 +1,5 @@
 package com.example.passpal2;
 
-
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
@@ -30,8 +29,6 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-
-
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
@@ -56,23 +53,20 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        getSupportActionBar().setTitle("Welcome, " + username + "!");
 
-        // Ανάκτηση του username από το Intent ή SharedPreferences
+        // Λήψη του user ID από το intent
         Intent intent = getIntent();
-        username = intent.getStringExtra("username");
-        if (username == null || username.isEmpty()) {
-            SharedPreferences preferences = getSharedPreferences("user_credentials", MODE_PRIVATE);
-            username = preferences.getString("username", "");
+        userId = intent.getIntExtra("user_id", -1);
+
+        // Επαλήθευση αν το user ID είναι έγκυρο
+        if (userId == -1) {
+            showToast("User ID is invalid");
+            finish(); // Κλείσιμο της δραστηριότητας αν το user ID είναι άκυρο
+            return;
         }
 
-        // Ανάκτηση του userId χρησιμοποιώντας το username
-        userId = dbHelper.getUserIdByUsername(username);
-
-        // Έλεγχος master password
-        if (!dbHelper.hasMasterPassword(userId)) {
-            showMasterPasswordDialog(userId);
-        }
+        username = dbHelper.getUsernameByUserId(userId);
+        getSupportActionBar().setTitle("Welcome, " + username + "!");
 
         Main_layout = findViewById(R.id.Main_layout);
 
@@ -98,35 +92,16 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
         appsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
     }
 
-    private void showMasterPasswordDialog(int userId) {
-        Dialog dialog = new Dialog(this);
-        dialog.setContentView(R.layout.activity_master_password);
-        dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        dialog.setCancelable(false);
+    private void showToast(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+    }
 
-        EditText masterPassword = dialog.findViewById(R.id.masterPassword);
-        EditText confirmMasterPassword = dialog.findViewById(R.id.confirmMasterPassword);
-        Button submitButton = dialog.findViewById(R.id.submitMasterPassword);
 
-        submitButton.setOnClickListener(v -> {
-            String password = masterPassword.getText().toString();
-            String confirmPassword = confirmMasterPassword.getText().toString();
-
-            if (password.equals(confirmPassword)) {
-                try {
-                    String passwordToStore = PasswordUtil.createPasswordToStore(password);
-                    dbHelper.insertMasterPassword(userId, passwordToStore);
-                    dialog.dismiss();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    Toast.makeText(getApplicationContext(), "Failed to save master password", Toast.LENGTH_SHORT).show();
-                }
-            } else {
-                Toast.makeText(getApplicationContext(), "Passwords do not match", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        dialog.show();
+    private void showMasterPasswordActivity(int userId) {
+        Intent intent = new Intent(this, MasterPasswordActivity.class);
+        intent.putExtra("user_id", userId);
+        startActivity(intent);
+        finish();
     }
 
     // Called when returning from AppSelectionActivity with selected apps

@@ -1,6 +1,5 @@
 package com.example.passpal2;
 
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -9,8 +8,6 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-
-import com.example.passpal2.R;
 
 public class MasterPasswordActivity extends AppCompatActivity {
 
@@ -23,6 +20,8 @@ public class MasterPasswordActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_master_password);
+        getSupportActionBar().setTitle("Set master password");
+
 
         dbHelper = new DataBaseHelper(this);
 
@@ -46,8 +45,13 @@ public class MasterPasswordActivity extends AppCompatActivity {
             return;
         }
 
-        if (masterPassword.length() < 8) {
-            showToast("Password must be at least 8 characters long");
+        if (masterPassword.length() != 4 || confirmMasterPassword.length() != 4) {
+            showToast("Password must be exactly 4 characters long");
+            return;
+        }
+
+        if (isAllCharactersSame(masterPassword)) {
+            showToast("Password cannot consist of the same character repeated");
             return;
         }
 
@@ -58,28 +62,31 @@ public class MasterPasswordActivity extends AppCompatActivity {
 
         // Αποθήκευση του Master Password
         try {
-            String passwordToStore = PasswordUtil.createPasswordToStore(masterPassword);
-            long result = dbHelper.insertMasterPassword(userId, passwordToStore);
+            dbHelper.insertMasterPassword(userId, masterPassword);
+            showToast("Master Password set successfully");
 
-            if (result != -1) {
-                showToast("Master Password set successfully");
-
-                // Μετάβαση στο MainActivity
-                Intent intent = new Intent(MasterPasswordActivity.this, MainActivity.class);
-                intent.putExtra("user_id", userId);
-                startActivity(intent);
-                finish();
-            } else {
-                showToast("Failed to set Master Password");
-            }
+            // Μετάβαση στο MainActivity
+            Intent intent = new Intent(MasterPasswordActivity.this, MainActivity.class);
+            intent.putExtra("user_id", userId);
+            startActivity(intent);
+            finish();
         } catch (Exception e) {
             e.printStackTrace();
             showToast("Failed to set Master Password due to error");
         }
     }
 
+    private boolean isAllCharactersSame(String input) {
+        char firstChar = input.charAt(0);
+        for (int i = 1; i < input.length(); i++) {
+            if (input.charAt(i) != firstChar) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     private void showToast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 }
-

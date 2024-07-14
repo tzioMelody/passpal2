@@ -111,7 +111,7 @@ public class EditSelectedAppActivity extends AppCompatActivity {
         String link = appLinkEditText.getText().toString();
         String appName = appNameTextView.getText().toString();
 
-        boolean success = dbHelper.saveAppCredentials(userId, appName, username, email, password, link);
+        boolean success = dbHelper.saveAppCredentials(appId, userId, appName, username, email, password, link);
 
         if (success) {
             Toast.makeText(this, "Credentials saved successfully", Toast.LENGTH_SHORT).show();
@@ -124,6 +124,7 @@ public class EditSelectedAppActivity extends AppCompatActivity {
             Toast.makeText(this, "Failed to save credentials", Toast.LENGTH_SHORT).show();
         }
     }
+
 
     @Override
     public void onBackPressed() {
