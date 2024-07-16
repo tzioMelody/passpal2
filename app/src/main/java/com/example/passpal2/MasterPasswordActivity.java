@@ -3,6 +3,7 @@ package com.example.passpal2;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -22,7 +23,6 @@ public class MasterPasswordActivity extends AppCompatActivity {
         setContentView(R.layout.activity_master_password);
         getSupportActionBar().setTitle("Set master password");
 
-
         dbHelper = new DataBaseHelper(this);
 
         masterPasswordEditText = findViewById(R.id.masterPassword);
@@ -32,6 +32,16 @@ public class MasterPasswordActivity extends AppCompatActivity {
         // Λήψη του user ID από το intent
         Intent intent = getIntent();
         userId = intent.getIntExtra("user_id", -1);
+
+        // Έλεγχος αν το userId είναι έγκυρο
+        if (userId == -1) {
+            showToast("User ID is invalid");
+            Log.d("MasterPasswordActivity", "User ID is invalid");
+            finish();
+            return;
+        }
+
+        Log.d("MasterPasswordActivity", "Received UserID: " + userId);
 
         submitMasterPasswordButton.setOnClickListener(v -> submitMasterPassword());
     }
@@ -65,6 +75,8 @@ public class MasterPasswordActivity extends AppCompatActivity {
             dbHelper.insertMasterPassword(userId, masterPassword);
             showToast("Master Password set successfully");
 
+            Log.d("MasterPasswordActivity", "Master Password set for UserID: " + userId);
+
             // Μετάβαση στο MainActivity
             Intent intent = new Intent(MasterPasswordActivity.this, MainActivity.class);
             intent.putExtra("user_id", userId);
@@ -75,6 +87,7 @@ public class MasterPasswordActivity extends AppCompatActivity {
             showToast("Failed to set Master Password due to error");
         }
     }
+
 
     private boolean isAllCharactersSame(String input) {
         char firstChar = input.charAt(0);

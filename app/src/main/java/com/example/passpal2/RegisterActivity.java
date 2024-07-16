@@ -77,7 +77,7 @@ public class RegisterActivity extends AppCompatActivity implements EmailVerifica
             return;
         }
 
-        if (dbHelper.isUsernameTaken(username)) {
+        if (dbHelper.isUsernameExists(username)) {
             Toast.makeText(this, "Username already taken", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -91,18 +91,13 @@ public class RegisterActivity extends AppCompatActivity implements EmailVerifica
     }
 
     private void registerUser(String username, String email, String password) {
-        if (dbHelper.isUserExists(email) || dbHelper.isUsernameTaken(username)) {
-            showToast("User already exists");
-            return;
-        }
-
         try {
             byte[] salt = DataBaseHelper.generateSalt();
             String hashedPassword = DataBaseHelper.hashPassword(password, salt);
             String saltStr = DataBaseHelper.encodeSalt(salt);
             String passwordToStore = hashedPassword + ":" + saltStr;
 
-            DataBaseHelper.User newUser = new DataBaseHelper.User(0, username, email, passwordToStore, "");
+            DataBaseHelper.User newUser = new DataBaseHelper.User(0, username, email, passwordToStore);
 
             long userId = dbHelper.insertUser(username, email, passwordToStore);
             if (userId != -1) {
@@ -120,7 +115,6 @@ public class RegisterActivity extends AppCompatActivity implements EmailVerifica
             showToast("Failed to register user due to error");
         }
     }
-
 
     private void showToast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();

@@ -44,6 +44,8 @@ public class EditSelectedAppActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_app);
+        getSupportActionBar().setTitle("Edit app");
+
 
         dbHelper = new DataBaseHelper(this);
 

@@ -68,25 +68,26 @@ public class LoginActivity extends AppCompatActivity {
         Log.d("LoginDebug", "User valid: " + isUserValid);
 
         if (isUserValid) {
-            dbHelper.updateLastLogin(username);
-
             long userId = dbHelper.getUserIdByUsername(username);
             Log.d("LoginDebug", "UserID: " + userId);
 
-            Intent intent;
-            if (!dbHelper.hasMasterPassword(Math.toIntExact(userId))) {
-                intent = new Intent(LoginActivity.this, MasterPasswordActivity.class);
-                intent.putExtra("user_id", userId);
+            if (!dbHelper.hasMasterPassword((int) userId)) {
+                Intent intent = new Intent(LoginActivity.this, MasterPasswordActivity.class);
+                intent.putExtra("user_id", (int) userId);
+                startActivity(intent);
             } else {
-                intent = new Intent(LoginActivity.this, MainActivity.class);
-                intent.putExtra("user_id", userId);
+                Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                intent.putExtra("user_id", (int) userId);
+                intent.putExtra("username", username);
+                startActivity(intent);
+                finish();
             }
-            startActivity(intent);
-            finish();
-        } else {
-            Toast.makeText(LoginActivity.this, "Login failed. Please check your username and password.", Toast.LENGTH_SHORT).show();
         }
+
+
     }
+
 
 
 

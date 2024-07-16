@@ -56,7 +56,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
 
         // Λήψη του user ID από το intent
         Intent intent = getIntent();
-        userId = intent.getIntExtra("user_id", -1);
+        int userId = intent.getIntExtra("user_id", -1); // Ανάκτηση ως int
 
         // Επαλήθευση αν το user ID είναι έγκυρο
         if (userId == -1) {
@@ -76,7 +76,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
         FloatingActionButton appsBtn = findViewById(R.id.appsBtn);
         appsBtn.setOnClickListener(view -> {
             Intent intentUserID = new Intent(MainActivity.this, AppSelectionActivity.class);
-            intentUserID.putExtra("USER_ID", userId);
+            intentUserID.putExtra("USER_ID", userId); // Αποστολή ως int
             startActivityForResult(intentUserID, 1);
         });
 
@@ -92,9 +92,12 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
         appsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
     }
 
+
+
     private void showToast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
+
 
 
     private void showMasterPasswordActivity(int userId) {
@@ -104,6 +107,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
         finish();
     }
 
+
     // Called when returning from AppSelectionActivity with selected apps
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -112,7 +116,6 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
             if (data.hasExtra("POSITION")) {
                 int position = data.getIntExtra("POSITION", -1);
                 if (position != -1) {
-                    // Προσαρμογή του RecyclerView στη συγκεκριμένη θέση
                     layoutManager.scrollToPosition(position);
                 }
             }
@@ -130,6 +133,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
             }
         }
     }
+
 
     // RecyclerViewInterface method implementation
     public void onItemClick(int position) {
@@ -209,7 +213,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
                             .show();
                     return true;
                 case R.id.menu_item5:
-                    int userId = DataBaseHelper.getUserId(this); // Assuming this method gets the current user ID
+                    int userId = DataBaseHelper.getUserId(this);
                     dbHelper.deleteUserData(userId);
                     Toast.makeText(this, "All user data deleted", Toast.LENGTH_SHORT).show();
                     // Optionally, navigate to login or another activity after deletion
@@ -292,7 +296,6 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
         @Override
         protected void onPostExecute(List<AppsObj> apps) {
             super.onPostExecute(apps);
-            // Ενημέρωση του RecyclerView με τη νέα λίστα εφαρμογών
             mainAppsAdapter.setSelectedApps(apps);
             attachSwipeToDeleteAndEditHelper();
 
@@ -302,6 +305,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
             }
         }
     }
+
 
     // NEW SWIPE TZIO
     private void attachSwipeToDeleteAndEditHelper() {

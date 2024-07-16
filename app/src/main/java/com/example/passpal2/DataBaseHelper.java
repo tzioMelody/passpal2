@@ -27,7 +27,7 @@ import android.util.Log;
 
 public class DataBaseHelper extends SQLiteOpenHelper {
 
-    private static final int DATABASE_VERSION = 4;
+    private static final int DATABASE_VERSION = 5;
     private static final String DATABASE_NAME = "passpal.db";
 
     // User Table Columns
@@ -36,8 +36,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_USERNAME = "username";
     public static final String COLUMN_EMAIL = "email";
     public static final String COLUMN_PASSWORD = "password";
-    public static final String COLUMN_MASTER_PASSWORD = "master_password";
-    public static final String COLUMN_LAST_LOGIN = "last_login";
 
     // App Info Table Columns
     public static final String TABLE_APPS_INFO = "app_info_table";
@@ -56,6 +54,12 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_EMAIL_CREDENTIALS = "email";
     public static final String COLUMN_PASSWORD_CREDENTIALS = "password";
     public static final String COLUMN_IMAGE_URI_STRING = "image_uri_string";
+
+    // Master Password Table Columns
+    public static final String MASTER_PASSWORD_TABLE = "master_password_table";
+    public static final String COLUMN_USERID = "user_id";
+    public static final String COLUMN_MASTER_PASSWORD = "master_password";
+
     public DataBaseHelper(@Nullable Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
@@ -66,9 +70,12 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 COLUMN_USERNAME + " TEXT, " +
                 COLUMN_EMAIL + " TEXT, " +
-                COLUMN_PASSWORD + " TEXT, " +
+                COLUMN_PASSWORD + " TEXT)";
+
+        String createMasterPasswordTableStatement = "CREATE TABLE " + MASTER_PASSWORD_TABLE + " (" +
+                COLUMN_USERID + " INTEGER PRIMARY KEY, " +
                 COLUMN_MASTER_PASSWORD + " TEXT, " +
-                COLUMN_LAST_LOGIN + " TEXT)";
+                "FOREIGN KEY(" + COLUMN_USERID + ") REFERENCES " + USER_TABLE + "(" + COLUMN_ID + "))";
 
         String createAppsInfoTableStatement = "CREATE TABLE " + TABLE_APPS_INFO + " (" +
                 COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -92,6 +99,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 "FOREIGN KEY(" + COLUMN_USER_ID + ") REFERENCES " + USER_TABLE + "(" + COLUMN_ID + "))";
 
         db.execSQL(createUserTableStatement);
+        db.execSQL(createMasterPasswordTableStatement);
         db.execSQL(createAppsInfoTableStatement);
         db.execSQL(createAppCredentialsTableStatement);
 
@@ -104,8 +112,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             byte[] salt = DataBaseHelper.generateSalt();
             String hashedPassword = DataBaseHelper.hashPassword("demoPassword123", salt);
             userValues.put(COLUMN_PASSWORD, hashedPassword + ":" + DataBaseHelper.encodeSalt(salt));
-            userValues.put(COLUMN_MASTER_PASSWORD, ""); // Αρχική τιμή για το master_password
-            userValues.put(COLUMN_LAST_LOGIN, getCurrentDateTime()); // Αρχική τιμή για το last_login
             db.insert(USER_TABLE, null, userValues);
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
@@ -123,14 +129,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        if (oldVersion < 4) {
-            String addMasterPasswordColumn = "ALTER TABLE " + USER_TABLE + " ADD COLUMN " + COLUMN_MASTER_PASSWORD + " TEXT";
-            db.execSQL(addMasterPasswordColumn);
-        }
-        if (oldVersion < 5) { // Προσθήκη αυτής της γραμμής για την αναβάθμιση στην έκδοση 5
-            String addLastLoginColumn = "ALTER TABLE " + USER_TABLE + " ADD COLUMN " + COLUMN_LAST_LOGIN + " TEXT";
-            db.execSQL(addLastLoginColumn);
-        }
+
     }
 
     public static class User {
@@ -138,24 +137,13 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         private String username;
         private String email;
         private String password;
-        private String masterPassword;
 
-        // Κατασκευαστής που περιλαμβάνει το master password
-        public User(int id, String username, String email, String password, String masterPassword) {
-            this.id = id;
-            this.username = username;
-            this.email = email;
-            this.password = password;
-            this.masterPassword = masterPassword;
-        }
-
-        // Κατασκευαστής
+        // Κατασκευαστής χωρίς το master password
         public User(int id, String username, String email, String password) {
             this.id = id;
             this.username = username;
             this.email = email;
             this.password = password;
-            this.masterPassword = null; // γιατί έρχεται σε δελυτερο χρόνο ο ορισμός του master pass
         }
 
         // Getters και Setters
@@ -190,15 +178,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         public void setPassword(String password) {
             this.password = password;
         }
-
-        public String getMasterPassword() {
-            return masterPassword;
-        }
-
-        public void setMasterPassword(String masterPassword) {
-            this.masterPassword = masterPassword;
-        }
     }
+
 
     public class AppCredentials {
         private int id;
@@ -292,42 +273,40 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public void saveMasterPassword(int userId, String masterPassword) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
+        values.put(COLUMN_USERID, userId);
         values.put(COLUMN_MASTER_PASSWORD, masterPassword);
-        db.update(USER_TABLE, values, COLUMN_ID + " = ?", new String[]{String.valueOf(userId)});
+        db.insert(MASTER_PASSWORD_TABLE, null, values);
         db.close();
     }
+
 
     // Μέθοδος για να ελέγξει αν ο χρήστης έχει master password
     public boolean hasMasterPassword(int userId) {
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT " + COLUMN_MASTER_PASSWORD + " FROM " + USER_TABLE + " WHERE " + COLUMN_ID + " = ?", new String[]{String.valueOf(userId)});
+        Cursor cursor = db.rawQuery("SELECT " + COLUMN_MASTER_PASSWORD + " FROM " + MASTER_PASSWORD_TABLE + " WHERE " + COLUMN_USERID + " = ?", new String[]{String.valueOf(userId)});
         boolean hasPassword = false;
         if (cursor != null && cursor.moveToFirst()) {
-            int columnIndex = cursor.getColumnIndex(COLUMN_MASTER_PASSWORD);
-            if (columnIndex != -1) {
-                hasPassword = cursor.getString(columnIndex) != null;
-            }
+            hasPassword = cursor.getString(0) != null;
             cursor.close();
         }
         db.close();
         return hasPassword;
     }
 
+    // Μέθοδος για την επαλήθευση του master password
     public boolean checkMasterPassword(int userId, String masterPassword) {
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT " + COLUMN_MASTER_PASSWORD + " FROM " + USER_TABLE + " WHERE " + COLUMN_ID + " = ?", new String[]{String.valueOf(userId)});
+        Cursor cursor = db.rawQuery("SELECT " + COLUMN_MASTER_PASSWORD + " FROM " + MASTER_PASSWORD_TABLE + " WHERE " + COLUMN_USERID + " = ?", new String[]{String.valueOf(userId)});
         boolean isPasswordCorrect = false;
         if (cursor != null && cursor.moveToFirst()) {
-            int columnIndex = cursor.getColumnIndex(COLUMN_MASTER_PASSWORD);
-            if (columnIndex != -1) {
-                String storedPassword = cursor.getString(columnIndex);
-                isPasswordCorrect = storedPassword.equals(masterPassword);
-            }
+            String storedPassword = cursor.getString(0);
+            isPasswordCorrect = storedPassword.equals(masterPassword);
             cursor.close();
         }
         db.close();
         return isPasswordCorrect;
     }
+
 
     public void addUserApp(AppsObj userApp, int userId) {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -388,7 +367,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             cv.put(COLUMN_USERNAME, user.getUsername());
             cv.put(COLUMN_EMAIL, user.getEmail());
             cv.put(COLUMN_PASSWORD, hashedPassword + ":" + saltStr);
-            cv.put(COLUMN_MASTER_PASSWORD, user.getMasterPassword());
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
             return false;
@@ -422,19 +400,21 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         List<User> userList = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT * FROM " + USER_TABLE, null);
-        if (cursor.moveToFirst()) {
+
+        if (cursor != null && cursor.moveToFirst()) {
             do {
                 @SuppressLint("Range") User user = new User(
                         cursor.getInt(cursor.getColumnIndex(COLUMN_ID)),
                         cursor.getString(cursor.getColumnIndex(COLUMN_USERNAME)),
                         cursor.getString(cursor.getColumnIndex(COLUMN_EMAIL)),
-                        cursor.getString(cursor.getColumnIndex(COLUMN_PASSWORD)),
-                        cursor.getString(cursor.getColumnIndex(COLUMN_MASTER_PASSWORD)) // Add this line to get masterPassword
+                        cursor.getString(cursor.getColumnIndex(COLUMN_PASSWORD))
                 );
                 userList.add(user);
             } while (cursor.moveToNext());
+
+            cursor.close();
         }
-        cursor.close();
+
         db.close();
         return userList;
     }
@@ -460,28 +440,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return preferences.getInt("userId", -1); // Επιστρέφει -1 αν δεν βρεθεί τιμή
     }
 
-    public User getUserByUsername(String username) {
-        User user = null;
-        String query = "SELECT * FROM " + USER_TABLE + " WHERE " + COLUMN_USERNAME + " = ?";
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery(query, new String[]{username});
-        if (cursor != null && cursor.moveToFirst()) {
-            int idColumnIndex = cursor.getColumnIndex(COLUMN_ID);
-            int emailColumnIndex = cursor.getColumnIndex(COLUMN_EMAIL);
-            int passwordColumnIndex = cursor.getColumnIndex(COLUMN_PASSWORD);
-            int masterPasswordColumnIndex = cursor.getColumnIndex(COLUMN_MASTER_PASSWORD);
 
-            int id = cursor.getInt(idColumnIndex);
-            String email = cursor.getString(emailColumnIndex);
-            String password = cursor.getString(passwordColumnIndex);
-            String masterPassword = cursor.getString(masterPasswordColumnIndex);
-
-            user = new User(id, username, email, password, masterPassword); // Add masterPassword here
-            cursor.close();
-        }
-        db.close();
-        return user;
-    }
 
     public String getUsernameByUserId(int userId) {
         String username = null;
@@ -567,12 +526,12 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         cv.put(COLUMN_USERNAME, username);
         cv.put(COLUMN_EMAIL, email);
         cv.put(COLUMN_PASSWORD, password);
-        cv.put(COLUMN_MASTER_PASSWORD, "");
 
         long result = db.insert(USER_TABLE, null, cv);
         db.close();
         return result;
     }
+
 
     public boolean isUsernameTaken(String username) {
         SQLiteDatabase db = this.getReadableDatabase();
@@ -621,14 +580,12 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             int idColumnIndex = cursor.getColumnIndex(COLUMN_ID);
             int usernameColumnIndex = cursor.getColumnIndex(COLUMN_USERNAME);
             int passwordColumnIndex = cursor.getColumnIndex(COLUMN_PASSWORD);
-            int masterPasswordColumnIndex = cursor.getColumnIndex(COLUMN_MASTER_PASSWORD);
 
             int id = cursor.getInt(idColumnIndex);
             String username = cursor.getString(usernameColumnIndex);
             String password = cursor.getString(passwordColumnIndex);
-            String masterPassword = cursor.getString(masterPasswordColumnIndex);
 
-            user = new User(id, username, email, password, masterPassword); // Add masterPassword here
+            user = new User(id, username, email, password);
 
             cursor.close();
         }
@@ -717,8 +674,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     }
 
 
-
-
     // Κώδικας για την ανάκτηση όλων των επιλεγμένων εφαρμογών
     public List<AppsObj> getAllSelectedApps(int userId) {
         List<AppsObj> selectedApps = new ArrayList<>();
@@ -805,11 +760,13 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return insert != -1;
     }
 
+    // Μέθοδος για την αποθήκευση του master password
     public void insertMasterPassword(int userId, String masterPassword) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put(COLUMN_MASTER_PASSWORD, masterPassword);
-        db.update(USER_TABLE, values, COLUMN_ID + " = ?", new String[]{String.valueOf(userId)});
+        values.put("user_id", userId);
+        values.put("master_password", masterPassword);
+        db.insert("master_password_table", null, values);
         db.close();
     }
 
