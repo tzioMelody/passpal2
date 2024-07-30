@@ -46,21 +46,25 @@ public class PasswordsTableActivity extends AppCompatActivity {
             TextView appNameTextView = new TextView(this);
             TextView usernameTextView = new TextView(this);
             TextView passwordTextView = new TextView(this);
+            TextView showHideTextView = new TextView(this);
 
             appNameTextView.setText(credentials.getAppName());
             usernameTextView.setText(credentials.getUsername());
-            passwordTextView.setText(credentials.getPassword());
+            passwordTextView.setText("••••••••"); // αρχικά κρυφό
+            showHideTextView.setText("Show");
 
             // Προσθήκη λειτουργικότητας εμφάνισης/απόκρυψης του κωδικού πρόσβασης
-            passwordTextView.setOnClickListener(new View.OnClickListener() {
+            showHideTextView.setOnClickListener(new View.OnClickListener() {
                 boolean isPasswordVisible = false;
 
                 @Override
                 public void onClick(View v) {
                     if (isPasswordVisible) {
-                        passwordTextView.setText(credentials.getPassword());
-                    } else {
                         passwordTextView.setText("••••••••");
+                        showHideTextView.setText("Show");
+                    } else {
+                        passwordTextView.setText(credentials.getPassword());
+                        showHideTextView.setText("Hide");
                     }
                     isPasswordVisible = !isPasswordVisible;
                 }
@@ -69,6 +73,7 @@ public class PasswordsTableActivity extends AppCompatActivity {
             tableRow.addView(appNameTextView);
             tableRow.addView(usernameTextView);
             tableRow.addView(passwordTextView);
+            tableRow.addView(showHideTextView);
 
             tableLayout.addView(tableRow);
         }

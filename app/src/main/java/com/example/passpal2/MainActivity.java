@@ -18,6 +18,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.RelativeLayout;
@@ -222,6 +223,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
                     startActivity(intent);
                     finish();
                     return true;
+
                 default:
                     return false;
             }
@@ -231,16 +233,17 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
     }
 
     // For bottomSheet popup
+    // For bottomSheet popup
     private void showDialog() {
         final Dialog dialog = new Dialog(this);
         dialog.requestWindowFeature(getWindow().FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.bottomsheet_layout);
 
-        LinearLayout EditLy = dialog.findViewById(R.id.EditLy);
-        LinearLayout ShareLy = dialog.findViewById(R.id.ShareLy);
-        LinearLayout UpdateLy = dialog.findViewById(R.id.UpdateLy);
-        LinearLayout LoginPswLy = dialog.findViewById(R.id.LoginPswLy);
-        LinearLayout SettingsLy = dialog.findViewById(R.id.SettingsLy);
+        Button EditLy = dialog.findViewById(R.id.EditLy);
+        Button ShareLy = dialog.findViewById(R.id.ShareLy);
+        Button UpdateLy = dialog.findViewById(R.id.UpdateLy);
+        Button LoginPswLy = dialog.findViewById(R.id.LoginPswLy);
+        Button SettingsLy = dialog.findViewById(R.id.SettingsLy);
 
         EditLy.setOnClickListener(v -> dialog.dismiss());
         ShareLy.setOnClickListener(v -> dialog.dismiss());
@@ -248,7 +251,12 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
             Toast.makeText(MainActivity.this, "Updating...", Toast.LENGTH_SHORT).show();
             dialog.dismiss();
         });
-        LoginPswLy.setOnClickListener(v -> dialog.dismiss());
+        LoginPswLy.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, EnterMasterPasswordActivity.class);
+            intent.putExtra("user_id", userId);
+            startActivity(intent);
+            dialog.dismiss();
+        });
         SettingsLy.setOnClickListener(v -> dialog.dismiss());
 
         LinearLayout bottomSheetLayout = dialog.findViewById(R.id.bottom_sheet);
@@ -277,6 +285,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
         dialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimation;
         dialog.getWindow().setGravity(Gravity.BOTTOM);
     }
+
 
     // Log out from popup menu LOGOUT FROM APP
     private void performLogout() {

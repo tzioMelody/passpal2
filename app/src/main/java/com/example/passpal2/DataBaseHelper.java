@@ -673,7 +673,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return rowsAffected > 0;
     }
 
-    // Μέθοδος για την ανάκτηση όλων των κωδικών και των ονομάτων χρήστη για έναν συγκεκριμένο χρήστη
     public List<AppCredentials> getAllCredentialsForUser(int userId) {
         List<AppCredentials> credentialsList = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
