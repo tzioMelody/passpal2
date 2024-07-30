@@ -1,8 +1,6 @@
 package com.example.passpal2;
 
 import android.content.Intent;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -13,7 +11,6 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.passpal2.R;
 import com.google.android.material.textfield.TextInputEditText;
 
 public class RegisterActivity extends AppCompatActivity implements EmailVerificationTask.EmailVerificationListener {
@@ -64,7 +61,7 @@ public class RegisterActivity extends AppCompatActivity implements EmailVerifica
         String confirmPassword = inputConfirmPassword.getText().toString().trim();
 
         if (TextUtils.isEmpty(username) || TextUtils.isEmpty(email) || TextUtils.isEmpty(password) || TextUtils.isEmpty(confirmPassword)) {
-            Toast.makeText(this, "All fields are required", Toast.LENGTH_SHORT).show();
+            showToast("All fields are required");
             return;
         }
 
@@ -73,20 +70,22 @@ public class RegisterActivity extends AppCompatActivity implements EmailVerifica
             return;
         }
         if (!password.equals(confirmPassword)) {
-            Toast.makeText(this, "Passwords do not match", Toast.LENGTH_SHORT).show();
+            showToast("Passwords do not match");
             return;
         }
 
         if (dbHelper.isUsernameExists(username)) {
-            Toast.makeText(this, "Username already taken", Toast.LENGTH_SHORT).show();
+            showToast("Username already taken");
             return;
         }
 
         if (dbHelper.isEmailTaken(email)) {
-            Toast.makeText(this, "Email already taken", Toast.LENGTH_SHORT).show();
+            showToast("Email already taken");
             return;
         }
 
+        progressBar.setVisibility(View.VISIBLE);
+        overlayView.setVisibility(View.VISIBLE);
         new EmailVerificationTask(this).execute(email);
     }
 
@@ -103,8 +102,8 @@ public class RegisterActivity extends AppCompatActivity implements EmailVerifica
             if (userId != -1) {
                 showToast("User registered successfully");
 
-                Intent intent = new Intent(RegisterActivity.this, MasterPasswordActivity.class);
-                intent.putExtra("user_id", userId);
+                Intent intent = new Intent(RegisterActivity.this, SetMasterPasswordActivity.class);
+                intent.putExtra("user_id", (int) userId);
                 startActivity(intent);
                 finish();
             } else {
@@ -113,6 +112,9 @@ public class RegisterActivity extends AppCompatActivity implements EmailVerifica
         } catch (Exception e) {
             e.printStackTrace();
             showToast("Failed to register user due to error");
+        } finally {
+            progressBar.setVisibility(View.GONE);
+            overlayView.setVisibility(View.GONE);
         }
     }
 
@@ -128,8 +130,9 @@ public class RegisterActivity extends AppCompatActivity implements EmailVerifica
             String password = inputPassword.getText().toString().trim();
             registerUser(username, email, password);
         } else {
-            Toast.makeText(this, "Invalid email address", Toast.LENGTH_SHORT).show();
+            showToast("Invalid email address");
+            progressBar.setVisibility(View.GONE);
+            overlayView.setVisibility(View.GONE);
         }
-        progressBar.setVisibility(View.GONE);
     }
 }

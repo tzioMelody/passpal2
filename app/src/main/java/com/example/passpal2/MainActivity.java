@@ -3,9 +3,12 @@ package com.example.passpal2;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.RectF;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Parcelable;
@@ -15,8 +18,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.RelativeLayout;
@@ -25,6 +26,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -56,7 +58,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
 
         // Λήψη του user ID από το intent
         Intent intent = getIntent();
-        int userId = intent.getIntExtra("user_id", -1); // Ανάκτηση ως int
+        userId = intent.getIntExtra("user_id", -1);
 
         // Επαλήθευση αν το user ID είναι έγκυρο
         if (userId == -1) {
@@ -89,7 +91,6 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
 
         // Set adapter to RecyclerView
         appsRecyclerView.setAdapter(mainAppsAdapter);
-        appsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
     }
 
 
@@ -101,7 +102,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
 
 
     private void showMasterPasswordActivity(int userId) {
-        Intent intent = new Intent(this, MasterPasswordActivity.class);
+        Intent intent = new Intent(this, SetMasterPasswordActivity.class);
         intent.putExtra("user_id", userId);
         startActivity(intent);
         finish();
@@ -348,7 +349,41 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
                     startActivityForResult(intent, EDIT_APP_REQUEST);
                 }
             }
+
+            @Override
+            public void onChildDraw(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
+                super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
+
+                if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
+                    View itemView = viewHolder.itemView;
+
+                    Paint p = new Paint();
+                    Drawable icon;
+                    RectF iconDest;
+
+                    if (dX > 0) {
+                        // Swipe προς τα δεξιά - εμφάνιση του εικονιδίου επεξεργασίας
+                        p.setColor(Color.parseColor("#388E3C"));
+                        RectF background = new RectF(itemView.getLeft(), itemView.getTop(), dX, itemView.getBottom());
+                        c.drawRect(background, p);
+                        icon = ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_edit);
+                        iconDest = new RectF(itemView.getLeft() + 50, itemView.getTop() + 50, itemView.getLeft() + 150, itemView.getBottom() - 50);
+                    } else {
+                        // Swipe προς τα αριστερά - εμφάνιση του εικονιδίου διαγραφής
+                        p.setColor(Color.parseColor("#D32F2F"));
+                        RectF background = new RectF(itemView.getRight() + dX, itemView.getTop(), itemView.getRight(), itemView.getBottom());
+                        c.drawRect(background, p);
+                        icon = ContextCompat.getDrawable(getApplicationContext(), R.drawable.deleteappitem);
+                        iconDest = new RectF(itemView.getRight() - 150, itemView.getTop() + 50, itemView.getRight() - 50, itemView.getBottom() - 50);
+                    }
+
+                    icon.setBounds(Math.round(iconDest.left), Math.round(iconDest.top), Math.round(iconDest.right), Math.round(iconDest.bottom));
+                    icon.draw(c);
+                }
+            }
         };
         new ItemTouchHelper(simpleItemTouchCallback).attachToRecyclerView(appsRecyclerView);
     }
+
+
 }

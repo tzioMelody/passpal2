@@ -673,6 +673,42 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return rowsAffected > 0;
     }
 
+    // Μέθοδος για την ανάκτηση όλων των κωδικών και των ονομάτων χρήστη για έναν συγκεκριμένο χρήστη
+    public List<AppCredentials> getAllCredentialsForUser(int userId) {
+        List<AppCredentials> credentialsList = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query = "SELECT * FROM " + TABLE_APP_CREDENTIALS + " WHERE " + COLUMN_USER_ID + " = ?";
+        Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(userId)});
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                int idColumnIndex = cursor.getColumnIndex(COLUMN_ID);
+                int appNameColumnIndex = cursor.getColumnIndex(COLUMN_APP_NAME_CREDENTIALS);
+                int appLinkColumnIndex = cursor.getColumnIndex(COLUMN_APP_LINK_CREDENTIALS);
+                int usernameColumnIndex = cursor.getColumnIndex(COLUMN_USERNAME_CREDENTIALS);
+                int emailColumnIndex = cursor.getColumnIndex(COLUMN_EMAIL_CREDENTIALS);
+                int passwordColumnIndex = cursor.getColumnIndex(COLUMN_PASSWORD_CREDENTIALS);
+                int imageUriStringColumnIndex = cursor.getColumnIndex(COLUMN_IMAGE_URI_STRING);
+
+                do {
+                    int id = cursor.getInt(idColumnIndex);
+                    String appName = cursor.getString(appNameColumnIndex);
+                    String appLink = cursor.getString(appLinkColumnIndex);
+                    String username = cursor.getString(usernameColumnIndex);
+                    String email = cursor.getString(emailColumnIndex);
+                    String password = cursor.getString(passwordColumnIndex);
+                    String imageUriString = cursor.getString(imageUriStringColumnIndex);
+
+                    AppCredentials credentials = new AppCredentials(userId, appName, appLink, username, email, password, imageUriString);
+                    credentials.setId(id);
+
+                    credentialsList.add(credentials);
+                } while (cursor.moveToNext());
+            }
+            cursor.close();
+        }
+        db.close();
+        return credentialsList;
+    }
 
     // Κώδικας για την ανάκτηση όλων των επιλεγμένων εφαρμογών
     public List<AppsObj> getAllSelectedApps(int userId) {

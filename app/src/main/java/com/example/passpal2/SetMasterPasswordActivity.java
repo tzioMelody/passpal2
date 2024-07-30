@@ -10,7 +10,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-public class MasterPasswordActivity extends AppCompatActivity {
+public class SetMasterPasswordActivity extends AppCompatActivity {
 
     private EditText masterPasswordEditText, confirmMasterPasswordEditText;
     private Button submitMasterPasswordButton;
@@ -78,7 +78,7 @@ public class MasterPasswordActivity extends AppCompatActivity {
             Log.d("MasterPasswordActivity", "Master Password set for UserID: " + userId);
 
             // Μετάβαση στο MainActivity
-            Intent intent = new Intent(MasterPasswordActivity.this, MainActivity.class);
+            Intent intent = new Intent(SetMasterPasswordActivity.this, MainActivity.class);
             intent.putExtra("user_id", userId);
             startActivity(intent);
             finish();
@@ -87,7 +87,6 @@ public class MasterPasswordActivity extends AppCompatActivity {
             showToast("Failed to set Master Password due to error");
         }
     }
-
 
     private boolean isAllCharactersSame(String input) {
         char firstChar = input.charAt(0);
