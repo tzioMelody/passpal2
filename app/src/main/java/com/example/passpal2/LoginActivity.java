@@ -1,5 +1,6 @@
 package com.example.passpal2;
 
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -60,25 +61,22 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
+        // Έλεγχος αν υπάρχει ο χρήστης με αυτά τα στοιχεία
         boolean isUserValid = dbHelper.checkUser(username, password);
         Log.d("LoginDebug", "User valid: " + isUserValid);
 
         if (isUserValid) {
+            // Λήψη του user ID
             int userId = dbHelper.getUserIdByUsername(username);
             Log.d("LoginDebug", "UserID: " + userId);
 
-            if (!dbHelper.hasMasterPassword(userId)) {
-                Intent intent = new Intent(LoginActivity.this, SetMasterPasswordActivity.class);
-                intent.putExtra("user_id", userId);
-                startActivity(intent);
-            } else {
-                Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_SHORT).show();
-                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                intent.putExtra("user_id", userId);
-                intent.putExtra("username", username);
-                startActivity(intent);
-                finish();
-            }
+            // Προώθηση στην κύρια δραστηριότητα
+            Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+            intent.putExtra("user_id", userId);
+            intent.putExtra("username", username);
+            startActivity(intent);
+            finish();
         } else {
             Toast.makeText(LoginActivity.this, "Login failed. Please check your username and password.", Toast.LENGTH_SHORT).show();
         }

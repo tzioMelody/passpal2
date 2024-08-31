@@ -134,7 +134,14 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
             }
 
             Toast.makeText(this, "Επιτυχής εισαγωγή επιλεγμένων εφαρμογών!", Toast.LENGTH_SHORT).show();
-            // Τερματισμός της Activity και επιστροφή στην MainActivity
+
+            // Δημιουργία ενός Intent για να περάσει τα δεδομένα στην MainActivity
+            Intent mainActivityIntent = new Intent(this, MainActivity.class);
+            mainActivityIntent.putParcelableArrayListExtra("SELECTED_APPS", selectedApps);
+            mainActivityIntent.putExtra("USER_ID", userId);
+            startActivity(mainActivityIntent);
+
+            // Τερματισμός της Activity
             finish();
         } else {
             Toast.makeText(this, "Μπορείτε να επιλέξετε μόνο μέχρι 10 εφαρμογές", Toast.LENGTH_SHORT).show();

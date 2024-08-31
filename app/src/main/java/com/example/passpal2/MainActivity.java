@@ -239,13 +239,12 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
         dialog.requestWindowFeature(getWindow().FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.bottomsheet_layout);
 
-        Button EditLy = dialog.findViewById(R.id.EditLy);
         Button ShareLy = dialog.findViewById(R.id.ShareLy);
         Button UpdateLy = dialog.findViewById(R.id.UpdateLy);
         Button LoginPswLy = dialog.findViewById(R.id.LoginPswLy);
         Button SettingsLy = dialog.findViewById(R.id.SettingsLy);
 
-        EditLy.setOnClickListener(v -> dialog.dismiss());
+
         ShareLy.setOnClickListener(v -> dialog.dismiss());
         UpdateLy.setOnClickListener(v -> {
             Toast.makeText(MainActivity.this, "Updating...", Toast.LENGTH_SHORT).show();
@@ -257,6 +256,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
             startActivity(intent);
             dialog.dismiss();
         });
+
         SettingsLy.setOnClickListener(v -> dialog.dismiss());
 
         LinearLayout bottomSheetLayout = dialog.findViewById(R.id.bottom_sheet);

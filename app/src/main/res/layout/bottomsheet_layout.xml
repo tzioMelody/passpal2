@@ -33,19 +33,6 @@
             android:textSize="25dp"
             android:textStyle="bold" />
 
-        <Button
-            android:id="@+id/EditLy"
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:padding="8dp"
-            android:text="Edit"
-            android:textColor="@color/black"
-            android:textSize="16sp"
-            android:drawableStart="@drawable/ic_edit"
-            android:background="?attr/selectableItemBackground"
-            android:drawablePadding="8dp"/>
 
         <Button
             android:id="@+id/ShareLy"

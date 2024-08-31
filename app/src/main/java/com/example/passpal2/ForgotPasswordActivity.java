@@ -1,6 +1,5 @@
 package com.example.passpal2;
 
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -15,61 +14,44 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.passpal2.MainActivity;
-import com.example.passpal2.R;
-
 public class ForgotPasswordActivity extends AppCompatActivity {
-    private EditText inputEmail, newPassword, ConfirmNewPassword;
-    private Button resetPassBtn, CancelbtnForgot;
+    private EditText inputEmail, newPassword, confirmNewPassword;
+    private Button resetPassBtn, cancelBtnForgot;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_forgot_password);
-        getSupportActionBar().setTitle("Reset password");
+        getSupportActionBar().setTitle("Reset Password");
 
         resetPassBtn = findViewById(R.id.resetpassbtn);
-        CancelbtnForgot = findViewById(R.id.CancelbtnForgot);
+        cancelBtnForgot = findViewById(R.id.CancelbtnForgot);
 
         inputEmail = findViewById(R.id.inputEmail);
         newPassword = findViewById(R.id.ResetpasswordEditText);
-        ConfirmNewPassword = findViewById(R.id.ConfirmpasswordEditText);
+        confirmNewPassword = findViewById(R.id.ConfirmpasswordEditText);
 
-        CancelbtnForgot.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
+        cancelBtnForgot.setOnClickListener(v -> finish());
+
+        resetPassBtn.setOnClickListener(v -> {
+            String email = inputEmail.getText().toString().trim();
+            String newPasswordText = newPassword.getText().toString().trim();
+            String confirmNewPasswordText = confirmNewPassword.getText().toString().trim();
+
+            DataBaseHelper dbHelper = new DataBaseHelper(ForgotPasswordActivity.this);
+
+            if (TextUtils.isEmpty(email) || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                showToast("Please enter a valid email address.");
+            } else if (!dbHelper.isEmailTaken(email)) {
+                showToast("Email not found in database.");
+            } else if (TextUtils.isEmpty(newPasswordText) || newPasswordText.length() < 8) {
+                showToast("Password should be at least 8 characters.");
+            } else if (!newPasswordText.equals(confirmNewPasswordText)) {
+                showToast("Passwords do not match.");
+            } else {
+                new UpdatePasswordTask(email, newPasswordText, ForgotPasswordActivity.this).execute();
             }
         });
-
-        // Μέρος της ForgotPasswordActivity.java
-
-        resetPassBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String email = inputEmail.getText().toString();
-                String newPasswordText = newPassword.getText().toString();
-                String confirmNewPasswordText = ConfirmNewPassword.getText().toString();
-
-                DataBaseHelper dbHelper = new DataBaseHelper(ForgotPasswordActivity.this);
-
-                if (TextUtils.isEmpty(email) || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                    Toast.makeText(ForgotPasswordActivity.this, "Please enter a valid email address.", Toast.LENGTH_SHORT).show();
-                } else if (!dbHelper.isUserExists(email)) {  // Αλλαγή εδώ
-                    Toast.makeText(ForgotPasswordActivity.this, "Email not found in database.", Toast.LENGTH_SHORT).show();
-                } else if (TextUtils.isEmpty(newPasswordText) || newPasswordText.length() < 8) {
-                    Toast.makeText(ForgotPasswordActivity.this, "Password should be at least 8 characters.", Toast.LENGTH_SHORT).show();
-                } else if (!newPasswordText.equals(confirmNewPasswordText)) {
-                    Toast.makeText(ForgotPasswordActivity.this, "Passwords do not match.", Toast.LENGTH_SHORT).show();
-                } else {
-                    new UpdatePasswordTask(email, newPasswordText, ForgotPasswordActivity.this).execute();
-                }
-            }
-        });
-
-
-
-
     }
 
     private class UpdatePasswordTask extends AsyncTask<Void, Void, Boolean> {
@@ -86,24 +68,36 @@ public class ForgotPasswordActivity extends AppCompatActivity {
         @Override
         protected Boolean doInBackground(Void... voids) {
             DataBaseHelper dbHelper = new DataBaseHelper(context);
-            dbHelper.updatePasswordByEmail(email, newPassword);  // Αλλαγή εδώ
-            return true;
+            try {
+                byte[] salt = DataBaseHelper.generateSalt();
+                String hashedPassword = DataBaseHelper.hashPassword(newPassword, salt);
+                String saltStr = DataBaseHelper.encodeSalt(salt);
+                String passwordToStore = hashedPassword + ":" + saltStr;
+
+                dbHelper.updatePasswordByEmail(email, passwordToStore);
+                return true;
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
         }
 
         @Override
         protected void onPostExecute(Boolean success) {
             super.onPostExecute(success);
             if (success) {
-                // Password reset successful, navigate to MainActivity
-                Intent intent = new Intent(context, MainActivity.class);
+                showToast("Password reset successful. You can now log in with your new password.");
+                Intent intent = new Intent(context, LoginActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                 context.startActivity(intent);
                 ((Activity) context).finish();
             } else {
-                Toast.makeText(context, "Password reset failed. Please try again.", Toast.LENGTH_SHORT).show();
+                showToast("Password reset failed. Please try again.");
             }
         }
     }
 
-
+    private void showToast(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+    }
 }

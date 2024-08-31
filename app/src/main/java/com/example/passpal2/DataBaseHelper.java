@@ -1,5 +1,279 @@
 package com.example.passpal2;
 
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.GCMParameterSpec;
+import java.security.SecureRandom;
+import java.util.Base64;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+
+public class DataBaseHelper extends SQLiteOpenHelper {
+
+    private static final int DATABASE_VERSION = 1;
+    private static final String DATABASE_NAME = "passpal.db";
+
+    // User Table Columns
+    public static final String USER_TABLE = "USER_TABLE";
+    public static final String COLUMN_ID = "ID";
+    public static final String COLUMN_USERNAME = "username";
+    public static final String COLUMN_EMAIL = "email";
+    public static final String COLUMN_PASSWORD = "password";
+    public static final String COLUMN_REGISTRATION_DATE = "registration_date";
+
+    // Master Password Table Columns
+    public static final String MASTER_PASSWORD_TABLE = "master_password_table";
+    public static final String COLUMN_USERID = "user_id";
+    public static final String COLUMN_MASTER_PASSWORD = "master_password";
+
+
+    public DataBaseHelper(Context context) {
+        super(context, DATABASE_NAME, null, DATABASE_VERSION);
+    }
+
+    @Override
+    public void onCreate(SQLiteDatabase db) {
+        String CREATE_USER_TABLE = "CREATE TABLE " + USER_TABLE + " (" +
+                COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                COLUMN_USERNAME + " TEXT NOT NULL UNIQUE, " +
+                COLUMN_EMAIL + " TEXT NOT NULL UNIQUE, " +
+                COLUMN_PASSWORD + " TEXT NOT NULL)";
+        db.execSQL(CREATE_USER_TABLE);
+
+        String CREATE_MASTER_PASSWORD_TABLE = "CREATE TABLE " + MASTER_PASSWORD_TABLE + " (" +
+                COLUMN_USERID + " INTEGER PRIMARY KEY, " +
+                COLUMN_MASTER_PASSWORD + " TEXT NOT NULL, " +
+                "FOREIGN KEY(" + COLUMN_USERID + ") REFERENCES " + USER_TABLE + "(" + COLUMN_ID + "))";
+        db.execSQL(CREATE_MASTER_PASSWORD_TABLE);
+    }
+
+    @Override
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        db.execSQL("DROP TABLE IF EXISTS " + USER_TABLE);
+        db.execSQL("DROP TABLE IF EXISTS " + MASTER_PASSWORD_TABLE);
+        onCreate(db);
+    }
+
+
+    // Insert user into the database
+    public long insertUser(String username, String email, String password) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_USERNAME, username);
+        values.put(COLUMN_EMAIL, email);
+        values.put(COLUMN_PASSWORD, password);
+        values.put(COLUMN_REGISTRATION_DATE, getCurrentDate());
+
+        return db.insert(USER_TABLE, null, values);
+    }
+
+    // Check if username exists
+    public boolean isUsernameExists(String username) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(USER_TABLE, null, COLUMN_USERNAME + "=?", new String[]{username}, null, null, null);
+        boolean exists = (cursor.getCount() > 0);
+        cursor.close();
+        return exists;
+    }
+
+    // Check if email exists
+    public boolean isEmailTaken(String email) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(USER_TABLE, null, COLUMN_EMAIL + "=?", new String[]{email}, null, null, null);
+        boolean exists = (cursor.getCount() > 0);
+        cursor.close();
+        return exists;
+    }
+
+    // Generate the current date in the desired format
+    private String getCurrentDate() {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+        return sdf.format(new Date());
+    }
+
+    // Μέθοδος για την αποθήκευση του master password
+    public void insertMasterPassword(int userId, String masterPassword) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_USERID, userId);
+        values.put(COLUMN_MASTER_PASSWORD, masterPassword);
+        db.insert(MASTER_PASSWORD_TABLE, null, values);
+        db.close();
+    }
+
+    // Μέθοδος για έλεγχο αν ο χρήστης υπάρχει με βάση το username και το password
+    public boolean checkUser(String username, String password) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String[] columns = {COLUMN_ID, COLUMN_PASSWORD};
+        String selection = COLUMN_USERNAME + " = ?";
+        String[] selectionArgs = {username};
+
+        Cursor cursor = db.query(USER_TABLE, columns, selection, selectionArgs, null, null, null);
+
+        if (cursor != null && cursor.moveToFirst()) {
+            String storedPassword = cursor.getString(cursor.getColumnIndex(COLUMN_PASSWORD));
+            String[] parts = storedPassword.split(":");
+
+            if (parts.length == 2) {
+                String hash = parts[0];
+                String salt = parts[1];
+                String hashedInputPassword = hashPassword(password, decodeSalt(salt));
+
+                if (hash.equals(hashedInputPassword)) {
+                    cursor.close();
+                    return true;
+                }
+            }
+
+            cursor.close();
+        }
+
+        return false;
+    }
+
+    // Μέθοδος για την απόκτηση του ID του χρήστη με βάση το username
+    public int getUserIdByUsername(String username) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String[] columns = {COLUMN_ID};
+        String selection = COLUMN_USERNAME + " = ?";
+        String[] selectionArgs = {username};
+
+        Cursor cursor = db.query(USER_TABLE, columns, selection, selectionArgs, null, null, null);
+
+        if (cursor != null && cursor.moveToFirst()) {
+            int userId = cursor.getInt(cursor.getColumnIndex(COLUMN_ID));
+            cursor.close();
+            return userId;
+        }
+
+        return -1; // Αν δεν βρεθεί ο χρήστης, επιστρέφεται -1
+    }
+    public String getUsernameByUserId(int userId) {
+        String username = null;
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT " + COLUMN_USERNAME + " FROM " + USER_TABLE + " WHERE " + COLUMN_ID + " = ?", new String[]{String.valueOf(userId)});
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                int columnIndex = cursor.getColumnIndex(COLUMN_USERNAME);
+                if (columnIndex != -1) {
+                    username = cursor.getString(columnIndex);
+                }
+            }
+            cursor.close();
+        }
+        db.close();
+        return username;
+    }
+
+    public static int getUserId(Context context) {
+        SharedPreferences preferences = context.getSharedPreferences("user_credentials", MODE_PRIVATE);
+        return preferences.getInt("userId", -1); // Επιστρέφει -1 αν δεν βρεθεί τιμή
+    }
+    // Μέθοδος για την ενημέρωση του password με βάση το email
+    public boolean updatePasswordByEmail(String email, String newPassword) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_PASSWORD, newPassword);
+
+        // Χρήση του SQLite update μεθόδου
+        int rowsAffected = db.update(USER_TABLE, values, COLUMN_EMAIL + " = ?", new String[]{email});
+
+        db.close(); // Κλείνουμε τη βάση δεδομένων μετά την ενημέρωση
+
+        return rowsAffected > 0; // Επιστρέφει true αν ενημερώθηκε τουλάχιστον μία σειρά
+    }
+
+    // Μέθοδος για την παραγωγή ενός salt
+    public static byte[] generateSalt() throws NoSuchAlgorithmException {
+        SecureRandom sr = SecureRandom.getInstance("SHA1PRNG");
+        byte[] salt = new byte[16];
+        sr.nextBytes(salt);
+        return salt;
+    }
+    //  ΚΡΥΠΤΟΓΡΑΦΗΣΗ *** ΚΡΥΠΤΟΓΡΑΦΗΣΗ *** ΚΡΥΠΤΟΓΡΑΦΗΣΗ *** ΚΡΥΠΤΟΓΡΑΦΗΣΗ *** ΚΡΥΠΤΟΓΡΑΦΗΣΗ
+    // Μέθοδος για το hashing του κωδικού με salt
+    public static String hashPassword(String password, byte[] salt) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            md.update(salt);
+            byte[] hashedPassword = md.digest(password.getBytes());
+            StringBuilder sb = new StringBuilder();
+            for (byte b : hashedPassword) {
+                sb.append(String.format("%02x", b));
+            }
+            return sb.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    // Μέθοδος για την κωδικοποίηση του salt σε String
+    public static String encodeSalt(byte[] salt) {
+        return Base64.getEncoder().encodeToString(salt);
+    }
+
+    // Μέθοδος για την αποκωδικοποίηση του salt από String
+    public static byte[] decodeSalt(String saltStr) {
+        return Base64.getDecoder().decode(saltStr);
+    }
+
+    // AES encryption/decryption constants
+    private static final String AES_ALGORITHM = "AES";
+    private static final String AES_TRANSFORMATION = "AES/GCM/NoPadding";
+    private static final int AES_KEY_SIZE = 256;
+    private static final int GCM_IV_LENGTH = 12;
+    private static final int GCM_TAG_LENGTH = 16;
+
+    // Method to generate a random AES key
+    public static SecretKey generateAESKey() throws Exception {
+        KeyGenerator keyGen = KeyGenerator.getInstance(AES_ALGORITHM);
+        keyGen.init(AES_KEY_SIZE);
+        return keyGen.generateKey();
+    }
+
+    // Method to encrypt data using AES-256
+    public static String encryptAES(String data, SecretKey key) throws Exception {
+        Cipher cipher = Cipher.getInstance(AES_TRANSFORMATION);
+        byte[] iv = new byte[GCM_IV_LENGTH];
+        SecureRandom random = new SecureRandom();
+        random.nextBytes(iv);
+        GCMParameterSpec spec = new GCMParameterSpec(GCM_TAG_LENGTH * 8, iv);
+        cipher.init(Cipher.ENCRYPT_MODE, key, spec);
+        byte[] encryptedData = cipher.doFinal(data.getBytes(StandardCharsets.UTF_8));
+        byte[] encryptedBytes = new byte[GCM_IV_LENGTH + encryptedData.length];
+        System.arraycopy(iv, 0, encryptedBytes, 0, GCM_IV_LENGTH);
+        System.arraycopy(encryptedData, 0, encryptedBytes, GCM_IV_LENGTH, encryptedData.length);
+        return Base64.getEncoder().encodeToString(encryptedBytes);
+    }
+
+    // Method to decrypt data using AES-256
+    public static String decryptAES(String encryptedData, SecretKey key) throws Exception {
+        byte[] encryptedBytes = Base64.getDecoder().decode(encryptedData);
+        byte[] iv = Arrays.copyOfRange(encryptedBytes, 0, GCM_IV_LENGTH);
+        GCMParameterSpec spec = new GCMParameterSpec(GCM_TAG_LENGTH * 8, iv);
+        Cipher cipher = Cipher.getInstance(AES_TRANSFORMATION);
+        cipher.init(Cipher.DECRYPT_MODE, key, spec);
+        byte[] decryptedData = cipher.doFinal(encryptedBytes, GCM_IV_LENGTH, encryptedBytes.length - GCM_IV_LENGTH);
+        return new String(decryptedData, StandardCharsets.UTF_8);
+    }
+}
+
+
+
+/*
+package com.example.passpal2;
+
 import static android.content.Context.MODE_PRIVATE;
 
 import android.annotation.SuppressLint;
@@ -66,16 +340,12 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
+
         String createUserTableStatement = "CREATE TABLE " + USER_TABLE + " (" +
                 COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 COLUMN_USERNAME + " TEXT, " +
                 COLUMN_EMAIL + " TEXT, " +
                 COLUMN_PASSWORD + " TEXT)";
-
-        String createMasterPasswordTableStatement = "CREATE TABLE " + MASTER_PASSWORD_TABLE + " (" +
-                COLUMN_USERID + " INTEGER PRIMARY KEY, " +
-                COLUMN_MASTER_PASSWORD + " TEXT, " +
-                "FOREIGN KEY(" + COLUMN_USERID + ") REFERENCES " + USER_TABLE + "(" + COLUMN_ID + "))";
 
         String createAppsInfoTableStatement = "CREATE TABLE " + TABLE_APPS_INFO + " (" +
                 COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -86,6 +356,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 COLUMN_IS_SELECTED + " INTEGER, " +
                 COLUMN_USER_ID + " INTEGER, " +
                 "FOREIGN KEY(" + COLUMN_USER_ID + ") REFERENCES " + USER_TABLE + "(" + COLUMN_ID + "))";
+
+
 
         String createAppCredentialsTableStatement = "CREATE TABLE " + TABLE_APP_CREDENTIALS + " (" +
                 COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -99,7 +371,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 "FOREIGN KEY(" + COLUMN_USER_ID + ") REFERENCES " + USER_TABLE + "(" + COLUMN_ID + "))";
 
         db.execSQL(createUserTableStatement);
-        db.execSQL(createMasterPasswordTableStatement);
         db.execSQL(createAppsInfoTableStatement);
         db.execSQL(createAppCredentialsTableStatement);
 
@@ -372,9 +643,20 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             return false;
         }
         long insert = db.insert(USER_TABLE, null, cv);
+
+        if (insert != -1) {
+            // Δημιουργία του πίνακα master_password_table μόνο για αυτόν τον χρήστη
+            String createMasterPasswordTableStatement = "CREATE TABLE IF NOT EXISTS " + MASTER_PASSWORD_TABLE + " (" +
+                    COLUMN_USERID + " INTEGER PRIMARY KEY, " +
+                    COLUMN_MASTER_PASSWORD + " TEXT, " +
+                    "FOREIGN KEY(" + COLUMN_USERID + ") REFERENCES " + USER_TABLE + "(" + COLUMN_ID + "))";
+            db.execSQL(createMasterPasswordTableStatement);
+        }
+
         db.close();
         return insert != -1;
     }
+
 
     // Ελέγχος εάν ο χρήστης υπάρχει με βάση το email
     public boolean isUserExists(String email) {
@@ -737,6 +1019,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
                         selectedApps.add(appInfo);
                         addedApps.add(appName);
+
+                        Log.d("DataBaseHelper", "Retrieved App: " + appName + " for User ID: " + userId);
                     }
                 } while (cursor.moveToNext());
             }
@@ -745,6 +1029,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         db.close();
         return selectedApps;
     }
+
 
     //  αφαιρεί όλες τις επιλεγμένες εφαρμογές
     public void removeAllSelectedApps(int userId) {
@@ -899,10 +1184,12 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
         if (result == -1) {
             Log.e("DataBaseHelper", "Failed to insert app for User ID: " + userId);
-            return false; //  εισαγωγή απετυχε
+            return false; //  Η εισαγωγή απέτυχε
         } else {
-            Log.d("DataBaseHelper", "App inserted successfully for User ID: " + userId);
-            return true; //  εισαγωγή είναι επιτυχής
+            Log.d("DataBaseHelper", "App inserted successfully for User ID: " + userId + " App Name: " + appInfo.getAppNames());
+            return true; //  Η εισαγωγή είναι επιτυχής
         }
     }
+
 }
+*/

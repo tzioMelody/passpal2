@@ -19,11 +19,12 @@ public class EmailVerificationTask extends AsyncTask<String, Void, Boolean> {
         void onEmailVerified(boolean isEmailValid);
     }
 
-    public EmailVerificationTask(EmailVerificationListener listener) {
-        Context context = null;
+    // Constructor που δέχεται το context και τον listener
+    public EmailVerificationTask(Context context, EmailVerificationListener listener) {
         this.contextReference = new WeakReference<>(context);
         this.listener = listener;
     }
+
     @Override
     protected void onPreExecute() {
         Context context = contextReference.get();
@@ -41,6 +42,7 @@ public class EmailVerificationTask extends AsyncTask<String, Void, Boolean> {
             }).execute();
         }
     }
+
     @Override
     protected Boolean doInBackground(String... emails) {
         if (isCancelled()) {
@@ -50,7 +52,7 @@ public class EmailVerificationTask extends AsyncTask<String, Void, Boolean> {
         String emailToVerify = emails[0];
         HttpURLConnection urlConnection = null;
         try {
-            URL url = new URL("https://api.hunter.io/v2/email-verifier?email=" + emailToVerify + "&api_key=9f387e4dfb8a839b9b246089137cc92244ad5562");
+            URL url = new URL("https://api.hunter.io/v2/email-verifier?email=" + emailToVerify + "&api_key=YOUR_API_KEY");
             urlConnection = (HttpURLConnection) url.openConnection();
             BufferedReader reader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
             StringBuilder result = new StringBuilder();

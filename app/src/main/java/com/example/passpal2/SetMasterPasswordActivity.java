@@ -10,6 +10,8 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.security.NoSuchAlgorithmException;
+
 public class SetMasterPasswordActivity extends AppCompatActivity {
 
     private EditText masterPasswordEditText, confirmMasterPasswordEditText;
@@ -60,8 +62,8 @@ public class SetMasterPasswordActivity extends AppCompatActivity {
             return;
         }
 
-        if (isAllCharactersSame(masterPassword)) {
-            showToast("Password cannot consist of the same character repeated");
+        if (isAllCharactersSame(masterPassword) || isCommonPassword(masterPassword)) {
+            showToast("Password is too simple");
             return;
         }
 
@@ -70,9 +72,14 @@ public class SetMasterPasswordActivity extends AppCompatActivity {
             return;
         }
 
-        // Αποθήκευση του Master Password
+        // Αποθήκευση του Master Password με hashing
         try {
-            dbHelper.insertMasterPassword(userId, masterPassword);
+            byte[] salt = DataBaseHelper.generateSalt();
+            String hashedMasterPassword = DataBaseHelper.hashPassword(masterPassword, salt);
+            String saltStr = DataBaseHelper.encodeSalt(salt);
+            String passwordToStore = hashedMasterPassword + ":" + saltStr;
+
+            dbHelper.insertMasterPassword(userId, passwordToStore);
             showToast("Master Password set successfully");
 
             Log.d("MasterPasswordActivity", "Master Password set for UserID: " + userId);
@@ -82,7 +89,7 @@ public class SetMasterPasswordActivity extends AppCompatActivity {
             intent.putExtra("user_id", userId);
             startActivity(intent);
             finish();
-        } catch (Exception e) {
+        } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
             showToast("Failed to set Master Password due to error");
         }
@@ -96,6 +103,10 @@ public class SetMasterPasswordActivity extends AppCompatActivity {
             }
         }
         return true;
+    }
+
+    private boolean isCommonPassword(String password) {
+        return password.equals("1234") || password.equals("abcd");
     }
 
     private void showToast(String message) {

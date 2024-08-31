@@ -13,6 +13,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.textfield.TextInputEditText;
 
+import javax.crypto.SecretKey;
+
 public class RegisterActivity extends AppCompatActivity implements EmailVerificationTask.EmailVerificationListener {
 
     private TextInputEditText inputUsername, inputEmail, inputPassword, inputConfirmPassword;
@@ -26,13 +28,14 @@ public class RegisterActivity extends AppCompatActivity implements EmailVerifica
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
 
+        // Αρχικοποίηση της DataBaseHelper
+        dbHelper = new DataBaseHelper(this);
+
+        // Αρχικοποίηση των UI στοιχείων
         initializeViews();
 
         buttonRegister.setOnClickListener(v -> attemptRegistration());
         getSupportActionBar().setTitle("Sign up");
-
-        dbHelper = new DataBaseHelper(this);
-        dbHelper.getWritableDatabase();
 
         Log.d("RegisterActivity", "Η βάση δεδομένων έχει δημιουργηθεί και είναι έτοιμη.");
 
@@ -86,7 +89,21 @@ public class RegisterActivity extends AppCompatActivity implements EmailVerifica
 
         progressBar.setVisibility(View.VISIBLE);
         overlayView.setVisibility(View.VISIBLE);
-        new EmailVerificationTask(this).execute(email);
+        new EmailVerificationTask(this, this).execute(email);
+    }
+
+    @Override
+    public void onEmailVerified(boolean isEmailValid) {
+        if (isEmailValid) {
+            String username = inputUsername.getText().toString().trim();
+            String email = inputEmail.getText().toString().trim();
+            String password = inputPassword.getText().toString().trim();
+            registerUser(username, email, password);
+        } else {
+            showToast("Invalid email address");
+            progressBar.setVisibility(View.GONE);
+            overlayView.setVisibility(View.GONE);
+        }
     }
 
     private void registerUser(String username, String email, String password) {
@@ -96,9 +113,10 @@ public class RegisterActivity extends AppCompatActivity implements EmailVerifica
             String saltStr = DataBaseHelper.encodeSalt(salt);
             String passwordToStore = hashedPassword + ":" + saltStr;
 
-            DataBaseHelper.User newUser = new DataBaseHelper.User(0, username, email, passwordToStore);
+            SecretKey aesKey = DataBaseHelper.generateAESKey();
+            String encryptedEmail = DataBaseHelper.encryptAES(email, aesKey);
 
-            long userId = dbHelper.insertUser(username, email, passwordToStore);
+            long userId = dbHelper.insertUser(username, encryptedEmail, passwordToStore);
             if (userId != -1) {
                 showToast("User registered successfully");
 
@@ -120,19 +138,5 @@ public class RegisterActivity extends AppCompatActivity implements EmailVerifica
 
     private void showToast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void onEmailVerified(boolean isEmailValid) {
-        if (isEmailValid) {
-            String username = inputUsername.getText().toString().trim();
-            String email = inputEmail.getText().toString().trim();
-            String password = inputPassword.getText().toString().trim();
-            registerUser(username, email, password);
-        } else {
-            showToast("Invalid email address");
-            progressBar.setVisibility(View.GONE);
-            overlayView.setVisibility(View.GONE);
-        }
     }
 }
