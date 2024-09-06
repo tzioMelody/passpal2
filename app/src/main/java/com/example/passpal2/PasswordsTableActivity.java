@@ -43,15 +43,12 @@ public class PasswordsTableActivity extends AppCompatActivity {
 
         for (DataBaseHelper.AppCredentials credentials : credentialsList) {
             TableRow tableRow = new TableRow(this);
-            TextView appNameTextView = new TextView(this);
-            TextView usernameTextView = new TextView(this);
-            TextView passwordTextView = new TextView(this);
-            TextView showHideTextView = new TextView(this);
 
-            appNameTextView.setText(credentials.getAppName());
-            usernameTextView.setText(credentials.getUsername());
-            passwordTextView.setText("••••••••"); // αρχικά κρυφό
-            showHideTextView.setText("Show");
+            // Δημιουργία και ρύθμιση των TextView για κάθε στήλη
+            TextView appNameTextView = createTextView(credentials.getAppName(), R.color.barbie_pink);
+            TextView usernameTextView = createTextView(credentials.getUsername(), R.color.smoothBlue);
+            TextView passwordTextView = createTextView("••••••••", R.color.transWhite); // αρχικά κρυφό
+            TextView showHideTextView = createTextView("Show", R.color.black);
 
             // Προσθήκη λειτουργικότητας εμφάνισης/απόκρυψης του κωδικού πρόσβασης
             showHideTextView.setOnClickListener(new View.OnClickListener() {
@@ -70,13 +67,26 @@ public class PasswordsTableActivity extends AppCompatActivity {
                 }
             });
 
+            // Προσθήκη των TextView στο TableRow
             tableRow.addView(appNameTextView);
             tableRow.addView(usernameTextView);
             tableRow.addView(passwordTextView);
             tableRow.addView(showHideTextView);
 
+            // Προσθήκη του TableRow στο TableLayout
             tableLayout.addView(tableRow);
         }
+    }
+
+    private TextView createTextView(String text, int backgroundColorResourceId) {
+        TextView textView = new TextView(this);
+        textView.setText(text);
+        textView.setBackgroundColor(getResources().getColor(backgroundColorResourceId));
+        textView.setTextColor(getResources().getColor(R.color.white)); // Χρώμα κειμένου
+        textView.setPadding(8, 8, 8, 8); // Padding για εμφάνιση
+        textView.setLayoutParams(new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1)); // Ομοιόμορφη κατανομή πλάτους
+        textView.setGravity(View.TEXT_ALIGNMENT_CENTER); // Κεντράρισμα κειμένου
+        return textView;
     }
 
     private void showToast(String message) {

@@ -12,6 +12,7 @@ import android.widget.ImageButton;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.textfield.TextInputEditText;
@@ -22,6 +23,7 @@ import java.io.IOException;
 public class AddAppUserActivity extends AppCompatActivity {
 
     private static final int PICK_IMAGE_REQUEST = 1;
+    private static final int TAKE_PHOTO_REQUEST = 2;
 
     private TextInputEditText newAppName;
     private TextInputEditText newAppLink;
@@ -30,6 +32,7 @@ public class AddAppUserActivity extends AppCompatActivity {
     private TextInputEditText newAppPassword;
     private ImageButton addAppPhoto;
     private Uri appImageUri;
+    private Bitmap appImageBitmap;
     private DataBaseHelper dbHelper;
     private int userId;
 
@@ -52,7 +55,7 @@ public class AddAppUserActivity extends AppCompatActivity {
         addAppPhoto.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                openImageChooser();
+                showImageSourceDialog();
             }
         });
 
@@ -71,6 +74,27 @@ public class AddAppUserActivity extends AppCompatActivity {
         });
     }
 
+    private void showImageSourceDialog() {
+        // Διάλογος για επιλογή πηγής εικόνας: Κάμερα ή Συλλογή
+        new AlertDialog.Builder(this)
+                .setTitle("Select Image Source")
+                .setItems(new String[]{"Take Photo", "Choose from Gallery"}, (dialog, which) -> {
+                    if (which == 0) {
+                        takePhoto();
+                    } else {
+                        openImageChooser();
+                    }
+                })
+                .show();
+    }
+
+    private void takePhoto() {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            startActivityForResult(takePictureIntent, TAKE_PHOTO_REQUEST);
+        }
+    }
+
     private void openImageChooser() {
         Intent intent = new Intent();
         intent.setType("image/*");
@@ -83,7 +107,13 @@ public class AddAppUserActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
             appImageUri = data.getData();
+            appImageBitmap = null; // Μηδενίζουμε το bitmap αν υπάρχει URI
             addAppPhoto.setImageURI(appImageUri);
+        } else if (requestCode == TAKE_PHOTO_REQUEST && resultCode == RESULT_OK && data != null) {
+            Bundle extras = data.getExtras();
+            appImageBitmap = (Bitmap) extras.get("data");
+            appImageUri = null; // Μηδενίζουμε το URI αν υπάρχει bitmap
+            addAppPhoto.setImageBitmap(appImageBitmap);
         }
     }
 
@@ -108,11 +138,25 @@ public class AddAppUserActivity extends AppCompatActivity {
             return;
         }
 
-        // Αν το appImageUri είναι null, χρησιμοποιούμε το default_app_icon
-        int appImageResId = appImageUri != null ? 0 : R.drawable.default_app_icon;
+        // Save the app photo to the database
+        byte[] appImageBytes = null;
+        if (appImageBitmap != null) {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            appImageBitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
+            appImageBytes = baos.toByteArray();
+        } else if (appImageUri != null) {
+            try {
+                appImageBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), appImageUri);
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                appImageBitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
+                appImageBytes = baos.toByteArray();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
 
         // Insert the new app into the database
-        boolean result = dbHelper.saveSelectedAppToDatabase(new AppsObj(appName, appLink, appImageResId, username, email, password), userId);
+        boolean result = dbHelper.saveSelectedAppToDatabase(new AppsObj(appName, appLink, 0, username, email, password, appImageBytes), userId);
 
         if (result) {
             Toast.makeText(this, "Application added successfully.", Toast.LENGTH_SHORT).show();

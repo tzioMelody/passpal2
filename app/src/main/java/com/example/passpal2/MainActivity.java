@@ -376,23 +376,35 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
                         RectF background = new RectF(itemView.getLeft(), itemView.getTop(), dX, itemView.getBottom());
                         c.drawRect(background, p);
                         icon = ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_edit);
-                        iconDest = new RectF(itemView.getLeft() + 50, itemView.getTop() + 50, itemView.getLeft() + 150, itemView.getBottom() - 50);
+                        if (icon != null) {
+                            iconDest = new RectF(
+                                    itemView.getLeft() + 50,
+                                    itemView.getTop() + (itemView.getHeight() - 100) / 2,
+                                    itemView.getLeft() + 150,
+                                    itemView.getTop() + (itemView.getHeight() + 100) / 2);
+                            icon.setBounds(Math.round(iconDest.left), Math.round(iconDest.top), Math.round(iconDest.right), Math.round(iconDest.bottom));
+                            icon.draw(c);
+                        }
                     } else {
                         // Swipe προς τα αριστερά - εμφάνιση του εικονιδίου διαγραφής
                         p.setColor(Color.parseColor("#D32F2F"));
                         RectF background = new RectF(itemView.getRight() + dX, itemView.getTop(), itemView.getRight(), itemView.getBottom());
                         c.drawRect(background, p);
                         icon = ContextCompat.getDrawable(getApplicationContext(), R.drawable.deleteappitem);
-                        iconDest = new RectF(itemView.getRight() - 150, itemView.getTop() + 50, itemView.getRight() - 50, itemView.getBottom() - 50);
+                        if (icon != null) {
+                            iconDest = new RectF(
+                                    itemView.getRight() - 150,
+                                    itemView.getTop() + (itemView.getHeight() - 100) / 2,
+                                    itemView.getRight() - 50,
+                                    itemView.getTop() + (itemView.getHeight() + 100) / 2);
+                            icon.setBounds(Math.round(iconDest.left), Math.round(iconDest.top), Math.round(iconDest.right), Math.round(iconDest.bottom));
+                            icon.draw(c);
+                        }
                     }
-
-                    icon.setBounds(Math.round(iconDest.left), Math.round(iconDest.top), Math.round(iconDest.right), Math.round(iconDest.bottom));
-                    icon.draw(c);
                 }
             }
+
+
         };
-        new ItemTouchHelper(simpleItemTouchCallback).attachToRecyclerView(appsRecyclerView);
     }
-
-
 }

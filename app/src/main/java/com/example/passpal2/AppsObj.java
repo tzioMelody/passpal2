@@ -19,14 +19,17 @@ public class AppsObj implements Parcelable {
     private String username;
     private String email;
     private String password;
+    private byte[] appImage; //  πεδιο για την εικονα
 
-
+    // Κατασκευαστής για βασικές πληροφορίες εφαρμογής χωρίς εικόνα
     public AppsObj(String appNames, String appLinks, int appImages) {
         AppNames = appNames;
         AppLinks = appLinks;
         AppImages = appImages;
         isSelected = false;
     }
+
+    // Κατασκευαστής για όλες τις πληροφορίες εφαρμογής χωρίς εικόνα
     public AppsObj(String appNames, String appLinks, int appImages, String username, String email, String password) {
         this.AppNames = appNames;
         this.AppLinks = appLinks;
@@ -36,6 +39,20 @@ public class AppsObj implements Parcelable {
         this.email = email;
         this.password = password;
     }
+
+    // Νέος κατασκευαστής για όλες τις πληροφορίες εφαρμογής με εικόνα
+    public AppsObj(String appNames, String appLinks, int appImages, String username, String email, String password, byte[] appImage) {
+        this.AppNames = appNames;
+        this.AppLinks = appLinks;
+        this.AppImages = appImages;
+        this.username = username;
+        this.email = email;
+        this.password = password;
+        this.appImage = appImage;
+        this.isSelected = false;
+    }
+
+    // Parcel constructor για ανάκτηση δεδομένων από parcel
     protected AppsObj(Parcel in) {
         id = in.readInt();
         AppNames = in.readString();
@@ -45,6 +62,7 @@ public class AppsObj implements Parcelable {
         username = in.readString();
         email = in.readString();
         password = in.readString();
+        appImage = in.createByteArray(); // αναγνωση της εικονας από το parcel
     }
 
     public static final Creator<AppsObj> CREATOR = new Creator<AppsObj>() {
@@ -59,13 +77,10 @@ public class AppsObj implements Parcelable {
         }
     };
 
-    public AppsObj(String appName, String appLink, String s, String username, String email, String password) {
-
-    }
-
     public int getId() {
         return id;
     }
+
     public String getAppNames() {
         return AppNames;
     }
@@ -88,11 +103,6 @@ public class AppsObj implements Parcelable {
 
     public void setId(int id) {
         this.id = id;
-    }
-
-    @Override
-    public int describeContents() {
-        return 0;
     }
 
     // Getters και Setters για τα νέα πεδία
@@ -120,6 +130,19 @@ public class AppsObj implements Parcelable {
         this.password = password;
     }
 
+    public byte[] getAppImage() {
+        return appImage;
+    }
+
+    public void setAppImage(byte[] appImage) {
+        this.appImage = appImage;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
     @Override
     public void writeToParcel(@NonNull Parcel parcel, int i) {
         parcel.writeInt(id);
@@ -130,8 +153,8 @@ public class AppsObj implements Parcelable {
         parcel.writeString(username);
         parcel.writeString(email);
         parcel.writeString(password);
+        parcel.writeByteArray(appImage); // γραφει την εικονα στο parcel
     }
-
 
     @Override
     public String toString() {

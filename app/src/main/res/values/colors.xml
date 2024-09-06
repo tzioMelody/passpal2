@@ -6,7 +6,7 @@
     <color name="teal_700">#FF018786</color>
     <color name="light_gray">#DADADA</color>
     <color name="lilac">#ED9BFF</color>
-    <color name="barbie_pink">#FF68AC</color>
+    <color name="barbie_pink">#EFC1D6</color>
     <color name="dark_gray">#7C7C7C</color>
     <color name="colorPrimary">#060</color>
     <color name="colorPrimaryDark">#040</color>
@@ -17,7 +17,7 @@
     <color name="grayBlue">#576478</color>
     <color name="red">#d93847</color>
     <color name="transSmoothGreen">#8823A24D</color>
-    <color name="smoothBlue">#0040ff</color>
+    <color name="smoothBlue">#AFBFEE</color>
     <color name="black">#000</color>
     <color name="white">#FFF</color>
     <color name="transWhite">#8FFF</color>
@@ -26,7 +26,7 @@
     <color name="lightGray">#777</color>
     <color name="lightBlue">#09F</color>
     <color name="veryLightGray">#BBB</color>
-    <color name="light_purple">#7B679C</color>
-    <color name="dark_purple">#2B2740</color>
+    <color name="light_purple">#C7B5E6</color>
+    <color name="dark_purple">#F0B6AD</color>
     <color name="smoothNavySemiTransparent">#256A64C1</color>
 </resources>

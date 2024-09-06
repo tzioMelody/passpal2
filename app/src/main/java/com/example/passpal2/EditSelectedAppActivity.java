@@ -79,7 +79,7 @@ public class EditSelectedAppActivity extends AppCompatActivity {
                 return;
             }
 
-            EmailVerificationTask verificationTask = new EmailVerificationTask(isEmailValid -> {
+            EmailVerificationTask verificationTask = new EmailVerificationTask(EditSelectedAppActivity.this, isEmailValid -> {
                 if (isEmailValid) {
                     saveChanges();
                 } else {
@@ -87,6 +87,7 @@ public class EditSelectedAppActivity extends AppCompatActivity {
                 }
             });
             verificationTask.execute(email);
+
         });
 
         openAppWebsiteBtn.setOnClickListener(view -> {

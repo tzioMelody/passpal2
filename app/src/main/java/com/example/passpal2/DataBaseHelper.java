@@ -1,27 +1,36 @@
 package com.example.passpal2;
 
+import static android.content.Context.MODE_PRIVATE;
+
+import android.annotation.SuppressLint;
+import android.util.Base64;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
+
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
 import java.security.SecureRandom;
-import java.util.Base64;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 public class DataBaseHelper extends SQLiteOpenHelper {
 
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 5;
     private static final String DATABASE_NAME = "passpal.db";
 
     // User Table Columns
@@ -37,6 +46,110 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_USERID = "user_id";
     public static final String COLUMN_MASTER_PASSWORD = "master_password";
 
+    // App Info Table Columns
+    public static final String TABLE_APPS_INFO = "app_info_table";
+    public static final String COLUMN_APP_NAME = "AppName";
+    public static final String COLUMN_APP_LINK = "AppLink";
+    public static final String COLUMN_IMAGE_RESOURCE = "imageResource";
+    public static final String COLUMN_APP_IMAGE_URI = "AppImageUri";
+    public static final String COLUMN_IS_SELECTED = "isSelected";
+
+    // Constants for App Credentials Table Columns
+    public static final String TABLE_APP_CREDENTIALS = "app_credentials";
+    public static final String COLUMN_USER_ID = "user_id";
+    public static final String COLUMN_APP_NAME_CREDENTIALS = "app_name";
+    public static final String COLUMN_APP_LINK_CREDENTIALS = "app_link";
+    public static final String COLUMN_USERNAME_CREDENTIALS = "username";
+    public static final String COLUMN_EMAIL_CREDENTIALS = "email";
+    public static final String COLUMN_PASSWORD_CREDENTIALS = "password";
+    public static final String COLUMN_IMAGE_URI_STRING = "image_uri_string";
+
+    public class AppCredentials {
+        private int id;
+        private int userId;
+        private String appName;
+        private String appLink;
+        private String username;
+        private String email;
+        private String password;
+        private String imageUriString;
+
+        // Constructor
+        public AppCredentials(int userId, String appName, String appLink, String username, String email, String password, String imageUriString) {
+            this.userId = userId;
+            this.appName = appName;
+            this.appLink = appLink;
+            this.username = username;
+            this.email = email;
+            this.password = password;
+            this.imageUriString = imageUriString;
+        }
+
+        // Getters and Setters
+        public int getId() {
+            return id;
+        }
+
+        public void setId(int id) {
+            this.id = id;
+        }
+
+        public int getUserId() {
+            return userId;
+        }
+
+        public void setUserId(int userId) {
+            this.userId = userId;
+        }
+
+        public String getAppName() {
+            return appName;
+        }
+
+        public void setAppName(String appName) {
+            this.appName = appName;
+        }
+
+        public String getAppLink() {
+            return appLink;
+        }
+
+        public void setAppLink(String appLink) {
+            this.appLink = appLink;
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
+        }
+
+        public String getEmail() {
+            return email;
+        }
+
+        public void setEmail(String email) {
+            this.email = email;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
+        }
+
+        public String getImageUriString() {
+            return imageUriString;
+        }
+
+        public void setImageUriString(String imageUriString) {
+            this.imageUriString = imageUriString;
+        }
+    }
 
     public DataBaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -56,6 +169,30 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 COLUMN_MASTER_PASSWORD + " TEXT NOT NULL, " +
                 "FOREIGN KEY(" + COLUMN_USERID + ") REFERENCES " + USER_TABLE + "(" + COLUMN_ID + "))";
         db.execSQL(CREATE_MASTER_PASSWORD_TABLE);
+
+        String CREATE_TABLE_APPS_INFO = "CREATE TABLE " + TABLE_APPS_INFO + " (" +
+                COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                COLUMN_APP_NAME + " TEXT, " +
+                COLUMN_APP_LINK + " TEXT, " +
+                COLUMN_IMAGE_RESOURCE + " INTEGER, " +
+                COLUMN_APP_IMAGE_URI + " TEXT, " +
+                COLUMN_IS_SELECTED + " INTEGER, " +
+                COLUMN_ID + " INTEGER, " +
+                "FOREIGN KEY(" + COLUMN_ID + ") REFERENCES " + USER_TABLE + "(" + COLUMN_ID + "))";
+        db.execSQL(CREATE_TABLE_APPS_INFO);
+
+        String createAppCredentialsTableStatement = "CREATE TABLE " + TABLE_APP_CREDENTIALS + " (" +
+                COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                COLUMN_USER_ID + " INTEGER, " +
+                COLUMN_APP_NAME_CREDENTIALS + " TEXT, " +
+                COLUMN_APP_LINK_CREDENTIALS + " TEXT, " +
+                COLUMN_USERNAME_CREDENTIALS + " TEXT, " +
+                COLUMN_EMAIL_CREDENTIALS + " TEXT, " +
+                COLUMN_PASSWORD_CREDENTIALS + " TEXT, " +
+                COLUMN_IMAGE_URI_STRING + " TEXT, " +
+                "FOREIGN KEY(" + COLUMN_USER_ID + ") REFERENCES " + USER_TABLE + "(" + COLUMN_ID + "))";
+        db.execSQL(createAppCredentialsTableStatement);
+
     }
 
     @Override
@@ -122,7 +259,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         Cursor cursor = db.query(USER_TABLE, columns, selection, selectionArgs, null, null, null);
 
         if (cursor != null && cursor.moveToFirst()) {
-            String storedPassword = cursor.getString(cursor.getColumnIndex(COLUMN_PASSWORD));
+            @SuppressLint("Range") String storedPassword = cursor.getString(cursor.getColumnIndex(COLUMN_PASSWORD));
             String[] parts = storedPassword.split(":");
 
             if (parts.length == 2) {
@@ -152,13 +289,14 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         Cursor cursor = db.query(USER_TABLE, columns, selection, selectionArgs, null, null, null);
 
         if (cursor != null && cursor.moveToFirst()) {
-            int userId = cursor.getInt(cursor.getColumnIndex(COLUMN_ID));
+            @SuppressLint("Range") int userId = cursor.getInt(cursor.getColumnIndex(COLUMN_ID));
             cursor.close();
             return userId;
         }
 
         return -1; // Αν δεν βρεθεί ο χρήστης, επιστρέφεται -1
     }
+
     public String getUsernameByUserId(int userId) {
         String username = null;
         SQLiteDatabase db = this.getReadableDatabase();
@@ -180,6 +318,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         SharedPreferences preferences = context.getSharedPreferences("user_credentials", MODE_PRIVATE);
         return preferences.getInt("userId", -1); // Επιστρέφει -1 αν δεν βρεθεί τιμή
     }
+
     // Μέθοδος για την ενημέρωση του password με βάση το email
     public boolean updatePasswordByEmail(String email, String newPassword) {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -194,6 +333,170 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return rowsAffected > 0; // Επιστρέφει true αν ενημερώθηκε τουλάχιστον μία σειρά
     }
 
+    public void deleteApp(String appName, int userId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        // Διαγραφή της εφαρμογής με βάση το όνομα, το userId και τη θέση
+        db.delete(TABLE_APPS_INFO, COLUMN_APP_NAME + "=? AND " + COLUMN_ID + "=?", new String[]{appName, String.valueOf(userId)});
+        db.close();
+    }
+
+    public void deleteUserData(int userId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        // Διαγραφή από τον πίνακα app_credentials
+        db.delete(TABLE_APP_CREDENTIALS, COLUMN_ID + " = ?", new String[]{String.valueOf(userId)});
+
+        // Διαγραφή από τον πίνακα app_info_table
+        db.delete(TABLE_APPS_INFO, COLUMN_ID + " = ?", new String[]{String.valueOf(userId)});
+
+        // Διαγραφή από τον πίνακα user_table
+        db.delete(USER_TABLE, COLUMN_ID + " = ?", new String[]{String.valueOf(userId)});
+
+        db.close();
+    }
+
+    // Κώδικας για την ανάκτηση όλων των επιλεγμένων εφαρμογών
+    public List<AppsObj> getAllSelectedApps(int userId) {
+        List<AppsObj> selectedApps = new ArrayList<>();
+        HashSet<String> addedApps = new HashSet<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query = "SELECT * FROM " + TABLE_APPS_INFO + " WHERE " + COLUMN_IS_SELECTED + " = 1 AND " + COLUMN_ID + " = ?";
+        Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(userId)});
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                int idColumnIndex = cursor.getColumnIndex(COLUMN_ID);
+                int appNameColumnIndex = cursor.getColumnIndex(COLUMN_APP_NAME);
+                int appLinkColumnIndex = cursor.getColumnIndex(COLUMN_APP_LINK);
+                int imageResourceColumnIndex = cursor.getColumnIndex(COLUMN_IMAGE_RESOURCE);
+
+                do {
+                    String appName = cursor.getString(appNameColumnIndex);
+                    // Έλεγχος αν το όνομα της εφαρμογής έχει ήδη προστεθεί
+                    if (!addedApps.contains(appName)) {
+                        int id = cursor.getInt(idColumnIndex);
+                        String appLink = cursor.getString(appLinkColumnIndex);
+                        int imageResource = cursor.getInt(imageResourceColumnIndex);
+
+                        AppsObj appInfo = new AppsObj(appName, appLink, imageResource);
+                        appInfo.setId(id);
+                        appInfo.setSelected(true);
+
+                        selectedApps.add(appInfo);
+                        addedApps.add(appName);
+
+                        Log.d("DataBaseHelper", "Retrieved App: " + appName + " for User ID: " + userId);
+                    }
+                } while (cursor.moveToNext());
+            }
+            cursor.close();
+        }
+        db.close();
+        return selectedApps;
+    }
+
+    public boolean saveSelectedAppToDatabase(AppsObj app, int userId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues contentValues = new ContentValues();
+
+        contentValues.put("user_id", userId);
+        contentValues.put("app_name", app.getAppNames());
+        contentValues.put("app_link", app.getAppLinks());
+        contentValues.put("app_image", app.getAppImages());
+        contentValues.put("username", app.getUsername());
+        contentValues.put("email", app.getEmail());
+        contentValues.put("password", app.getPassword());
+        contentValues.put("app_photo", app.getAppImage()); // για την εικονα που θα επιλεξει ο χρηστης ή θα τραβηξει στην εφαμρογη που θα προσθεσει μεσα στην εφαμοργη
+
+        long result = db.insert(TABLE_APPS_INFO, null, contentValues);
+
+        db.close();
+        return result != -1;
+    }
+
+
+    public boolean isAppSelected(String appName, int userId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query = "SELECT COUNT(*) FROM " + TABLE_APPS_INFO + " WHERE " + COLUMN_APP_NAME + "=? AND " + COLUMN_USER_ID + "=?";
+        Cursor cursor = db.rawQuery(query, new String[]{appName, String.valueOf(userId)});
+        boolean isSelected = false;
+        if (cursor.moveToFirst()) {
+            // true αν βρεθεί έστω και μία εγγραφή
+            isSelected = cursor.getInt(0) > 0;
+        }
+        cursor.close();
+        db.close();
+        return isSelected;
+    }
+
+    public List<AppCredentials> getAllCredentialsForUser(int userId) {
+        List<AppCredentials> credentialsList = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query = "SELECT * FROM " + TABLE_APP_CREDENTIALS + " WHERE " + COLUMN_USER_ID + " = ?";
+        Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(userId)});
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                int idColumnIndex = cursor.getColumnIndex(COLUMN_ID);
+                int appNameColumnIndex = cursor.getColumnIndex(COLUMN_APP_NAME_CREDENTIALS);
+                int appLinkColumnIndex = cursor.getColumnIndex(COLUMN_APP_LINK_CREDENTIALS);
+                int usernameColumnIndex = cursor.getColumnIndex(COLUMN_USERNAME_CREDENTIALS);
+                int emailColumnIndex = cursor.getColumnIndex(COLUMN_EMAIL_CREDENTIALS);
+                int passwordColumnIndex = cursor.getColumnIndex(COLUMN_PASSWORD_CREDENTIALS);
+                int imageUriStringColumnIndex = cursor.getColumnIndex(COLUMN_IMAGE_URI_STRING);
+
+                do {
+                    int id = cursor.getInt(idColumnIndex);
+                    String appName = cursor.getString(appNameColumnIndex);
+                    String appLink = cursor.getString(appLinkColumnIndex);
+                    String username = cursor.getString(usernameColumnIndex);
+                    String email = cursor.getString(emailColumnIndex);
+                    String password = cursor.getString(passwordColumnIndex);
+                    String imageUriString = cursor.getString(imageUriStringColumnIndex);
+
+                    AppCredentials credentials = new AppCredentials(userId, appName, appLink, username, email, password, imageUriString);
+                    credentials.setId(id);
+
+                    credentialsList.add(credentials);
+                } while (cursor.moveToNext());
+            }
+            cursor.close();
+        }
+        db.close();
+        return credentialsList;
+    }
+
+    // Μέθοδος για την επαλήθευση του master password
+    public boolean checkMasterPassword(int userId, String masterPassword) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT " + COLUMN_MASTER_PASSWORD + " FROM " + MASTER_PASSWORD_TABLE + " WHERE " + COLUMN_USERID + " = ?", new String[]{String.valueOf(userId)});
+        boolean isPasswordCorrect = false;
+        if (cursor != null && cursor.moveToFirst()) {
+            String storedPassword = cursor.getString(0);
+            isPasswordCorrect = storedPassword.equals(masterPassword);
+            cursor.close();
+        }
+        db.close();
+        return isPasswordCorrect;
+    }
+
+    public boolean saveAppCredentials(int appId, int userId, String appName, String username, String email, String password, String link) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues cv = new ContentValues();
+
+        cv.put(COLUMN_USER_ID, userId);
+        cv.put(COLUMN_APP_NAME_CREDENTIALS, appName);
+        cv.put(COLUMN_USERNAME_CREDENTIALS, username);
+        cv.put(COLUMN_EMAIL_CREDENTIALS, email);
+        cv.put(COLUMN_PASSWORD_CREDENTIALS, password);
+        cv.put(COLUMN_APP_LINK_CREDENTIALS, link);
+
+        // Ενημέρωση της εφαρμογής με βάση το appId
+        int rowsAffected = db.update(TABLE_APP_CREDENTIALS, cv, COLUMN_ID + " = ?", new String[]{String.valueOf(appId)});
+        db.close();
+
+        return rowsAffected > 0;
+    }
+
+    //  ΚΡΥΠΤΟΓΡΑΦΗΣΗ *** ΚΡΥΠΤΟΓΡΑΦΗΣΗ *** ΚΡΥΠΤΟΓΡΑΦΗΣΗ *** ΚΡΥΠΤΟΓΡΑΦΗΣΗ *** ΚΡΥΠΤΟΓΡΑΦΗΣΗ
     // Μέθοδος για την παραγωγή ενός salt
     public static byte[] generateSalt() throws NoSuchAlgorithmException {
         SecureRandom sr = SecureRandom.getInstance("SHA1PRNG");
@@ -201,7 +504,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         sr.nextBytes(salt);
         return salt;
     }
-    //  ΚΡΥΠΤΟΓΡΑΦΗΣΗ *** ΚΡΥΠΤΟΓΡΑΦΗΣΗ *** ΚΡΥΠΤΟΓΡΑΦΗΣΗ *** ΚΡΥΠΤΟΓΡΑΦΗΣΗ *** ΚΡΥΠΤΟΓΡΑΦΗΣΗ
+
     // Μέθοδος για το hashing του κωδικού με salt
     public static String hashPassword(String password, byte[] salt) {
         try {
@@ -218,14 +521,14 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    // Μέθοδος για την κωδικοποίηση του salt σε String
+    // Μέθοδος για την κωδικοποίηση του salt σε String για αποθήκευση
     public static String encodeSalt(byte[] salt) {
-        return Base64.getEncoder().encodeToString(salt);
+        return Base64.encodeToString(salt, Base64.DEFAULT);
     }
 
     // Μέθοδος για την αποκωδικοποίηση του salt από String
     public static byte[] decodeSalt(String saltStr) {
-        return Base64.getDecoder().decode(saltStr);
+        return Base64.decode(saltStr, Base64.DEFAULT);
     }
 
     // AES encryption/decryption constants
@@ -254,12 +557,12 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         byte[] encryptedBytes = new byte[GCM_IV_LENGTH + encryptedData.length];
         System.arraycopy(iv, 0, encryptedBytes, 0, GCM_IV_LENGTH);
         System.arraycopy(encryptedData, 0, encryptedBytes, GCM_IV_LENGTH, encryptedData.length);
-        return Base64.getEncoder().encodeToString(encryptedBytes);
+        return Base64.encodeToString(encryptedBytes, Base64.DEFAULT);
     }
 
     // Method to decrypt data using AES-256
     public static String decryptAES(String encryptedData, SecretKey key) throws Exception {
-        byte[] encryptedBytes = Base64.getDecoder().decode(encryptedData);
+        byte[] encryptedBytes = Base64.decode(encryptedData, Base64.DEFAULT); // Χρησιμοποίησε decode
         byte[] iv = Arrays.copyOfRange(encryptedBytes, 0, GCM_IV_LENGTH);
         GCMParameterSpec spec = new GCMParameterSpec(GCM_TAG_LENGTH * 8, iv);
         Cipher cipher = Cipher.getInstance(AES_TRANSFORMATION);
@@ -268,9 +571,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return new String(decryptedData, StandardCharsets.UTF_8);
     }
 }
-
-
-
 /*
 package com.example.passpal2;
 
