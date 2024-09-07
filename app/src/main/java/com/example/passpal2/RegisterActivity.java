@@ -63,6 +63,9 @@ public class RegisterActivity extends AppCompatActivity implements EmailVerifica
         String password = inputPassword.getText().toString().trim();
         String confirmPassword = inputConfirmPassword.getText().toString().trim();
 
+        // Καταγραφή των τιμών για debugging
+        Log.d("RegisterActivity", "Attempting registration for email: " + email);
+
         if (TextUtils.isEmpty(username) || TextUtils.isEmpty(email) || TextUtils.isEmpty(password) || TextUtils.isEmpty(confirmPassword)) {
             showToast("All fields are required");
             return;
@@ -89,6 +92,9 @@ public class RegisterActivity extends AppCompatActivity implements EmailVerifica
 
         progressBar.setVisibility(View.VISIBLE);
         overlayView.setVisibility(View.VISIBLE);
+
+        // Εκκίνηση του EmailVerificationTask
+        Log.d("RegisterActivity", "Starting EmailVerificationTask for email: " + email);
         new EmailVerificationTask(this, this).execute(email);
     }
 
@@ -98,9 +104,15 @@ public class RegisterActivity extends AppCompatActivity implements EmailVerifica
             String username = inputUsername.getText().toString().trim();
             String email = inputEmail.getText().toString().trim();
             String password = inputPassword.getText().toString().trim();
+
+            Log.d("RegisterActivity", "Email verified. Proceeding with registration for user: " + username);
             registerUser(username, email, password);
         } else {
             showToast("Invalid email address");
+
+            // Καταγραφή αν η επαλήθευση email απέτυχε
+            Log.d("RegisterActivity", "Email verification failed for email: " + inputEmail.getText().toString().trim());
+
             progressBar.setVisibility(View.GONE);
             overlayView.setVisibility(View.GONE);
         }
@@ -119,6 +131,7 @@ public class RegisterActivity extends AppCompatActivity implements EmailVerifica
             long userId = dbHelper.insertUser(username, encryptedEmail, passwordToStore);
             if (userId != -1) {
                 showToast("User registered successfully");
+                Log.d("RegisterActivity", "User registered successfully with ID: " + userId);
 
                 Intent intent = new Intent(RegisterActivity.this, SetMasterPasswordActivity.class);
                 intent.putExtra("user_id", (int) userId);
@@ -126,10 +139,12 @@ public class RegisterActivity extends AppCompatActivity implements EmailVerifica
                 finish();
             } else {
                 showToast("Failed to register user");
+                Log.e("RegisterActivity", "Failed to register user");
             }
         } catch (Exception e) {
             e.printStackTrace();
             showToast("Failed to register user due to error");
+            Log.e("RegisterActivity", "Error during registration: " + e.getMessage());
         } finally {
             progressBar.setVisibility(View.GONE);
             overlayView.setVisibility(View.GONE);

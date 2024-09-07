@@ -183,8 +183,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
                                     " ενώ η ενσωματωμένη διασύνδεση με το Hunter API εξασφαλίζει ότι οι διευθύνσεις email που καταχωρίζετε είναι πάντα έγκυρες. " +
                                     "Κατεβάστε το PassPal και βελτιώστε σήμερα τη διαχείριση των ψηφιακών σας προφίλ!")
                             .setPositiveButton(android.R.string.ok, (dialog, which) -> {
-                                // Αν ο χρήστης επιλέξει να συνεχίσει, καλούμε την super.onBackPressed()
-                                super.onBackPressed();
+                                dialog.dismiss();
                             })
                             .show();
                     return true;

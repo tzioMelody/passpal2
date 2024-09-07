@@ -2,6 +2,7 @@ package com.example.passpal2;
 
 import android.content.Context;
 import android.os.AsyncTask;
+import android.util.Log;
 
 import org.json.JSONObject;
 
@@ -50,9 +51,16 @@ public class EmailVerificationTask extends AsyncTask<String, Void, Boolean> {
         }
 
         String emailToVerify = emails[0];
+
+        // Τοπική επαλήθευση format email πριν καλέσουμε το API
+        if (!isValidEmail(emailToVerify)) {
+            Log.d("EmailVerification", "Invalid email format: " + emailToVerify);
+            return false; // Επιστρέφουμε false εάν το format είναι άκυρο
+        }
+
         HttpURLConnection urlConnection = null;
         try {
-            URL url = new URL("https://api.hunter.io/v2/email-verifier?email=" + emailToVerify + "&api_key=YOUR_API_KEY");
+            URL url = new URL("https://api.hunter.io/v2/email-verifier?email=" + emailToVerify + "&api_key=9f387e4dfb8a839b9b246089137cc92244ad5562");
             urlConnection = (HttpURLConnection) url.openConnection();
             BufferedReader reader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
             StringBuilder result = new StringBuilder();
@@ -63,9 +71,16 @@ public class EmailVerificationTask extends AsyncTask<String, Void, Boolean> {
 
             JSONObject jsonObject = new JSONObject(result.toString());
             JSONObject data = jsonObject.getJSONObject("data");
+
+            // Καταγραφή της απόκρισης για έλεγχο
+            Log.d("EmailVerification", "API Response: " + data.toString());
+
+            // Έλεγχος του αποτελέσματος αν είναι "deliverable"
             return data.getString("result").equals("deliverable");
+
         } catch (Exception e) {
             e.printStackTrace();
+            Log.e("EmailVerification", "Error: " + e.getMessage());
             return false;
         } finally {
             if (urlConnection != null) {
@@ -80,5 +95,10 @@ public class EmailVerificationTask extends AsyncTask<String, Void, Boolean> {
             listener.onEmailVerified(isEmailValid);
         }
     }
-}
 
+    // Μέθοδος για τοπική επαλήθευση format email με regular expression
+    private boolean isValidEmail(String email) {
+        String emailPattern = "[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+";
+        return email.matches(emailPattern);
+    }
+}

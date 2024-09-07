@@ -39,7 +39,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_USERNAME = "username";
     public static final String COLUMN_EMAIL = "email";
     public static final String COLUMN_PASSWORD = "password";
-    public static final String COLUMN_REGISTRATION_DATE = "registration_date";
 
     // Master Password Table Columns
     public static final String MASTER_PASSWORD_TABLE = "master_password_table";
@@ -173,13 +172,14 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         String CREATE_TABLE_APPS_INFO = "CREATE TABLE " + TABLE_APPS_INFO + " (" +
                 COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 COLUMN_APP_NAME + " TEXT, " +
+                COLUMN_USERNAME_CREDENTIALS + " TEXT, " +
+                COLUMN_EMAIL_CREDENTIALS + " TEXT, " +
                 COLUMN_APP_LINK + " TEXT, " +
                 COLUMN_IMAGE_RESOURCE + " INTEGER, " +
                 COLUMN_APP_IMAGE_URI + " TEXT, " +
                 COLUMN_IS_SELECTED + " INTEGER, " +
-                COLUMN_ID + " INTEGER, " +
                 "FOREIGN KEY(" + COLUMN_ID + ") REFERENCES " + USER_TABLE + "(" + COLUMN_ID + "))";
-        db.execSQL(CREATE_TABLE_APPS_INFO);
+
 
         String createAppCredentialsTableStatement = "CREATE TABLE " + TABLE_APP_CREDENTIALS + " (" +
                 COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -199,6 +199,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL("DROP TABLE IF EXISTS " + USER_TABLE);
         db.execSQL("DROP TABLE IF EXISTS " + MASTER_PASSWORD_TABLE);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_APPS_INFO);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_APP_CREDENTIALS);
         onCreate(db);
     }
 
@@ -210,7 +212,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         values.put(COLUMN_USERNAME, username);
         values.put(COLUMN_EMAIL, email);
         values.put(COLUMN_PASSWORD, password);
-        values.put(COLUMN_REGISTRATION_DATE, getCurrentDate());
 
         return db.insert(USER_TABLE, null, values);
     }
@@ -335,10 +336,11 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     public void deleteApp(String appName, int userId) {
         SQLiteDatabase db = this.getWritableDatabase();
-        // Διαγραφή της εφαρμογής με βάση το όνομα, το userId και τη θέση
-        db.delete(TABLE_APPS_INFO, COLUMN_APP_NAME + "=? AND " + COLUMN_ID + "=?", new String[]{appName, String.valueOf(userId)});
+        // Διαγραφή της εφαρμογής με βάση το όνομα και το userId από την main activity
+        db.delete(TABLE_APPS_INFO, COLUMN_APP_NAME + "=? AND " + COLUMN_USER_ID + "=?", new String[]{appName, String.valueOf(userId)});
         db.close();
     }
+
 
     public void deleteUserData(int userId) {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -360,7 +362,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         List<AppsObj> selectedApps = new ArrayList<>();
         HashSet<String> addedApps = new HashSet<>();
         SQLiteDatabase db = this.getReadableDatabase();
-        String query = "SELECT * FROM " + TABLE_APPS_INFO + " WHERE " + COLUMN_IS_SELECTED + " = 1 AND " + COLUMN_ID + " = ?";
+        String query = "SELECT * FROM " + TABLE_APPS_INFO + " WHERE " + COLUMN_IS_SELECTED + " = 1 AND " + COLUMN_USER_ID + " = ?";
         Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(userId)});
         if (cursor != null) {
             if (cursor.moveToFirst()) {
@@ -371,7 +373,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
                 do {
                     String appName = cursor.getString(appNameColumnIndex);
-                    // Έλεγχος αν το όνομα της εφαρμογής έχει ήδη προστεθεί
                     if (!addedApps.contains(appName)) {
                         int id = cursor.getInt(idColumnIndex);
                         String appLink = cursor.getString(appLinkColumnIndex);
@@ -383,8 +384,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
                         selectedApps.add(appInfo);
                         addedApps.add(appName);
-
-                        Log.d("DataBaseHelper", "Retrieved App: " + appName + " for User ID: " + userId);
                     }
                 } while (cursor.moveToNext());
             }
@@ -394,12 +393,14 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return selectedApps;
     }
 
+
     public boolean saveSelectedAppToDatabase(AppsObj app, int userId) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
 
         contentValues.put("user_id", userId);
         contentValues.put("app_name", app.getAppNames());
+        contentValues.put("username", app.getUsername());
         contentValues.put("app_link", app.getAppLinks());
         contentValues.put("app_image", app.getAppImages());
         contentValues.put("username", app.getUsername());
@@ -562,7 +563,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     // Method to decrypt data using AES-256
     public static String decryptAES(String encryptedData, SecretKey key) throws Exception {
-        byte[] encryptedBytes = Base64.decode(encryptedData, Base64.DEFAULT); // Χρησιμοποίησε decode
+        byte[] encryptedBytes = Base64.decode(encryptedData, Base64.DEFAULT);
         byte[] iv = Arrays.copyOfRange(encryptedBytes, 0, GCM_IV_LENGTH);
         GCMParameterSpec spec = new GCMParameterSpec(GCM_TAG_LENGTH * 8, iv);
         Cipher cipher = Cipher.getInstance(AES_TRANSFORMATION);

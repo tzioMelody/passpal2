@@ -2,6 +2,7 @@ package com.example.passpal2;
 
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -66,9 +67,13 @@ public class LoginActivity extends AppCompatActivity {
         Log.d("LoginDebug", "User valid: " + isUserValid);
 
         if (isUserValid) {
-            // Λήψη του user ID
             int userId = dbHelper.getUserIdByUsername(username);
-            Log.d("LoginDebug", "UserID: " + userId);
+
+            // Αποθήκευση user_id στα Shared Preferences
+            SharedPreferences preferences = getSharedPreferences("user_credentials", MODE_PRIVATE);
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putInt("userId", userId);
+            editor.apply();
 
             // Προώθηση στην κύρια δραστηριότητα
             Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_SHORT).show();
@@ -77,9 +82,8 @@ public class LoginActivity extends AppCompatActivity {
             intent.putExtra("username", username);
             startActivity(intent);
             finish();
-        } else {
-            Toast.makeText(LoginActivity.this, "Login failed. Please check your username and password.", Toast.LENGTH_SHORT).show();
         }
+
     }
 
     private void showToast(String message) {
