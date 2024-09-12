@@ -415,6 +415,34 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         }
     }
 
+    public boolean isLinkTaken(String appLink, int userId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        // Έλεγχος στο TABLE_APP_CREDENTIALS
+        String queryCredentials = "SELECT COUNT(*) FROM " + TABLE_APP_CREDENTIALS + " WHERE " + COLUMN_APP_LINK_CREDENTIALS + "=? AND " + COLUMN_USER_ID + "=?";
+        Cursor cursorCredentials = db.rawQuery(queryCredentials, new String[]{appLink, String.valueOf(userId)});
+        boolean isTakenInCredentials = false;
+        if (cursorCredentials.moveToFirst()) {
+            isTakenInCredentials = cursorCredentials.getInt(0) > 0;
+        }
+        cursorCredentials.close();
+
+        // Έλεγχος στο TABLE_APPS_INFO (προκαθορισμένες εφαρμογές)
+        String queryAppsInfo = "SELECT COUNT(*) FROM " + TABLE_APPS_INFO + " WHERE " + COLUMN_APP_LINK + "=?";
+        Cursor cursorAppsInfo = db.rawQuery(queryAppsInfo, new String[]{appLink});
+        boolean isTakenInAppsInfo = false;
+        if (cursorAppsInfo.moveToFirst()) {
+            isTakenInAppsInfo = cursorAppsInfo.getInt(0) > 0;
+        }
+        cursorAppsInfo.close();
+
+        db.close();
+
+        // Αν βρεθεί το link σε έναν από τους δύο πίνακες, επιστρέφει true
+        return isTakenInCredentials || isTakenInAppsInfo;
+    }
+
+
 
     public boolean isAppSelected(String appName, int userId) {
         SQLiteDatabase db = this.getReadableDatabase();

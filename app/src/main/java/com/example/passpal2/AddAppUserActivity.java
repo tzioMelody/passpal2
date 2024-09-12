@@ -133,12 +133,19 @@ public class AddAppUserActivity extends AppCompatActivity {
             return;
         }
 
+        // Έλεγχος αν υπάρχει ήδη εφαρμογή με το ίδιο όνομα
         if (dbHelper.isAppSelected(appName, userId)) {
             Toast.makeText(this, "Application name already exists.", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Save the app photo to the database
+        // Έλεγχος για το link και στους δύο πίνακες
+        if (dbHelper.isLinkTaken(appLink, userId)) {
+            Toast.makeText(this, "Application with the same link already exists.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Αποθήκευση της εφαρμογής αν δεν υπάρχει το ίδιο link
         byte[] appImageBytes = null;
         if (appImageBitmap != null) {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -155,7 +162,6 @@ public class AddAppUserActivity extends AppCompatActivity {
             }
         }
 
-        // Insert the new app into the database
         boolean result = dbHelper.saveSelectedAppToDatabase(new AppsObj(appName, appLink, 0, username, email, password, appImageBytes), userId);
 
         if (result) {
@@ -165,4 +171,6 @@ public class AddAppUserActivity extends AppCompatActivity {
             Toast.makeText(this, "Failed to add application.", Toast.LENGTH_SHORT).show();
         }
     }
+
+
 }
