@@ -103,26 +103,45 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
     @Override
     public void onItemClick(int position) {
         if (adapter != null) {
-            AppsObj selectedApp = appsObjs.get(position);
-            int userId = getIntent().getIntExtra("USER_ID", -1);
+            // Έλεγχος αν η λίστα και η θέση είναι έγκυρες
+            if (appsObjs != null && position < appsObjs.size()) {
+                AppsObj selectedApp = appsObjs.get(position);
+                int userId = getIntent().getIntExtra("USER_ID", -1);
 
-            if (!dbHelper.isAppSelected(String.valueOf(selectedApp), userId)) {
-                adapter.toggleItemSelection(position);
-                int selectedAppsCount = adapter.getSelectedAppsCount();
+                // Έλεγχος αν το userId είναι έγκυρο
+                if (userId == -1) {
+                    Log.e("AppSelectionActivity", "Άκυρο USER_ID");
+                    Toast.makeText(AppSelectionActivity.this, "Πρόβλημα με το User ID", Toast.LENGTH_SHORT).show();
+                    return;
+                }
 
-                if (selectedAppsCount > 10) {
-                    Toast.makeText(AppSelectionActivity.this, "Μπορείτε να επιλέξετε μόνο μέχρι 10 εφαρμογές", Toast.LENGTH_SHORT).show();
-                } else if (selectedAppsCount == 0) {
-                    Toast.makeText(this, "Εδω ειναι το λαθος", Toast.LENGTH_SHORT).show();
+                // Χρήση του ονόματος της εφαρμογής αντί για String.valueOf(selectedApp)
+                if (!dbHelper.isAppSelected(selectedApp.getAppNames(), userId)) {
+                    adapter.toggleItemSelection(position);
+                    int selectedAppsCount = adapter.getSelectedAppsCount();
+
+                    if (selectedAppsCount > 10) {
+                        Toast.makeText(AppSelectionActivity.this, "Μπορείτε να επιλέξετε μόνο μέχρι 10 εφαρμογές", Toast.LENGTH_SHORT).show();
+                    } else if (selectedAppsCount == 0) {
+                        Toast.makeText(this, "Εδω ειναι το λαθος", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Log.d("MyApp", "UserID " + userId);
+                        boolean isSaved = dbHelper.saveSelectedAppToDatabase(selectedApp, userId);
+                        if (isSaved) {
+                            Log.d("MyApp", "Η εφαρμογή αποθηκεύτηκε με επιτυχία για τον χρήστη με ID " + userId);
+                        } else {
+                            Log.e("MyApp", "Σφάλμα κατά την αποθήκευση της εφαρμογής");
+                        }
+                    }
                 } else {
-                    Log.d("MyApp", "UserID " + userId);
-                    dbHelper.saveSelectedAppToDatabase(selectedApp, userId);
+                    Toast.makeText(AppSelectionActivity.this, "Η εφαρμογή έχει ήδη επιλεγεί", Toast.LENGTH_SHORT).show();
                 }
             } else {
-                Toast.makeText(AppSelectionActivity.this, "Η εφαρμογή έχει ήδη επιλεγεί", Toast.LENGTH_SHORT).show();
+                Log.e("AppSelectionActivity", "Η θέση είναι εκτός ορίων ή η λίστα είναι άδεια");
             }
         }
     }
+
 
 
     public void SelectBtnClick(View view) {
@@ -136,13 +155,11 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
             Toast.makeText(this, "Επιτυχής εισαγωγή επιλεγμένων εφαρμογών!", Toast.LENGTH_SHORT).show();
 
             // Δημιουργία ενός Intent για να περάσει τα δεδομένα στην MainActivity
-            Intent mainActivityIntent = new Intent(this, MainActivity.class);
-            mainActivityIntent.putParcelableArrayListExtra("SELECTED_APPS", selectedApps);
-            mainActivityIntent.putExtra("USER_ID", userId);
-            startActivity(mainActivityIntent);
-
-            // Τερματισμός της Activity
-            finish();
+            Intent resultIntent = new Intent();
+            resultIntent.putParcelableArrayListExtra("SELECTED_APPS", selectedApps);
+            resultIntent.putExtra("USER_ID", userId);
+            setResult(RESULT_OK, resultIntent); // Επιστρέφει τα αποτελέσματα
+            finish(); // Τερματισμός της Activity και επιστροφή στην MainActivity
         } else {
             Toast.makeText(this, "Μπορείτε να επιλέξετε μόνο μέχρι 10 εφαρμογές", Toast.LENGTH_SHORT).show();
         }

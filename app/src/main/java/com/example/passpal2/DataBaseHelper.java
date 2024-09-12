@@ -172,13 +172,12 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         String CREATE_TABLE_APPS_INFO = "CREATE TABLE " + TABLE_APPS_INFO + " (" +
                 COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 COLUMN_APP_NAME + " TEXT, " +
-                COLUMN_USERNAME_CREDENTIALS + " TEXT, " +
-                COLUMN_EMAIL_CREDENTIALS + " TEXT, " +
                 COLUMN_APP_LINK + " TEXT, " +
                 COLUMN_IMAGE_RESOURCE + " INTEGER, " +
                 COLUMN_APP_IMAGE_URI + " TEXT, " +
-                COLUMN_IS_SELECTED + " INTEGER, " +
-                "FOREIGN KEY(" + COLUMN_ID + ") REFERENCES " + USER_TABLE + "(" + COLUMN_ID + "))";
+                COLUMN_IS_SELECTED + " INTEGER)";
+        db.execSQL(CREATE_TABLE_APPS_INFO);
+
 
 
         String createAppCredentialsTableStatement = "CREATE TABLE " + TABLE_APP_CREDENTIALS + " (" +
@@ -394,24 +393,26 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     }
 
 
-    public boolean saveSelectedAppToDatabase(AppsObj app, int userId) {
+    public boolean saveSelectedAppToDatabase(AppsObj appInfo, int userId) {
         SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues contentValues = new ContentValues();
+        ContentValues cv = new ContentValues();
 
-        contentValues.put("user_id", userId);
-        contentValues.put("app_name", app.getAppNames());
-        contentValues.put("username", app.getUsername());
-        contentValues.put("app_link", app.getAppLinks());
-        contentValues.put("app_image", app.getAppImages());
-        contentValues.put("username", app.getUsername());
-        contentValues.put("email", app.getEmail());
-        contentValues.put("password", app.getPassword());
-        contentValues.put("app_photo", app.getAppImage()); // για την εικονα που θα επιλεξει ο χρηστης ή θα τραβηξει στην εφαμρογη που θα προσθεσει μεσα στην εφαμοργη
+        cv.put(COLUMN_APP_NAME, appInfo.getAppNames());
+        cv.put(COLUMN_APP_LINK, appInfo.getAppLinks());
+        cv.put(COLUMN_IMAGE_RESOURCE, appInfo.getAppImages());
+        cv.put(COLUMN_IS_SELECTED, 1);
+        cv.put(COLUMN_USER_ID, userId);
 
-        long result = db.insert(TABLE_APPS_INFO, null, contentValues);
-
+        long result = db.insert(TABLE_APPS_INFO, null, cv);
         db.close();
-        return result != -1;
+
+        if (result == -1) {
+            Log.e("DataBaseHelper", "Failed to insert app for User ID: " + userId);
+            return false; //  Η εισαγωγή απέτυχε
+        } else {
+            Log.d("DataBaseHelper", "App inserted successfully for User ID: " + userId + " App Name: " + appInfo.getAppNames());
+            return true; //  Η εισαγωγή είναι επιτυχής
+        }
     }
 
 

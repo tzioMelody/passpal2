@@ -61,10 +61,9 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
         Intent intent = getIntent();
         userId = intent.getIntExtra("user_id", -1);
 
-        // Επαλήθευση αν το user ID είναι έγκυρο
         if (userId == -1) {
             showToast("User ID is invalid");
-            finish(); // Κλείσιμο της δραστηριότητας αν το user ID είναι άκυρο
+            finish();
             return;
         }
 
@@ -73,27 +72,20 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
 
         Main_layout = findViewById(R.id.Main_layout);
 
-        // AsyncTask για την ανάκτηση και εμφάνιση των εφαρμογών
-        new FetchAppsTask().execute(userId);
-
-        FloatingActionButton appsBtn = findViewById(R.id.appsBtn);
-        appsBtn.setOnClickListener(view -> {
-            Intent intentUserID = new Intent(MainActivity.this, AppSelectionActivity.class);
-            intentUserID.putExtra("USER_ID", userId); // Αποστολή ως int
-            startActivityForResult(intentUserID, 1);
-        });
-
+        // Set up RecyclerView
         appsRecyclerView = findViewById(R.id.appsRecyclerView);
         layoutManager = new LinearLayoutManager(this);
         appsRecyclerView.setLayoutManager(layoutManager);
 
-        // Αρχικοποίηση του MainAppsAdapter
+        // Initialize MainAppsAdapter
         mainAppsAdapter = new MainAppsAdapter(this, selectedApps);
-
-        // Set adapter to RecyclerView
         appsRecyclerView.setAdapter(mainAppsAdapter);
-    }
 
+        // Ανανέωση λίστας εφαρμογών
+        new FetchAppsTask().execute(userId);
+        // Σύνδεση του SwipeToDeleteAndEditCallback με το RecyclerView
+        attachSwipeToDeleteAndEditHelper();
+    }
 
 
     private void showToast(String message) {
@@ -114,7 +106,10 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == EDIT_APP_REQUEST && resultCode == RESULT_OK) {
+        if (requestCode == 1 && resultCode == RESULT_OK) {
+            // Επανεκτέλεση της FetchAppsTask για ανανέωση της λίστας
+            new FetchAppsTask().execute(userId);
+        } else if (requestCode == EDIT_APP_REQUEST && resultCode == RESULT_OK) {
             if (data.hasExtra("POSITION")) {
                 int position = data.getIntExtra("POSITION", -1);
                 if (position != -1) {
@@ -299,7 +294,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
             Log.d("FetchAppsTask", "Επιστρεφόμενες εφαρμογές: " + apps.size());
             Log.d("FetchAppsTask", "Ποιες είναι οι εφαρμογές : " + apps);
 
-            return apps;
+            return dbHelper.getAllSelectedApps(userIds[0]);
         }
 
         @Override
