@@ -60,7 +60,6 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
         // Λήψη του user ID από το intent
         Intent intent = getIntent();
         userId = intent.getIntExtra("user_id", -1);
-
         if (userId == -1) {
             showToast("User ID is invalid");
             finish();
@@ -80,6 +79,17 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
         // Initialize MainAppsAdapter
         mainAppsAdapter = new MainAppsAdapter(this, selectedApps);
         appsRecyclerView.setAdapter(mainAppsAdapter);
+
+
+        FloatingActionButton appsBtn = findViewById(R.id.appsBtn);
+        appsBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent startAppSelection = new Intent(MainActivity.this, AppSelectionActivity.class);
+                startAppSelection.putExtra("USER_ID", userId);
+                startActivity(startAppSelection);
+            }
+        });
 
         // Ανανέωση λίστας εφαρμογών
         new FetchAppsTask().execute(userId);

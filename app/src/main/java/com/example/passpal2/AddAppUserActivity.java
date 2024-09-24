@@ -133,13 +133,11 @@ public class AddAppUserActivity extends AppCompatActivity {
             return;
         }
 
-        // Έλεγχος αν υπάρχει ήδη εφαρμογή με το ίδιο όνομα
         if (dbHelper.isAppSelected(appName, userId)) {
             Toast.makeText(this, "Application name already exists.", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Έλεγχος για το link και στους δύο πίνακες
         if (dbHelper.isLinkTaken(appLink, userId)) {
             Toast.makeText(this, "Application with the same link already exists.", Toast.LENGTH_SHORT).show();
             return;
@@ -151,26 +149,25 @@ public class AddAppUserActivity extends AppCompatActivity {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             appImageBitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
             appImageBytes = baos.toByteArray();
-        } else if (appImageUri != null) {
-            try {
-                appImageBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), appImageUri);
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                appImageBitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
-                appImageBytes = baos.toByteArray();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
 
+        // Αποθήκευση στη βάση δεδομένων
         boolean result = dbHelper.saveSelectedAppToDatabase(new AppsObj(appName, appLink, 0, username, email, password, appImageBytes), userId);
 
         if (result) {
-            Toast.makeText(this, "Application added successfully.", Toast.LENGTH_SHORT).show();
+            // Επιστροφή αποτελεσμάτων πίσω στην `AppSelectionActivity`
+            Intent returnIntent = new Intent();
+            returnIntent.putExtra("AppName", appName);
+            returnIntent.putExtra("AppLink", appLink);
+            returnIntent.putExtra("AppImageUri", appImageUri != null ? appImageUri.toString() : null); // Default εικόνα αν δεν υπάρχει
+
+            setResult(RESULT_OK, returnIntent);
             finish();
         } else {
             Toast.makeText(this, "Failed to add application.", Toast.LENGTH_SHORT).show();
         }
     }
+
 
 
 }

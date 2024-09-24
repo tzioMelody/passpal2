@@ -142,6 +142,32 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
         }
     }
 
+    //για να μπορέσει να προσθέσει στην λίστα την νέα εφαμρογή του χρήστη
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == 1 && resultCode == RESULT_OK && data != null) {
+            String appName = data.getStringExtra("AppName");
+            String appLink = data.getStringExtra("AppLink");
+            String imageUriString = data.getStringExtra("AppImageUri");
+            int imageResId;
+
+            // Αν δεν έχει εικόνα, ορίζουμε default εικόνα
+            if (imageUriString == null || imageUriString.isEmpty()) {
+                imageResId = R.drawable.default_app_icon;
+            } else {
+                imageResId = Integer.parseInt(imageUriString); // Χειρισμός URI ή default εικόνας
+            }
+
+            AppsObj newApp = new AppsObj(appName, appLink, imageResId);
+            newApp.setSelected(true);
+
+            // Προσθήκη της νέας εφαρμογής στο adapter
+            adapter.addApp(newApp);
+            adapter.notifyDataSetChanged();
+        }
+    }
 
 
     public void SelectBtnClick(View view) {
