@@ -60,9 +60,11 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
         // Λήψη του user ID από το intent
         Intent intent = getIntent();
         userId = intent.getIntExtra("user_id", -1);
+
+        // Επαλήθευση αν το user ID είναι έγκυρο
         if (userId == -1) {
             showToast("User ID is invalid");
-            finish();
+            finish(); // Κλείσιμο της δραστηριότητας αν το user ID είναι άκυρο
             return;
         }
 
@@ -71,31 +73,27 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
 
         Main_layout = findViewById(R.id.Main_layout);
 
-        // Set up RecyclerView
+        // AsyncTask για την ανάκτηση και εμφάνιση των εφαρμογών
+        new FetchAppsTask().execute(userId);
+
+        FloatingActionButton appsBtn = findViewById(R.id.appsBtn);
+        appsBtn.setOnClickListener(view -> {
+            Intent intentUserID = new Intent(MainActivity.this, AppSelectionActivity.class);
+            intentUserID.putExtra("USER_ID", userId); // Αποστολή ως int
+            startActivityForResult(intentUserID, 1);
+        });
+
         appsRecyclerView = findViewById(R.id.appsRecyclerView);
         layoutManager = new LinearLayoutManager(this);
         appsRecyclerView.setLayoutManager(layoutManager);
 
-        // Initialize MainAppsAdapter
+        // Αρχικοποίηση του MainAppsAdapter
         mainAppsAdapter = new MainAppsAdapter(this, selectedApps);
+
+        // Set adapter to RecyclerView
         appsRecyclerView.setAdapter(mainAppsAdapter);
-
-
-        FloatingActionButton appsBtn = findViewById(R.id.appsBtn);
-        appsBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent startAppSelection = new Intent(MainActivity.this, AppSelectionActivity.class);
-                startAppSelection.putExtra("USER_ID", userId);
-                startActivity(startAppSelection);
-            }
-        });
-
-        // Ανανέωση λίστας εφαρμογών
-        new FetchAppsTask().execute(userId);
-        // Σύνδεση του SwipeToDeleteAndEditCallback με το RecyclerView
-        attachSwipeToDeleteAndEditHelper();
     }
+
 
 
     private void showToast(String message) {
@@ -117,15 +115,10 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 1 && resultCode == RESULT_OK) {
-            // Επανεκτέλεση της FetchAppsTask για ανανέωση της λίστας
-            new FetchAppsTask().execute(userId);
+            // Ανανέωση της λίστας μετά την επιλογή εφαρμογών στο AppSelectionActivity
+            new FetchAppsTask().execute(userId);  // Φόρτωση νέων εφαρμογών από τη βάση
         } else if (requestCode == EDIT_APP_REQUEST && resultCode == RESULT_OK) {
-            if (data.hasExtra("POSITION")) {
-                int position = data.getIntExtra("POSITION", -1);
-                if (position != -1) {
-                    layoutManager.scrollToPosition(position);
-                }
-            }
+            // Λογική για επεξεργασία των εφαρμογών, εάν χρειάζεται
             ArrayList<Parcelable> parcelables = data.getParcelableArrayListExtra("selected_apps");
             if (parcelables != null) {
                 List<AppsObj> apps = new ArrayList<>();
@@ -134,9 +127,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
                         apps.add((AppsObj) parcelable);
                     }
                 }
-                selectedApps.clear();
-                selectedApps.addAll(apps);
-                mainAppsAdapter.notifyDataSetChanged();
+                mainAppsAdapter.setSelectedApps(apps);  // Ενημέρωση του adapter με τις νέες εφαρμογές
             }
         }
     }
@@ -188,7 +179,8 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
                                     " ενώ η ενσωματωμένη διασύνδεση με το Hunter API εξασφαλίζει ότι οι διευθύνσεις email που καταχωρίζετε είναι πάντα έγκυρες. " +
                                     "Κατεβάστε το PassPal και βελτιώστε σήμερα τη διαχείριση των ψηφιακών σας προφίλ!")
                             .setPositiveButton(android.R.string.ok, (dialog, which) -> {
-                                dialog.dismiss();
+                                // Αν ο χρήστης επιλέξει να συνεχίσει, καλούμε την super.onBackPressed()
+                                super.onBackPressed();
                             })
                             .show();
                     return true;
@@ -243,12 +235,13 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
         dialog.requestWindowFeature(getWindow().FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.bottomsheet_layout);
 
+        Button EditLy = dialog.findViewById(R.id.EditLy);
         Button ShareLy = dialog.findViewById(R.id.ShareLy);
         Button UpdateLy = dialog.findViewById(R.id.UpdateLy);
         Button LoginPswLy = dialog.findViewById(R.id.LoginPswLy);
         Button SettingsLy = dialog.findViewById(R.id.SettingsLy);
 
-
+        EditLy.setOnClickListener(v -> dialog.dismiss());
         ShareLy.setOnClickListener(v -> dialog.dismiss());
         UpdateLy.setOnClickListener(v -> {
             Toast.makeText(MainActivity.this, "Updating...", Toast.LENGTH_SHORT).show();
@@ -260,7 +253,6 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
             startActivity(intent);
             dialog.dismiss();
         });
-
         SettingsLy.setOnClickListener(v -> dialog.dismiss());
 
         LinearLayout bottomSheetLayout = dialog.findViewById(R.id.bottom_sheet);
@@ -304,7 +296,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
             Log.d("FetchAppsTask", "Επιστρεφόμενες εφαρμογές: " + apps.size());
             Log.d("FetchAppsTask", "Ποιες είναι οι εφαρμογές : " + apps);
 
-            return dbHelper.getAllSelectedApps(userIds[0]);
+            return apps;
         }
 
         @Override
@@ -380,35 +372,23 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
                         RectF background = new RectF(itemView.getLeft(), itemView.getTop(), dX, itemView.getBottom());
                         c.drawRect(background, p);
                         icon = ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_edit);
-                        if (icon != null) {
-                            iconDest = new RectF(
-                                    itemView.getLeft() + 50,
-                                    itemView.getTop() + (itemView.getHeight() - 100) / 2,
-                                    itemView.getLeft() + 150,
-                                    itemView.getTop() + (itemView.getHeight() + 100) / 2);
-                            icon.setBounds(Math.round(iconDest.left), Math.round(iconDest.top), Math.round(iconDest.right), Math.round(iconDest.bottom));
-                            icon.draw(c);
-                        }
+                        iconDest = new RectF(itemView.getLeft() + 50, itemView.getTop() + 50, itemView.getLeft() + 150, itemView.getBottom() - 50);
                     } else {
                         // Swipe προς τα αριστερά - εμφάνιση του εικονιδίου διαγραφής
                         p.setColor(Color.parseColor("#D32F2F"));
                         RectF background = new RectF(itemView.getRight() + dX, itemView.getTop(), itemView.getRight(), itemView.getBottom());
                         c.drawRect(background, p);
                         icon = ContextCompat.getDrawable(getApplicationContext(), R.drawable.deleteappitem);
-                        if (icon != null) {
-                            iconDest = new RectF(
-                                    itemView.getRight() - 150,
-                                    itemView.getTop() + (itemView.getHeight() - 100) / 2,
-                                    itemView.getRight() - 50,
-                                    itemView.getTop() + (itemView.getHeight() + 100) / 2);
-                            icon.setBounds(Math.round(iconDest.left), Math.round(iconDest.top), Math.round(iconDest.right), Math.round(iconDest.bottom));
-                            icon.draw(c);
-                        }
+                        iconDest = new RectF(itemView.getRight() - 150, itemView.getTop() + 50, itemView.getRight() - 50, itemView.getBottom() - 50);
                     }
+
+                    icon.setBounds(Math.round(iconDest.left), Math.round(iconDest.top), Math.round(iconDest.right), Math.round(iconDest.bottom));
+                    icon.draw(c);
                 }
             }
-
-
         };
+        new ItemTouchHelper(simpleItemTouchCallback).attachToRecyclerView(appsRecyclerView);
     }
+
+
 }
