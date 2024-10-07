@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
+<FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/dialogbg">
@@ -18,7 +17,7 @@
         <ImageView
             android:layout_width="70dp"
             android:layout_height="wrap_content"
-            android:layout_gravity="center|top"
+            android:layout_gravity="center_horizontal"
             android:scaleType="centerCrop"
             android:src="@drawable/ic_round_remove_24" />
 
@@ -33,61 +32,56 @@
             android:textSize="25dp"
             android:textStyle="bold" />
 
-
         <Button
             android:id="@+id/ShareLy"
             android:layout_width="match_parent"
             android:layout_height="52dp"
+            android:background="?attr/selectableItemBackground"
+            android:drawableStart="@drawable/ic_share"
+            android:drawablePadding="8dp"
             android:gravity="center_vertical"
-            android:orientation="horizontal"
             android:padding="8dp"
             android:text="Open app"
             android:textColor="@color/black"
-            android:textSize="16sp"
-            android:drawableStart="@drawable/ic_share"
-            android:background="?attr/selectableItemBackground"
-            android:drawablePadding="8dp"/>
+            android:textSize="16sp" />
 
         <Button
             android:id="@+id/UpdateLy"
             android:layout_width="match_parent"
             android:layout_height="52dp"
+            android:background="?attr/selectableItemBackground"
+            android:drawableStart="@drawable/ic_update"
+            android:drawablePadding="8dp"
             android:gravity="center_vertical"
-            android:orientation="horizontal"
             android:padding="8dp"
             android:text="Update"
             android:textColor="@color/black"
-            android:textSize="16sp"
-            android:drawableStart="@drawable/ic_update"
-            android:background="?attr/selectableItemBackground"
-            android:drawablePadding="8dp"/>
+            android:textSize="16sp" />
 
         <Button
             android:id="@+id/LoginPswLy"
             android:layout_width="match_parent"
             android:layout_height="52dp"
+            android:background="?attr/selectableItemBackground"
+            android:drawableStart="@drawable/ic_password_login"
+            android:drawablePadding="8dp"
             android:gravity="center_vertical"
-            android:orientation="horizontal"
             android:padding="8dp"
             android:text="Login/Passwords"
             android:textColor="@color/black"
-            android:textSize="16sp"
-            android:drawableStart="@drawable/ic_password_login"
-            android:background="?attr/selectableItemBackground"
-            android:drawablePadding="8dp"/>
+            android:textSize="16sp" />
 
         <Button
             android:id="@+id/SettingsLy"
             android:layout_width="match_parent"
             android:layout_height="52dp"
+            android:background="?attr/selectableItemBackground"
+            android:drawableStart="@drawable/ic_settings"
+            android:drawablePadding="8dp"
             android:gravity="center_vertical"
-            android:orientation="horizontal"
             android:padding="8dp"
             android:text="Settings"
             android:textColor="@color/black"
-            android:textSize="16sp"
-            android:drawableStart="@drawable/ic_settings"
-            android:background="?attr/selectableItemBackground"
-            android:drawablePadding="8dp"/>
+            android:textSize="16sp" />
     </LinearLayout>
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+</FrameLayout>

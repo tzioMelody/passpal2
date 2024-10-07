@@ -33,6 +33,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -64,7 +65,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
         // Επαλήθευση αν το user ID είναι έγκυρο
         if (userId == -1) {
             showToast("User ID is invalid");
-            finish(); // Κλείσιμο της δραστηριότητας αν το user ID είναι άκυρο
+            finish();
             return;
         }
 
@@ -116,7 +117,8 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 1 && resultCode == RESULT_OK) {
             // Ανανέωση της λίστας μετά την επιλογή εφαρμογών στο AppSelectionActivity
-            new FetchAppsTask().execute(userId);  // Φόρτωση νέων εφαρμογών από τη βάση
+            // Φόρτωση νέων εφαρμογών από τη βάση
+            new FetchAppsTask().execute(userId);
         } else if (requestCode == EDIT_APP_REQUEST && resultCode == RESULT_OK) {
             // Λογική για επεξεργασία των εφαρμογών, εάν χρειάζεται
             ArrayList<Parcelable> parcelables = data.getParcelableArrayListExtra("selected_apps");
@@ -127,7 +129,8 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
                         apps.add((AppsObj) parcelable);
                     }
                 }
-                mainAppsAdapter.setSelectedApps(apps);  // Ενημέρωση του adapter με τις νέες εφαρμογές
+                // Ενημέρωση του adapter με τις νέες εφαρμογές
+                mainAppsAdapter.setSelectedApps(apps);
             }
         }
     }
@@ -180,7 +183,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
                                     "Κατεβάστε το PassPal και βελτιώστε σήμερα τη διαχείριση των ψηφιακών σας προφίλ!")
                             .setPositiveButton(android.R.string.ok, (dialog, which) -> {
                                 // Αν ο χρήστης επιλέξει να συνεχίσει, καλούμε την super.onBackPressed()
-                                super.onBackPressed();
+                                dialog.dismiss();
                             })
                             .show();
                     return true;
@@ -206,7 +209,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
                                     "Ειλικρινά,\n" +
                                     "η ομάδα PassPal")
                             .setPositiveButton(android.R.string.ok, (dialog, which) -> {
-                                super.onBackPressed();
+                                dialog.dismiss();
                             })
                             .show();
                     return true;
@@ -214,7 +217,6 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
                     int userId = DataBaseHelper.getUserId(this);
                     dbHelper.deleteUserData(userId);
                     Toast.makeText(this, "All user data deleted", Toast.LENGTH_SHORT).show();
-                    // Optionally, navigate to login or another activity after deletion
                     Intent intent = new Intent(this, LoginActivity.class);
                     startActivity(intent);
                     finish();
@@ -229,57 +231,40 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
     }
 
     // For bottomSheet popup
-    // For bottomSheet popup
     private void showDialog() {
-        final Dialog dialog = new Dialog(this);
-        dialog.requestWindowFeature(getWindow().FEATURE_NO_TITLE);
+        final BottomSheetDialog dialog = new BottomSheetDialog(this);
         dialog.setContentView(R.layout.bottomsheet_layout);
 
-        Button EditLy = dialog.findViewById(R.id.EditLy);
         Button ShareLy = dialog.findViewById(R.id.ShareLy);
         Button UpdateLy = dialog.findViewById(R.id.UpdateLy);
         Button LoginPswLy = dialog.findViewById(R.id.LoginPswLy);
         Button SettingsLy = dialog.findViewById(R.id.SettingsLy);
 
-        EditLy.setOnClickListener(v -> dialog.dismiss());
-        ShareLy.setOnClickListener(v -> dialog.dismiss());
-        UpdateLy.setOnClickListener(v -> {
-            Toast.makeText(MainActivity.this, "Updating...", Toast.LENGTH_SHORT).show();
-            dialog.dismiss();
-        });
-        LoginPswLy.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, EnterMasterPasswordActivity.class);
-            intent.putExtra("user_id", userId);
-            startActivity(intent);
-            dialog.dismiss();
-        });
-        SettingsLy.setOnClickListener(v -> dialog.dismiss());
+        if (ShareLy != null) {
+            ShareLy.setOnClickListener(v -> dialog.dismiss());
+        }
 
-        LinearLayout bottomSheetLayout = dialog.findViewById(R.id.bottom_sheet);
-
-        if (bottomSheetLayout != null) {
-            BottomSheetBehavior bottomSheetBehavior = BottomSheetBehavior.from(bottomSheetLayout);
-            // Το κάνει ορατό το bottomsheet
-            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-
-            bottomSheetBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
-                @Override
-                public void onStateChanged(@NonNull View bottomSheet, int newState) {
-                    dialog.dismiss();
-                }
-
-                @Override
-                public void onSlide(@NonNull View bottomSheet, float slideOffset) {
-                    // Additional functionality during bottom sheet slide
-                }
+        if (UpdateLy != null) {
+            UpdateLy.setOnClickListener(v -> {
+                Toast.makeText(MainActivity.this, "Updating...", Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
             });
         }
 
+        if (LoginPswLy != null) {
+            LoginPswLy.setOnClickListener(v -> {
+                Intent intent = new Intent(MainActivity.this, EnterMasterPasswordActivity.class);
+                intent.putExtra("user_id", userId);
+                startActivity(intent);
+                dialog.dismiss();
+            });
+        }
+
+        if (SettingsLy != null) {
+            SettingsLy.setOnClickListener(v -> dialog.dismiss());
+        }
+
         dialog.show();
-        dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-        dialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimation;
-        dialog.getWindow().setGravity(Gravity.BOTTOM);
     }
 
 
