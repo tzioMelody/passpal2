@@ -14,6 +14,8 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import javax.crypto.SecretKey;
+
 public class ForgotPasswordActivity extends AppCompatActivity {
     private EditText inputEmail, newPassword, confirmNewPassword;
     private Button resetPassBtn, cancelBtnForgot;
@@ -69,18 +71,25 @@ public class ForgotPasswordActivity extends AppCompatActivity {
         protected Boolean doInBackground(Void... voids) {
             DataBaseHelper dbHelper = new DataBaseHelper(context);
             try {
-                byte[] salt = DataBaseHelper.generateSalt();
-                String hashedPassword = DataBaseHelper.hashPassword(newPassword, salt);
-                String saltStr = DataBaseHelper.encodeSalt(salt);
-                String passwordToStore = hashedPassword + ":" + saltStr;
+                // Δημιουργία νέου AES κλειδιού για τον χρήστη
+                SecretKey aesKey = DataBaseHelper.generateAESKey();
 
-                dbHelper.updatePasswordByEmail(email, passwordToStore);
+                // Κρυπτογράφηση του νέου κωδικού
+                String encryptedPassword = DataBaseHelper.encryptAES(newPassword, aesKey);
+
+                // Αποθήκευση του κλειδιού AES στις προτιμήσεις
+                dbHelper.saveAESKey(aesKey, dbHelper.getUserIdByEmail(email));
+
+                // Ενημέρωση του password στην βάση δεδομένων
+                dbHelper.updatePasswordByEmail(email, encryptedPassword);
+
                 return true;
             } catch (Exception e) {
                 e.printStackTrace();
                 return false;
             }
         }
+
 
         @Override
         protected void onPostExecute(Boolean success) {

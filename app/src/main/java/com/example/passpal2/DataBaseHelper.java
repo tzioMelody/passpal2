@@ -24,6 +24,8 @@ import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+
 import java.security.SecureRandom;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -62,6 +64,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_EMAIL_CREDENTIALS = "email";
     public static final String COLUMN_PASSWORD_CREDENTIALS = "password";
     public static final String COLUMN_IMAGE_URI_STRING = "image_uri_string";
+    private final Context context;
 
     public class AppCredentials {
         private int id;
@@ -152,6 +155,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     public DataBaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
+        this.context = context;
     }
 
     @Override
@@ -241,13 +245,24 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     // Μέθοδος για την αποθήκευση του master password
     public void insertMasterPassword(int userId, String masterPassword) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(COLUMN_USERID, userId);
-        values.put(COLUMN_MASTER_PASSWORD, masterPassword);
-        db.insert(MASTER_PASSWORD_TABLE, null, values);
-        db.close();
+        try {
+            // Generate a new AES key for the user
+            SecretKey aesKey = generateAESKey();
+            String encryptedPassword = encryptAES(masterPassword, aesKey);
+
+            // Save the key and the encrypted password
+            String encodedKey = Base64.encodeToString(aesKey.getEncoded(), Base64.DEFAULT);
+            SQLiteDatabase db = this.getWritableDatabase();
+            ContentValues values = new ContentValues();
+            values.put(COLUMN_USERID, userId);
+            values.put(COLUMN_MASTER_PASSWORD, encryptedPassword + ":" + encodedKey);
+            db.insert(MASTER_PASSWORD_TABLE, null, values);
+            db.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
+
 
     // Μέθοδος για έλεγχο αν ο χρήστης υπάρχει με βάση το username και το password
     public boolean checkUser(String username, String password) {
@@ -259,25 +274,42 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         Cursor cursor = db.query(USER_TABLE, columns, selection, selectionArgs, null, null, null);
 
         if (cursor != null && cursor.moveToFirst()) {
-            @SuppressLint("Range") String storedPassword = cursor.getString(cursor.getColumnIndex(COLUMN_PASSWORD));
-            String[] parts = storedPassword.split(":");
+            @SuppressLint("Range") String encryptedPassword = cursor.getString(cursor.getColumnIndex(COLUMN_PASSWORD));
 
-            if (parts.length == 2) {
-                String hash = parts[0];
-                String salt = parts[1];
-                String hashedInputPassword = hashPassword(password, decodeSalt(salt));
+            // Λήψη του user ID για την ανάκτηση του κλειδιού AES
+            @SuppressLint("Range") int userId = cursor.getInt(cursor.getColumnIndex(COLUMN_ID));
+            SecretKey aesKey = getAESKey(userId);
 
-                if (hash.equals(hashedInputPassword)) {
-                    cursor.close();
-                    return true;
-                }
+            if (aesKey == null) {
+                showToast("Failed to retrieve AES key");
+                cursor.close();
+                return false;
             }
 
+            try {
+                // Αποκρυπτογράφηση του αποθηκευμένου password
+                String decryptedPassword = decryptAES(encryptedPassword, aesKey);
+
+                if (decryptedPassword.equals(password)) {
+                    cursor.close();
+                    return true; // Password match
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (cursor != null) {
             cursor.close();
         }
 
-        return false;
+        return false; 
     }
+
+    private void showToast(String failedToRetrieveAesKey) {
+    }
+
 
     // Μέθοδος για την απόκτηση του ID του χρήστη με βάση το username
     public int getUserIdByUsername(String username) {
@@ -331,6 +363,22 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         db.close(); // Κλείνουμε τη βάση δεδομένων μετά την ενημέρωση
 
         return rowsAffected > 0; // Επιστρέφει true αν ενημερώθηκε τουλάχιστον μία σειρά
+    }
+    public int getUserIdByEmail(String email) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String[] columns = {COLUMN_ID};
+        String selection = COLUMN_EMAIL + " = ?";
+        String[] selectionArgs = {email};
+
+        Cursor cursor = db.query(USER_TABLE, columns, selection, selectionArgs, null, null, null);
+
+        if (cursor != null && cursor.moveToFirst()) {
+            @SuppressLint("Range") int userId = cursor.getInt(cursor.getColumnIndex(COLUMN_ID));
+            cursor.close();
+            return userId;
+        }
+
+        return -1; // Αν δεν βρεθεί ο χρήστης, επιστρέφεται -1
     }
 
     public void deleteApp(String appName, int userId) {
@@ -498,14 +546,31 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public boolean checkMasterPassword(int userId, String masterPassword) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT " + COLUMN_MASTER_PASSWORD + " FROM " + MASTER_PASSWORD_TABLE + " WHERE " + COLUMN_USERID + " = ?", new String[]{String.valueOf(userId)});
-        boolean isPasswordCorrect = false;
+
         if (cursor != null && cursor.moveToFirst()) {
-            String storedPassword = cursor.getString(0);
-            isPasswordCorrect = storedPassword.equals(masterPassword);
+            String encryptedMasterPassword = cursor.getString(0);
+
+            // Ανάκτηση του AES κλειδιού
+            SecretKey secretKey = getAESKey(userId);
+
+            if (secretKey != null) {
+                try {
+                    // Αποκρυπτογράφηση του αποθηκευμένου master password
+                    String decryptedMasterPassword = decryptAES(encryptedMasterPassword, secretKey);
+
+                    // Σύγκριση με το password που εισήγαγε ο χρήστης
+                    if (decryptedMasterPassword.equals(masterPassword)) {
+                        cursor.close();
+                        return true;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
             cursor.close();
         }
         db.close();
-        return isPasswordCorrect;
+        return false;
     }
 
     public boolean saveAppCredentials(int appId, int userId, String appName, String username, String email, String password, String link) {
@@ -527,15 +592,15 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     }
 
     //  ΚΡΥΠΤΟΓΡΑΦΗΣΗ *** ΚΡΥΠΤΟΓΡΑΦΗΣΗ *** ΚΡΥΠΤΟΓΡΑΦΗΣΗ *** ΚΡΥΠΤΟΓΡΑΦΗΣΗ *** ΚΡΥΠΤΟΓΡΑΦΗΣΗ
-    // Μέθοδος για την παραγωγή ενός salt
+  /*  // Μέθοδος για την παραγωγή ενός salt
     public static byte[] generateSalt() throws NoSuchAlgorithmException {
         SecureRandom sr = SecureRandom.getInstance("SHA1PRNG");
         byte[] salt = new byte[16];
         sr.nextBytes(salt);
         return salt;
-    }
+    }*/
 
-    // Μέθοδος για το hashing του κωδικού με salt
+    /*// Μέθοδος για το hashing του κωδικού με salt
     public static String hashPassword(String password, byte[] salt) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
@@ -549,13 +614,13 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
-    }
+    }*/
 
-    // Μέθοδος για την κωδικοποίηση του salt σε String για αποθήκευση
+   /* // Μέθοδος για την κωδικοποίηση του salt σε String για αποθήκευση
     public static String encodeSalt(byte[] salt) {
         return Base64.encodeToString(salt, Base64.DEFAULT);
     }
-
+*/
     // Μέθοδος για την αποκωδικοποίηση του salt από String
     public static byte[] decodeSalt(String saltStr) {
         return Base64.decode(saltStr, Base64.DEFAULT);
@@ -573,6 +638,22 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         KeyGenerator keyGen = KeyGenerator.getInstance(AES_ALGORITHM);
         keyGen.init(AES_KEY_SIZE);
         return keyGen.generateKey();
+    }
+    public void saveAESKey(SecretKey key, int userId) {
+        SharedPreferences preferences = context.getSharedPreferences("aes_keys", MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putString("aes_key_" + userId, Base64.encodeToString(key.getEncoded(), Base64.DEFAULT));
+        editor.apply();
+    }
+
+    public SecretKey getAESKey(int userId) {
+        SharedPreferences preferences = context.getSharedPreferences("aes_keys", MODE_PRIVATE);
+        String encodedKey = preferences.getString("aes_key_" + userId, null);
+        if (encodedKey != null) {
+            byte[] decodedKey = Base64.decode(encodedKey, Base64.DEFAULT);
+            return new SecretKeySpec(decodedKey, 0, decodedKey.length, "AES");
+        }
+        return null;
     }
 
     // Method to encrypt data using AES-256

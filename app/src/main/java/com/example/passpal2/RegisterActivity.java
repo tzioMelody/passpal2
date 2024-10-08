@@ -120,16 +120,19 @@ public class RegisterActivity extends AppCompatActivity implements EmailVerifica
 
     private void registerUser(String username, String email, String password) {
         try {
-            byte[] salt = DataBaseHelper.generateSalt();
-            String hashedPassword = DataBaseHelper.hashPassword(password, salt);
-            String saltStr = DataBaseHelper.encodeSalt(salt);
-            String passwordToStore = hashedPassword + ":" + saltStr;
-
+            // Δημιουργία του AES κλειδιού
             SecretKey aesKey = DataBaseHelper.generateAESKey();
-            String encryptedEmail = DataBaseHelper.encryptAES(email, aesKey);
 
-            long userId = dbHelper.insertUser(username, encryptedEmail, passwordToStore);
+            // Κρυπτογράφηση του email και του password
+            String encryptedEmail = DataBaseHelper.encryptAES(email, aesKey);
+            String encryptedPassword = DataBaseHelper.encryptAES(password, aesKey);
+
+            // Αποθήκευση του χρήστη στη βάση δεδομένων
+            long userId = dbHelper.insertUser(username, encryptedEmail, encryptedPassword);
             if (userId != -1) {
+                // Αποθήκευση του κλειδιού AES (χρησιμοποιούμε το userId)
+                dbHelper.saveAESKey(aesKey, (int) userId);
+
                 showToast("User registered successfully");
                 Log.d("RegisterActivity", "User registered successfully with ID: " + userId);
 
@@ -150,6 +153,7 @@ public class RegisterActivity extends AppCompatActivity implements EmailVerifica
             overlayView.setVisibility(View.GONE);
         }
     }
+
 
     private void showToast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();

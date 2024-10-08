@@ -12,6 +12,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import java.security.NoSuchAlgorithmException;
 
+import javax.crypto.SecretKey;
+
 public class SetMasterPasswordActivity extends AppCompatActivity {
 
     private EditText masterPasswordEditText, confirmMasterPasswordEditText;
@@ -72,28 +74,30 @@ public class SetMasterPasswordActivity extends AppCompatActivity {
             return;
         }
 
-        // Αποθήκευση του Master Password με hashing
         try {
-            byte[] salt = DataBaseHelper.generateSalt();
-            String hashedMasterPassword = DataBaseHelper.hashPassword(masterPassword, salt);
-            String saltStr = DataBaseHelper.encodeSalt(salt);
-            String passwordToStore = hashedMasterPassword + ":" + saltStr;
+            // Δημιουργία AES κλειδιού
+            SecretKey secretKey = DataBaseHelper.generateAESKey();
 
-            dbHelper.insertMasterPassword(userId, passwordToStore);
+            // Κρυπτογράφηση του master password
+            String encryptedMasterPassword = DataBaseHelper.encryptAES(masterPassword, secretKey);
+            dbHelper.insertMasterPassword(userId, encryptedMasterPassword);
+
+            // Αποθήκευση του κλειδιού σε ασφαλές σημείο (π.χ. SharedPreferences)
+            dbHelper.saveAESKey(secretKey, userId);
+
             showToast("Master Password set successfully");
-
-            Log.d("MasterPasswordActivity", "Master Password set for UserID: " + userId);
 
             // Μετάβαση στο MainActivity
             Intent intent = new Intent(SetMasterPasswordActivity.this, MainActivity.class);
             intent.putExtra("user_id", userId);
             startActivity(intent);
             finish();
-        } catch (NoSuchAlgorithmException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             showToast("Failed to set Master Password due to error");
         }
     }
+
 
     private boolean isAllCharactersSame(String input) {
         char firstChar = input.charAt(0);
