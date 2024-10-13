@@ -187,37 +187,21 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
 
-        <Button
-            android:id="@+id/GeneratePsw"
-            android:layout_width="180dp"
-            android:layout_height="74dp"
-            android:layout_marginStart="16dp"
-            android:layout_weight="1"
-            android:text="@string/generate_new_password"
-            android:textAllCaps="false"
-            android:textColor="@color/white"
-            app:backgroundTint="@color/dark_purple"
-            app:cornerRadius="28dp"
-            app:layout_constraintBottom_toTopOf="@+id/SaveSelectedAppData"
-            app:layout_constraintEnd_toStartOf="@+id/OpenAppWebsite"
-            app:layout_constraintHorizontal_bias="0.0"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/EditAppCard"
-            app:layout_constraintVertical_bias="0.453" />
 
         <Button
             android:id="@+id/OpenAppWebsite"
-            android:layout_width="184dp"
-            android:layout_height="66dp"
+            android:layout_width="31dp"
+            android:layout_height="27dp"
             android:layout_weight="1"
             android:text="Open app/website"
             android:textAllCaps="false"
             android:textColor="@color/white"
+            android:visibility="gone"
             app:backgroundTint="@color/light_purple"
             app:cornerRadius="28dp"
             app:layout_constraintBottom_toTopOf="@+id/SaveSelectedAppData"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/EditAppCard"
-            app:layout_constraintVertical_bias="0.385" />
+            app:layout_constraintVertical_bias="0.28" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

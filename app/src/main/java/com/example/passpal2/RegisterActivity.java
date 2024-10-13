@@ -1,5 +1,9 @@
 package com.example.passpal2;
 
+import static com.example.passpal2.DataBaseHelper.encodeSalt;
+import static com.example.passpal2.DataBaseHelper.generateSalt;
+import static com.example.passpal2.DataBaseHelper.hashPassword;
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -120,21 +124,16 @@ public class RegisterActivity extends AppCompatActivity implements EmailVerifica
 
     private void registerUser(String username, String email, String password) {
         try {
-            // Δημιουργία του AES κλειδιού
-            SecretKey aesKey = DataBaseHelper.generateAESKey();
+            byte[] salt = DataBaseHelper.generateSalt();
+            String hashedPassword = DataBaseHelper.hashPassword(password, salt);
+            String saltStr = DataBaseHelper.encodeSalt(salt);
+            String passwordToStore = hashedPassword + ":" + saltStr;
 
-            // Κρυπτογράφηση του email και του password
-            String encryptedEmail = DataBaseHelper.encryptAES(email, aesKey);
-            String encryptedPassword = DataBaseHelper.encryptAES(password, aesKey);
+            // Χρήση της insertUser() για εισαγωγή στη βάση δεδομένων
+            long userId = dbHelper.insertUser(username, email, passwordToStore);
 
-            // Αποθήκευση του χρήστη στη βάση δεδομένων
-            long userId = dbHelper.insertUser(username, encryptedEmail, encryptedPassword);
             if (userId != -1) {
-                // Αποθήκευση του κλειδιού AES (χρησιμοποιούμε το userId)
-                dbHelper.saveAESKey(aesKey, (int) userId);
-
                 showToast("User registered successfully");
-                Log.d("RegisterActivity", "User registered successfully with ID: " + userId);
 
                 Intent intent = new Intent(RegisterActivity.this, SetMasterPasswordActivity.class);
                 intent.putExtra("user_id", (int) userId);
@@ -142,17 +141,17 @@ public class RegisterActivity extends AppCompatActivity implements EmailVerifica
                 finish();
             } else {
                 showToast("Failed to register user");
-                Log.e("RegisterActivity", "Failed to register user");
             }
         } catch (Exception e) {
             e.printStackTrace();
             showToast("Failed to register user due to error");
-            Log.e("RegisterActivity", "Error during registration: " + e.getMessage());
         } finally {
             progressBar.setVisibility(View.GONE);
             overlayView.setVisibility(View.GONE);
         }
     }
+
+
 
 
     private void showToast(String message) {

@@ -14,8 +14,6 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import javax.crypto.SecretKey;
-
 public class ForgotPasswordActivity extends AppCompatActivity {
     private EditText inputEmail, newPassword, confirmNewPassword;
     private Button resetPassBtn, cancelBtnForgot;
@@ -71,17 +69,20 @@ public class ForgotPasswordActivity extends AppCompatActivity {
         protected Boolean doInBackground(Void... voids) {
             DataBaseHelper dbHelper = new DataBaseHelper(context);
             try {
-                // Δημιουργία νέου AES κλειδιού για τον χρήστη
-                SecretKey aesKey = DataBaseHelper.generateAESKey();
+                // Δημιουργία salt για τον νέο κωδικό
+                byte[] salt = DataBaseHelper.generateSalt();
 
-                // Κρυπτογράφηση του νέου κωδικού
-                String encryptedPassword = DataBaseHelper.encryptAES(newPassword, aesKey);
+                // Δημιουργία του hash του νέου κωδικού
+                String hashedPassword = DataBaseHelper.hashPassword(newPassword, salt);
 
-                // Αποθήκευση του κλειδιού AES στις προτιμήσεις
-                dbHelper.saveAESKey(aesKey, dbHelper.getUserIdByEmail(email));
+                // Κωδικοποίηση του salt για αποθήκευση στη βάση δεδομένων
+                String saltStr = DataBaseHelper.encodeSalt(salt);
 
-                // Ενημέρωση του password στην βάση δεδομένων
-                dbHelper.updatePasswordByEmail(email, encryptedPassword);
+                // Συνδυασμός του hash και του salt για αποθήκευση
+                String passwordToStore = hashedPassword + ":" + saltStr;
+
+                // Ενημέρωση του password στη βάση δεδομένων
+                dbHelper.updatePasswordByEmail(email, passwordToStore);
 
                 return true;
             } catch (Exception e) {
@@ -89,7 +90,6 @@ public class ForgotPasswordActivity extends AppCompatActivity {
                 return false;
             }
         }
-
 
         @Override
         protected void onPostExecute(Boolean success) {

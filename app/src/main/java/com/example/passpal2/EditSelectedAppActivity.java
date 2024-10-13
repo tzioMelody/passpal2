@@ -1,39 +1,32 @@
 package com.example.passpal2;
 
-
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.text.method.HideReturnsTransformationMethod;
 import android.text.method.PasswordTransformationMethod;
-import android.view.MotionEvent;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.passpal2.R;
-
-import java.util.Random;
+import java.security.NoSuchAlgorithmException;
 
 public class EditSelectedAppActivity extends AppCompatActivity {
     private ImageView appIconImageView;
     private TextView appNameTextView;
     private EditText appLinkEditText;
     private EditText inputEmailEditedApp, inputUsernameEditedApp;
-    private Button generatePsw;
     private Button saveSelectedAppData;
     private Button openAppWebsiteBtn;
-    private ProgressBar progressBar;
     private EditText selectedAppPassword;
     private boolean isPasswordVisible = false;
     private DataBaseHelper dbHelper;
@@ -45,7 +38,6 @@ public class EditSelectedAppActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_app);
         getSupportActionBar().setTitle("Edit app");
-
 
         dbHelper = new DataBaseHelper(this);
 
@@ -65,12 +57,10 @@ public class EditSelectedAppActivity extends AppCompatActivity {
             appLinkEditText.setText(selectedApp.getAppLinks());
         }
         inputEmailEditedApp = findViewById(R.id.inputEmailEditedApp);
-        generatePsw = findViewById(R.id.GeneratePsw);
         saveSelectedAppData = findViewById(R.id.SaveSelectedAppData);
         openAppWebsiteBtn = findViewById(R.id.OpenAppWebsite);
         selectedAppPassword = findViewById(R.id.passwordEditText);
 
-        generatePsw.setOnClickListener(view -> new GeneratePasswordTask().execute());
         saveSelectedAppData.setOnClickListener(v -> {
             String email = inputEmailEditedApp.getText().toString();
 
@@ -114,19 +104,44 @@ public class EditSelectedAppActivity extends AppCompatActivity {
         String link = appLinkEditText.getText().toString();
         String appName = appNameTextView.getText().toString();
 
-        boolean success = dbHelper.saveAppCredentials(appId, userId, appName, username, email, password, link);
+        // Log για να δούμε τι δεδομένα εισάγουμε
+        Log.d("EditSelectedAppActivity", "Saving credentials for User ID: " + userId + ", App ID: " + appId);
+        Log.d("EditSelectedAppActivity", "Username: " + username + ", Email: " + email);
+        Log.d("EditSelectedAppActivity", "App Name: " + appName + ", Link: " + link);
 
-        if (success) {
-            Toast.makeText(this, "Credentials saved successfully", Toast.LENGTH_SHORT).show();
-            Intent returnIntent = new Intent();
-            returnIntent.putExtra("APP_ID", appId);
-            returnIntent.putExtra("UPDATED_APP_NAME", appNameTextView.getText().toString());
-            setResult(RESULT_OK, returnIntent);
-            finish();
-        } else {
-            Toast.makeText(this, "Failed to save credentials", Toast.LENGTH_SHORT).show();
+        try {
+            byte[] salt = DataBaseHelper.generateSalt();
+            String hashedPassword = DataBaseHelper.hashPassword(password, salt);
+            String saltStr = DataBaseHelper.encodeSalt(salt);
+            String passwordToStore = hashedPassword + ":" + saltStr;
+
+            boolean success = dbHelper.saveAppCredentials(appId, userId, appName, username, email, passwordToStore, link);
+
+            // Καταγραφή για να δούμε αν η αποθήκευση ήταν επιτυχής
+            Log.d("EditSelectedAppActivity", "Save result: " + success);
+
+            if (success) {
+                Toast.makeText(this, "Credentials saved successfully", Toast.LENGTH_SHORT).show();
+
+                // Αλλαγή της ορατότητας των κουμπιών
+                saveSelectedAppData.setVisibility(View.GONE);
+                openAppWebsiteBtn.setVisibility(View.VISIBLE);
+
+                // Εμφάνιση των στοιχείων που αποθηκεύτηκαν
+                Intent returnIntent = new Intent();
+                returnIntent.putExtra("APP_ID", appId);
+                returnIntent.putExtra("UPDATED_APP_NAME", appNameTextView.getText().toString());
+                setResult(RESULT_OK, returnIntent);
+
+            } else {
+                Toast.makeText(this, "Failed to save credentials", Toast.LENGTH_SHORT).show();
+            }
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Failed to hash password", Toast.LENGTH_SHORT).show();
         }
     }
+
 
 
     @Override
@@ -137,35 +152,6 @@ public class EditSelectedAppActivity extends AppCompatActivity {
                 .setPositiveButton("Ναι", (dialog, which) -> EditSelectedAppActivity.super.onBackPressed())
                 .setNegativeButton("Όχι", (dialog, which) -> dialog.dismiss())
                 .show();
-    }
-
-    private class GeneratePasswordTask extends AsyncTask<Void, Void, String> {
-        @Override
-        protected String doInBackground(Void... voids) {
-            int len = 12;
-            return generatePswd(len);
-        }
-
-        @Override
-        protected void onPostExecute(String result) {
-            selectedAppPassword.setText(result);
-        }
-    }
-
-    private String generatePswd(int len) {
-        String charsCaps = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        String chars = "abcdefghijklmnopqrstuvwxyz";
-        String nums = "0123456789";
-        String symbols = "!@#$%^&*_=+-/€.?<>)";
-
-        String passSymbols = charsCaps + chars + nums + symbols;
-        Random rnd = new Random();
-
-        StringBuilder password = new StringBuilder(len);
-        for (int i = 0; i < len; i++) {
-            password.append(passSymbols.charAt(rnd.nextInt(passSymbols.length())));
-        }
-        return password.toString();
     }
 
     private void togglePasswordVisibility() {
