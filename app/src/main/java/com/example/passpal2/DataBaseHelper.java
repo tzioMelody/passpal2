@@ -572,7 +572,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     }
 
 
-    public boolean saveAppCredentials(int appId, int userId, String appName, String username, String email, String password, String link) {
+    public boolean saveAppCredentials(int userId, String appName, String username, String email, String password, String link) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues cv = new ContentValues();
 
@@ -583,28 +583,17 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         cv.put(COLUMN_PASSWORD_CREDENTIALS, password);
         cv.put(COLUMN_APP_LINK_CREDENTIALS, link);
 
-        Log.d("DataBaseHelper", "Attempting to insert/update credentials for User ID: " + userId + ", App ID: " + appId);
+        Log.d("DataBaseHelper", "Attempting to insert new credentials for User ID: " + userId);
 
-        // Αν προσπαθείς να ενημερώσεις
-        int rowsAffected = db.update(TABLE_APP_CREDENTIALS, cv, COLUMN_ID + " = ?", new String[]{String.valueOf(appId)});
+        // Εισαγωγή νέας εγγραφής
+        long result = db.insert(TABLE_APP_CREDENTIALS, null, cv);
+        db.close();
 
-        if (rowsAffected == 0) {
-            Log.d("DataBaseHelper", "No rows updated. Attempting to insert new credentials.");
-
-            // Εισαγωγή αν δεν βρεθεί εγγραφή για ενημέρωση
-            long result = db.insert(TABLE_APP_CREDENTIALS, null, cv);
-            db.close();
-
-            if (result == -1) {
-                Log.e("DataBaseHelper", "Failed to insert new credentials for User ID: " + userId);
-                return false;
-            } else {
-                Log.d("DataBaseHelper", "Inserted new credentials successfully for User ID: " + userId);
-                return true;
-            }
+        if (result == -1) {
+            Log.e("DataBaseHelper", "Failed to insert new credentials for User ID: " + userId);
+            return false;
         } else {
-            Log.d("DataBaseHelper", "Updated existing credentials successfully for App ID: " + appId);
-            db.close();
+            Log.d("DataBaseHelper", "Inserted new credentials successfully for User ID: " + userId);
             return true;
         }
     }

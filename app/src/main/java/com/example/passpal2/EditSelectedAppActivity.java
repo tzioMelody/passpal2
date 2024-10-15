@@ -8,6 +8,7 @@ import android.text.TextUtils;
 import android.text.method.HideReturnsTransformationMethod;
 import android.text.method.PasswordTransformationMethod;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -37,13 +38,23 @@ public class EditSelectedAppActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_app);
-        getSupportActionBar().setTitle("Edit app");
+
+
 
         dbHelper = new DataBaseHelper(this);
 
         Intent intent = getIntent();
         if (intent != null && intent.hasExtra("APP_DATA")) {
             AppsObj selectedApp = intent.getParcelableExtra("APP_DATA");
+            String appName = selectedApp.getAppNames();
+
+           // να φανει το ονομα της εφαρμογης πανω στην μπαρα
+            if (getSupportActionBar() != null) {
+                getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+                getSupportActionBar().setTitle(appName);
+            }
+
+
             appId = intent.getIntExtra("APP_ID", -1);
             userId = intent.getIntExtra("USER_ID", -1);
 
@@ -96,6 +107,15 @@ public class EditSelectedAppActivity extends AppCompatActivity {
             return false;
         });
     }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            // Αν πατηθεί το back arrow, επιστρέφουμε στην προηγούμενη οθόνη
+            onBackPressed();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
 
     private void saveChanges() {
         String username = inputUsernameEditedApp.getText().toString();
@@ -104,30 +124,24 @@ public class EditSelectedAppActivity extends AppCompatActivity {
         String link = appLinkEditText.getText().toString();
         String appName = appNameTextView.getText().toString();
 
-        // Log για να δούμε τι δεδομένα εισάγουμε
-        Log.d("EditSelectedAppActivity", "Saving credentials for User ID: " + userId + ", App ID: " + appId);
-        Log.d("EditSelectedAppActivity", "Username: " + username + ", Email: " + email);
-        Log.d("EditSelectedAppActivity", "App Name: " + appName + ", Link: " + link);
-
+        // Add hashing for the password before saving
         try {
             byte[] salt = DataBaseHelper.generateSalt();
             String hashedPassword = DataBaseHelper.hashPassword(password, salt);
             String saltStr = DataBaseHelper.encodeSalt(salt);
             String passwordToStore = hashedPassword + ":" + saltStr;
 
-            boolean success = dbHelper.saveAppCredentials(appId, userId, appName, username, email, passwordToStore, link);
-
-            // Καταγραφή για να δούμε αν η αποθήκευση ήταν επιτυχής
-            Log.d("EditSelectedAppActivity", "Save result: " + success);
+            // Insert new credentials into the database (not updating existing ones)
+            boolean success = dbHelper.saveAppCredentials(userId, appName, username, email, passwordToStore, link);
 
             if (success) {
                 Toast.makeText(this, "Credentials saved successfully", Toast.LENGTH_SHORT).show();
 
-                // Αλλαγή της ορατότητας των κουμπιών
+                // Hide save button and show the "Open app/website" button
                 saveSelectedAppData.setVisibility(View.GONE);
                 openAppWebsiteBtn.setVisibility(View.VISIBLE);
 
-                // Εμφάνιση των στοιχείων που αποθηκεύτηκαν
+                // Keep the entered data visible and show a result message
                 Intent returnIntent = new Intent();
                 returnIntent.putExtra("APP_ID", appId);
                 returnIntent.putExtra("UPDATED_APP_NAME", appNameTextView.getText().toString());
@@ -141,6 +155,7 @@ public class EditSelectedAppActivity extends AppCompatActivity {
             Toast.makeText(this, "Failed to hash password", Toast.LENGTH_SHORT).show();
         }
     }
+
 
 
 
