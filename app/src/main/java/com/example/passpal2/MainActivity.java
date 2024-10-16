@@ -115,23 +115,9 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 1 && resultCode == RESULT_OK) {
-            // Ανανέωση της λίστας μετά την επιλογή εφαρμογών στο AppSelectionActivity
-            // Φόρτωση νέων εφαρμογών από τη βάση
+        if (requestCode == EDIT_APP_REQUEST && resultCode == RESULT_OK) {
+            // Ανανέωση των δεδομένων
             new FetchAppsTask().execute(userId);
-        } else if (requestCode == EDIT_APP_REQUEST && resultCode == RESULT_OK) {
-            // Λογική για επεξεργασία των εφαρμογών, εάν χρειάζεται
-            ArrayList<Parcelable> parcelables = data.getParcelableArrayListExtra("selected_apps");
-            if (parcelables != null) {
-                List<AppsObj> apps = new ArrayList<>();
-                for (Parcelable parcelable : parcelables) {
-                    if (parcelable instanceof AppsObj) {
-                        apps.add((AppsObj) parcelable);
-                    }
-                }
-                // Ενημέρωση του adapter με τις νέες εφαρμογές
-                mainAppsAdapter.setSelectedApps(apps);
-            }
         }
     }
 
@@ -307,73 +293,93 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
             }
 
             @Override
+            public void onChildDraw(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
+                super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
+
+                // Θέτουμε το όριο στο 30% του πλάτους της οθόνης για την επεξεργασία (δεξιά swipe)
+                float limit = recyclerView.getWidth() * 0.3f;
+
+                // Αν το swipe είναι προς τα δεξιά (επεξεργασία) και δεν έχει φτάσει το όριο
+                if (dX > 0 && Math.abs(dX) < limit) {
+                    super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
+                } else if (dX > 0) {
+                    // Περιορίζουμε το swipe μέχρι το όριο
+                    dX = limit;
+                }
+
+                // Αν το swipe είναι προς τα αριστερά (διαγραφή), αφήνουμε να προχωρήσει κανονικά
+                if (dX < 0) {
+                    super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
+                }
+
+                // Εμφανίζουμε το background και τα εικονίδια
+                View itemView = viewHolder.itemView;
+                Paint p = new Paint();
+
+                if (dX > 0) {
+                    // Επεξεργασία - Πράσινο background
+                    p.setColor(Color.parseColor("#388E3C"));
+                    RectF background = new RectF(itemView.getLeft(), itemView.getTop(), dX, itemView.getBottom());
+                    c.drawRect(background, p);
+                } else if (dX < 0) {
+                    // Διαγραφή - Κόκκινο background
+                    p.setColor(Color.parseColor("#D32F2F"));
+                    RectF background = new RectF(itemView.getRight() + dX, itemView.getTop(), itemView.getRight(), itemView.getBottom());
+                    c.drawRect(background, p);
+                }
+
+                Drawable icon;
+                RectF iconDest;
+
+                if (dX > 0) {
+                    icon = ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_edit); // Εικονίδιο επεξεργασίας
+                    iconDest = new RectF(itemView.getLeft() + 50, itemView.getTop() + 50, itemView.getLeft() + 150, itemView.getBottom() - 50);
+                } else {
+                    icon = ContextCompat.getDrawable(getApplicationContext(), R.drawable.deleteappitem); // Εικονίδιο διαγραφής
+                    iconDest = new RectF(itemView.getRight() - 150, itemView.getTop() + 50, itemView.getRight() - 50, itemView.getBottom() - 50);
+                }
+
+                icon.setBounds(Math.round(iconDest.left), Math.round(iconDest.top), Math.round(iconDest.right), Math.round(iconDest.bottom));
+                icon.draw(c);
+            }
+
+            @Override
             public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
                 int position = viewHolder.getAdapterPosition();
+
                 if (direction == ItemTouchHelper.LEFT) {
                     // Διαγραφή της εφαρμογής
                     AppsObj app = mainAppsAdapter.getAppsList().get(position);
-                    // Αποθήκευση της εφαρμογής τοπικά για το undo
-                    AppsObj deletedApp = app;
-                    int deletedIndex = position;
-
                     dbHelper.deleteApp(app.getAppNames(), dbHelper.getUserIdByUsername(username));
                     mainAppsAdapter.getAppsList().remove(position);
                     mainAppsAdapter.notifyItemRemoved(position);
 
-                    // Εμφανίζει το Snackbar με την επιλογή Undo
-                    Snackbar.make(appsRecyclerView, "App deleted", Snackbar.LENGTH_LONG)
-                            .setAction("Undo", view -> {
-                                // Επαναφορά της διαγραφείσας εφαρμογής
-                                mainAppsAdapter.getAppsList().add(deletedIndex, deletedApp);
-                                mainAppsAdapter.notifyItemInserted(deletedIndex);
-                            }).show();
+                    Snackbar.make(appsRecyclerView, "App deleted", Snackbar.LENGTH_LONG).show();
+
                 } else if (direction == ItemTouchHelper.RIGHT) {
-                    // Επεξεργασία της εφαρμογής
-                    AppsObj app = mainAppsAdapter.getAppsList().get(position);
-                    // παίρνει τα δεδομένα της εφαρμογής και τα φορτώνει στην editapp
-                    Intent intent = new Intent(MainActivity.this, EditSelectedAppActivity.class);
-                    intent.putExtra("APP_DATA", app);
-                    intent.putExtra("APP_ID", app.getId());
-                    intent.putExtra("USER_ID", userId);
-                    intent.putExtra("POSITION", position);
-                    startActivityForResult(intent, EDIT_APP_REQUEST);
-                }
-            }
+                    // Έλεγχος αν το swipe ξεπερνάει το 30% του πλάτους της οθόνης
+                    float swipePercentage = Math.abs(viewHolder.itemView.getTranslationX()) / appsRecyclerView.getWidth();
 
-            @Override
-            public void onChildDraw(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
-                super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
+                    if (swipePercentage >= 0.3f) {
+                        // Αν ξεπεράσει το 30%, ανοίγουμε την επεξεργασία της εφαρμογής
+                        AppsObj app = mainAppsAdapter.getAppsList().get(position);
 
-                if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
-                    View itemView = viewHolder.itemView;
-
-                    Paint p = new Paint();
-                    Drawable icon;
-                    RectF iconDest;
-
-                    if (dX > 0) {
-                        // Swipe προς τα δεξιά - εμφάνιση του εικονιδίου επεξεργασίας
-                        p.setColor(Color.parseColor("#388E3C"));
-                        RectF background = new RectF(itemView.getLeft(), itemView.getTop(), dX, itemView.getBottom());
-                        c.drawRect(background, p);
-                        icon = ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_edit);
-                        iconDest = new RectF(itemView.getLeft() + 50, itemView.getTop() + 50, itemView.getLeft() + 150, itemView.getBottom() - 50);
+                        Intent intent = new Intent(MainActivity.this, EditSelectedAppActivity.class);
+                        intent.putExtra("APP_DATA", app);
+                        intent.putExtra("APP_ID", app.getId());
+                        intent.putExtra("USER_ID", userId);
+                        intent.putExtra("POSITION", position);
+                        startActivityForResult(intent, EDIT_APP_REQUEST);
                     } else {
-                        // Swipe προς τα αριστερά - εμφάνιση του εικονιδίου διαγραφής
-                        p.setColor(Color.parseColor("#D32F2F"));
-                        RectF background = new RectF(itemView.getRight() + dX, itemView.getTop(), itemView.getRight(), itemView.getBottom());
-                        c.drawRect(background, p);
-                        icon = ContextCompat.getDrawable(getApplicationContext(), R.drawable.deleteappitem);
-                        iconDest = new RectF(itemView.getRight() - 150, itemView.getTop() + 50, itemView.getRight() - 50, itemView.getBottom() - 50);
+                        // Αν δεν ξεπεράσει το 30%, κάνουμε bounce back
+                        mainAppsAdapter.notifyItemChanged(position);
                     }
-
-                    icon.setBounds(Math.round(iconDest.left), Math.round(iconDest.top), Math.round(iconDest.right), Math.round(iconDest.bottom));
-                    icon.draw(c);
                 }
             }
         };
+
+        // Σύνδεση του ItemTouchHelper με το RecyclerView
         new ItemTouchHelper(simpleItemTouchCallback).attachToRecyclerView(appsRecyclerView);
     }
-
 
 }

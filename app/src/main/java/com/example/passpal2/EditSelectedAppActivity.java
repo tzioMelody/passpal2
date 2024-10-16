@@ -164,10 +164,14 @@ public class EditSelectedAppActivity extends AppCompatActivity {
         new AlertDialog.Builder(this)
                 .setTitle("Αποθήκευση Αλλαγών")
                 .setMessage("Είστε σίγουροι ότι θέλετε να φύγετε; Όλες οι αλλαγές που δεν έχουν αποθηκευτεί θα χαθούν.")
-                .setPositiveButton("Ναι", (dialog, which) -> EditSelectedAppActivity.super.onBackPressed())
+                .setPositiveButton("Ναι", (dialog, which) -> {
+                    setResult(RESULT_OK);
+                    super.onBackPressed();
+                })
                 .setNegativeButton("Όχι", (dialog, which) -> dialog.dismiss())
                 .show();
     }
+
 
     private void togglePasswordVisibility() {
         if (isPasswordVisible) {
