@@ -24,15 +24,12 @@ public class EnterMasterPasswordActivity extends AppCompatActivity {
         getSupportActionBar().setTitle("Enter Master Password");
 
         dbHelper = new DataBaseHelper(this);
-
         masterPasswordEditText = findViewById(R.id.masterPasswordInput);
         submitMasterPasswordButton = findViewById(R.id.submitMasterPassword);
 
-        // Λήψη του user ID από το intent
         Intent intent = getIntent();
         userId = intent.getIntExtra("user_id", -1);
 
-        // Έλεγχος αν το userId είναι έγκυρο
         if (userId == -1) {
             showToast("User ID is invalid");
             Log.d("EnterMasterPasswordActivity", "User ID is invalid");
@@ -58,14 +55,13 @@ public class EnterMasterPasswordActivity extends AppCompatActivity {
             return;
         }
 
-        // Έλεγχος του Master Password
+        Log.d("EnterMasterPasswordActivity", "Entered Master Password: " + masterPassword);
+
         try {
             if (dbHelper.checkMasterPassword(userId, masterPassword)) {
                 showToast("Password correct");
-
                 Log.d("EnterMasterPasswordActivity", "Correct Master Password for UserID: " + userId);
 
-                // Μετάβαση στο PasswordsTableActivity
                 Intent intent = new Intent(EnterMasterPasswordActivity.this, PasswordsTableActivity.class);
                 intent.putExtra("user_id", userId);
                 startActivity(intent);
@@ -74,7 +70,7 @@ public class EnterMasterPasswordActivity extends AppCompatActivity {
                 showToast("Password incorrect");
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e("EnterMasterPasswordActivity", "Error verifying Master Password", e);
             showToast("Failed to verify Master Password due to error");
         }
     }
