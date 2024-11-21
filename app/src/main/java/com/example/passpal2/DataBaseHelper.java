@@ -36,7 +36,7 @@ import java.util.Arrays;
 
 public class DataBaseHelper extends SQLiteOpenHelper {
 
-    private static final int DATABASE_VERSION = 5;
+    private static final int DATABASE_VERSION = 7;
     private static final String DATABASE_NAME = "passpal.db";
 
     // User Table Columns
@@ -183,8 +183,9 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 COLUMN_APP_LINK + " TEXT, " +
                 COLUMN_IMAGE_RESOURCE + " INTEGER, " +
                 COLUMN_APP_IMAGE_URI + " TEXT, " +
-                COLUMN_IS_SELECTED + " INTEGER)";
-        db.execSQL(CREATE_TABLE_APPS_INFO);
+                COLUMN_IS_SELECTED + " INTEGER, " +
+                COLUMN_USER_ID + " INTEGER)";
+
 
 
         String createAppCredentialsTableStatement = "CREATE TABLE " + TABLE_APP_CREDENTIALS + " (" +
@@ -215,7 +216,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public long insertUser(String username, String email, String password) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
-        try {
+
             byte[] salt = PasswordUtil.generateSalt();
             String hashedPassword = PasswordUtil.hashPassword(password, salt);
             String saltStr = PasswordUtil.encodeSalt(salt);
@@ -224,10 +225,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             values.put(COLUMN_EMAIL, email);
             values.put(COLUMN_PASSWORD, hashedPassword + ":" + saltStr);
 
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-            return -1;
-        }
+
+
 
         return db.insert(USER_TABLE, null, values);
     }
@@ -259,21 +258,31 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     }
 
     // Μέθοδος για την αποθήκευση του master password
+    // Μέθοδος για την αποθήκευση του master password
     public void insertMasterPassword(int userId, String masterPassword) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
 
-        // Δημιουργία του salt και hash του κωδικού
-        byte[] salt = PasswordUtil.generateSalt();
-        String hashedPassword = PasswordUtil.hashPassword(masterPassword, salt);
-        String saltStr = PasswordUtil.encodeSalt(salt);
+        try {
+            // Δημιουργία salt και hashing του master password
+            byte[] salt = PasswordUtil.generateSalt(); // Παράγει νέο salt
+            String hashedPassword = PasswordUtil.hashPassword(masterPassword, salt); // Hash του κωδικού
+            String saltStr = PasswordUtil.encodeSalt(salt); // Κωδικοποίηση salt σε string
 
-        // Αποθήκευση hashed κωδικού και salt
-        values.put(COLUMN_USERID, userId);
-        values.put(COLUMN_MASTER_PASSWORD, hashedPassword + ":" + saltStr);
+            // Αποθήκευση hashed password και salt στον πίνακα
+            values.put(COLUMN_USERID, userId); // User ID
+            values.put(COLUMN_MASTER_PASSWORD, hashedPassword + ":" + saltStr); // Συνδυασμός hash και salt
 
-        db.insert(MASTER_PASSWORD_TABLE, null, values);
-        db.close();
+            // Εισαγωγή στη βάση δεδομένων
+            long result = db.insert(MASTER_PASSWORD_TABLE, null, values);
+            if (result == -1) {
+                Log.e("DataBaseHelper", "Failed to insert master password for user ID: " + userId);
+            } else {
+                Log.d("DataBaseHelper", "Master password stored successfully for user ID: " + userId);
+            }
+        } finally {
+            db.close();
+        }
     }
 
 
@@ -550,6 +559,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return rowsAffected > 0;
     }
 
+    // Μέθοδος για επαλήθευση του master password
     public boolean checkMasterPassword(int userId, String masterPassword) {
         SQLiteDatabase db = this.getReadableDatabase();
         String[] columns = {COLUMN_MASTER_PASSWORD};
@@ -569,15 +579,19 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 String storedHash = parts[0];
                 String storedSalt = parts[1];
 
-                // Δημιουργία hash για τον κωδικό που δίνει ο χρήστης
-                String hashedInputPassword = PasswordUtil.hashPassword(masterPassword, PasswordUtil.decodeSalt(storedSalt));
+                // Δημιουργία hash για τον εισαγόμενο κωδικό με το αποθηκευμένο salt
+                byte[] salt = PasswordUtil.decodeSalt(storedSalt); // Ανακωδικοποίηση του salt
+                String hashedInputPassword = PasswordUtil.hashPassword(masterPassword, salt);
 
+                // Σύγκριση hash
                 return storedHash.equals(hashedInputPassword);
             }
         }
 
+        db.close();
         return false;
     }
+
 
     public boolean saveAppCredentials(int userId, String appName, String username, String email, String password, String link) {
         SQLiteDatabase db = this.getWritableDatabase();

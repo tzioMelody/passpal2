@@ -4,8 +4,10 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,6 +16,7 @@ public class EnterMasterPasswordActivity extends AppCompatActivity {
 
     private EditText masterPasswordEditText;
     private Button submitMasterPasswordButton;
+    private ProgressBar progressBar;
     private DataBaseHelper dbHelper;
     private int userId;
 
@@ -23,9 +26,9 @@ public class EnterMasterPasswordActivity extends AppCompatActivity {
         setContentView(R.layout.activity_enter_masterpassword);
         getSupportActionBar().setTitle("Enter Master Password");
 
+        initializeViews();
+
         dbHelper = new DataBaseHelper(this);
-        masterPasswordEditText = findViewById(R.id.masterPasswordInput);
-        submitMasterPasswordButton = findViewById(R.id.submitMasterPassword);
 
         Intent intent = getIntent();
         userId = intent.getIntExtra("user_id", -1);
@@ -39,39 +42,50 @@ public class EnterMasterPasswordActivity extends AppCompatActivity {
 
         Log.d("EnterMasterPasswordActivity", "Received UserID: " + userId);
 
-        submitMasterPasswordButton.setOnClickListener(v -> submitMasterPassword());
+        submitMasterPasswordButton.setOnClickListener(v -> attemptMasterPasswordVerification());
     }
 
-    private void submitMasterPassword() {
+    private void initializeViews() {
+        masterPasswordEditText = findViewById(R.id.masterPasswordInput);
+        submitMasterPasswordButton = findViewById(R.id.submitMasterPassword);
+        progressBar = findViewById(R.id.progressBar);
+    }
+
+    private void attemptMasterPasswordVerification() {
+        progressBar.setVisibility(View.VISIBLE);
+
         String masterPassword = masterPasswordEditText.getText().toString().trim();
 
+        Log.d("MasterPasswordDebug", "Master Password entered: [Hidden for security]");
+
         if (TextUtils.isEmpty(masterPassword)) {
+            progressBar.setVisibility(View.GONE);
             showToast("Password field is required");
             return;
         }
 
         if (masterPassword.length() != 4) {
+            progressBar.setVisibility(View.GONE);
             showToast("Password must be exactly 4 characters long");
             return;
         }
 
-        Log.d("EnterMasterPasswordActivity", "Entered Master Password: " + masterPassword);
+        boolean isMasterPasswordValid = dbHelper.checkMasterPassword(userId, masterPassword);
 
-        try {
-            if (dbHelper.checkMasterPassword(userId, masterPassword)) {
-                showToast("Password correct");
-                Log.d("EnterMasterPasswordActivity", "Correct Master Password for UserID: " + userId);
+        progressBar.setVisibility(View.GONE);
+        Log.d("MasterPasswordDebug", "Master Password valid: " + isMasterPasswordValid);
 
-                Intent intent = new Intent(EnterMasterPasswordActivity.this, PasswordsTableActivity.class);
-                intent.putExtra("user_id", userId);
-                startActivity(intent);
-                finish();
-            } else {
-                showToast("Password incorrect");
-            }
-        } catch (Exception e) {
-            Log.e("EnterMasterPasswordActivity", "Error verifying Master Password", e);
-            showToast("Failed to verify Master Password due to error");
+        if (isMasterPasswordValid) {
+            showToast("Password correct");
+            Log.d("MasterPasswordDebug", "Correct Master Password for UserID: " + userId);
+
+            Intent intent = new Intent(EnterMasterPasswordActivity.this, PasswordsTableActivity.class);
+            intent.putExtra("user_id", userId);
+            startActivity(intent);
+            finish();
+        } else {
+            showToast("Password incorrect");
+            Log.e("MasterPasswordDebug", "Incorrect Master Password for UserID: " + userId);
         }
     }
 
