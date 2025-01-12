@@ -7,25 +7,15 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
-import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.LinearLayout;
-import android.widget.PopupMenu;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.ItemTouchHelper;
@@ -33,16 +23,11 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.bottomsheet.BottomSheetBehavior;
-import com.google.android.material.bottomsheet.BottomSheetDialog;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity implements RecyclerViewInterface {
     String username;
@@ -137,26 +122,16 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
                     overridePendingTransition(0, 0);
                     return true;
 
-                case R.id.settings:
-                    // Go to SettingsActivity
-                    Intent settingsIntent = new Intent(MainActivity.this, SettingsActivity.class);
-                    settingsIntent.putExtra("USER_ID", userId); // Pass userId
-                    startActivity(settingsIntent);
-                    overridePendingTransition(0, 0);
+                case R.id.syncData:
+                    syncDataToFirestore();
                     return true;
             }
             return false;
         });
     }
-
-
-
-
     private void showToast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
-
-
 
     private void showMasterPasswordActivity(int userId) {
         Intent intent = new Intent(this, SetMasterPasswordActivity.class);
@@ -358,6 +333,47 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
         new ItemTouchHelper(simpleItemTouchCallback).attachToRecyclerView(appsRecyclerView);
     }
 
+    private void syncDataToFirestore() {
+        String userEmail = dbHelper.getUserEmailByUserId(userId);
+        if (userEmail == null || userEmail.isEmpty()) {
+            Toast.makeText(this, "User email not found. Cannot sync data.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        List<AppsObj> appsToSync = dbHelper.getAllSelectedApps(userId);
+        if (appsToSync.isEmpty()) {
+            Toast.makeText(this, "No apps to sync.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        firestore.collection("users")
+                .document(userEmail)
+                .collection("apps")
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    // Batch write to ensure efficient updates
+                    firestore.runBatch(batch -> {
+                        for (AppsObj app : appsToSync) {
+                            batch.set(
+                                    firestore.collection("users")
+                                            .document(userEmail)
+                                            .collection("apps")
+                                            .document(app.getAppNames()), // Using app name as document ID
+                                    app.toMap() // Convert app to a Map for Firestore
+                            );
+                        }
+                    }).addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            Toast.makeText(this, "Data synced successfully.", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(this, "Error syncing data: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Failed to connect to Firestore: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
     @Override
     protected void onResume() {
         super.onResume();
