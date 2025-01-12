@@ -70,13 +70,13 @@ public class ForgotPasswordActivity extends AppCompatActivity {
             DataBaseHelper dbHelper = new DataBaseHelper(context);
             try {
                 // Δημιουργία salt για τον νέο κωδικό
-                byte[] salt = DataBaseHelper.generateSalt();
+                byte[] salt = PasswordUtil.generateSalt();
 
                 // Δημιουργία του hash του νέου κωδικού
-                String hashedPassword = DataBaseHelper.hashPassword(newPassword, salt);
+                String hashedPassword = PasswordUtil.hashPassword(newPassword, salt);
 
                 // Κωδικοποίηση του salt για αποθήκευση στη βάση δεδομένων
-                String saltStr = DataBaseHelper.encodeSalt(salt);
+                String saltStr = PasswordUtil.encodeSalt(salt);
 
                 // Συνδυασμός του hash και του salt για αποθήκευση
                 String passwordToStore = hashedPassword + ":" + saltStr;

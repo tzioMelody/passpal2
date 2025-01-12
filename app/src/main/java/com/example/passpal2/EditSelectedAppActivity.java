@@ -2,6 +2,8 @@ package com.example.passpal2;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -10,6 +12,7 @@ import android.text.method.PasswordTransformationMethod;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.autofill.AutofillManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -39,8 +42,6 @@ public class EditSelectedAppActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_app);
 
-
-
         dbHelper = new DataBaseHelper(this);
 
         Intent intent = getIntent();
@@ -53,7 +54,6 @@ public class EditSelectedAppActivity extends AppCompatActivity {
                 getSupportActionBar().setDisplayHomeAsUpEnabled(true);
                 getSupportActionBar().setTitle(appName);
             }
-
 
             appId = intent.getIntExtra("APP_ID", -1);
             userId = intent.getIntExtra("USER_ID", -1);
@@ -71,6 +71,10 @@ public class EditSelectedAppActivity extends AppCompatActivity {
         saveSelectedAppData = findViewById(R.id.SaveSelectedAppData);
         openAppWebsiteBtn = findViewById(R.id.OpenAppWebsite);
         selectedAppPassword = findViewById(R.id.passwordEditText);
+
+        inputEmailEditedApp.setAutofillHints(View.AUTOFILL_HINT_EMAIL_ADDRESS);
+        inputUsernameEditedApp.setAutofillHints(View.AUTOFILL_HINT_USERNAME);
+        selectedAppPassword.setAutofillHints(View.AUTOFILL_HINT_PASSWORD);
 
         saveSelectedAppData.setOnClickListener(v -> {
             String email = inputEmailEditedApp.getText().toString();
@@ -92,14 +96,36 @@ public class EditSelectedAppActivity extends AppCompatActivity {
         });
 
         openAppWebsiteBtn.setOnClickListener(view -> {
-            String url = appLinkEditText.getText().toString();
+            // Get the app name entered by the user
+            String appName = appNameTextView.getText().toString();
 
-            if (!url.startsWith("http://") && !url.startsWith("https://")) {
-                url = "http://" + url;
+            PackageManager packageManager = getPackageManager();
+            Intent launchIntent = null;
+
+            // Iterate through installed apps to find a match by app name
+            for (ApplicationInfo appInfo : packageManager.getInstalledApplications(PackageManager.GET_META_DATA)) {
+                String appLabel = packageManager.getApplicationLabel(appInfo).toString();
+                if (appLabel.equalsIgnoreCase(appName)) {
+                    // Match found, get the launch intent
+                    launchIntent = packageManager.getLaunchIntentForPackage(appInfo.packageName);
+                    break;
+                }
             }
 
-            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-            startActivity(browserIntent);
+            if (launchIntent != null) {
+                // Launch the app if found and exit the method
+                startActivity(launchIntent);
+            } else {
+                // If no match, fallback to opening the URL
+                String url = appLinkEditText.getText().toString();
+                if (!url.startsWith("http://") && !url.startsWith("https://")) {
+                    url = "http://" + url;
+                }
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                startActivity(browserIntent);
+
+                Toast.makeText(EditSelectedAppActivity.this, "Opening", Toast.LENGTH_SHORT).show();
+            }
         });
 
         selectedAppPassword.setOnTouchListener((v, event) -> {
@@ -124,18 +150,14 @@ public class EditSelectedAppActivity extends AppCompatActivity {
         String link = appLinkEditText.getText().toString();
         String appName = appNameTextView.getText().toString();
 
-        // Add hashing for the password before saving
         try {
-            byte[] salt = DataBaseHelper.generateSalt();
-            String hashedPassword = DataBaseHelper.hashPassword(password, salt);
-            String saltStr = DataBaseHelper.encodeSalt(salt);
-            String passwordToStore = hashedPassword + ":" + saltStr;
-
             // Insert new credentials into the database (not updating existing ones)
-            boolean success = dbHelper.saveAppCredentials(userId, appName, username, email, passwordToStore, link);
+            boolean success = dbHelper.saveAppCredentials(userId, appName, username, email, password, link);
 
             if (success) {
                 Toast.makeText(this, "Credentials saved successfully", Toast.LENGTH_SHORT).show();
+
+                saveCredentialsToAutofill(username, email, password);
 
                 // Hide save button and show the "Open app/website" button
                 saveSelectedAppData.setVisibility(View.GONE);
@@ -150,14 +172,29 @@ public class EditSelectedAppActivity extends AppCompatActivity {
             } else {
                 Toast.makeText(this, "Failed to save credentials", Toast.LENGTH_SHORT).show();
             }
-        } catch (NoSuchAlgorithmException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             Toast.makeText(this, "Failed to hash password", Toast.LENGTH_SHORT).show();
         }
     }
 
+    private void saveCredentialsToAutofill(String username, String email, String password) {
+        AutofillManager autofillManager = getSystemService(AutofillManager.class);
 
+        if (autofillManager != null && autofillManager.isEnabled()) {
+            // Set Autofill hints
+            inputUsernameEditedApp.setAutofillHints(View.AUTOFILL_HINT_USERNAME);
+            inputEmailEditedApp.setAutofillHints(View.AUTOFILL_HINT_EMAIL_ADDRESS);
+            selectedAppPassword.setAutofillHints(View.AUTOFILL_HINT_PASSWORD);
 
+            // Create an Autofill Service request
+            autofillManager.commit();
+            autofillManager.notifyValueChanged(inputUsernameEditedApp);
+            autofillManager.notifyValueChanged(inputEmailEditedApp);
+            autofillManager.notifyValueChanged(selectedAppPassword);
+
+        }
+    }
 
     @Override
     public void onBackPressed() {

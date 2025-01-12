@@ -36,7 +36,7 @@ import java.util.Arrays;
 
 public class DataBaseHelper extends SQLiteOpenHelper {
 
-    private static final int DATABASE_VERSION = 7;
+    private static final int DATABASE_VERSION = 8;
     private static final String DATABASE_NAME = "passpal.db";
 
     // User Table Columns
@@ -185,8 +185,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 COLUMN_APP_IMAGE_URI + " TEXT, " +
                 COLUMN_IS_SELECTED + " INTEGER, " +
                 COLUMN_USER_ID + " INTEGER)";
-
-
+        db.execSQL(CREATE_TABLE_APPS_INFO);
 
         String createAppCredentialsTableStatement = "CREATE TABLE " + TABLE_APP_CREDENTIALS + " (" +
                 COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -258,7 +257,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     }
 
     // Μέθοδος για την αποθήκευση του master password
-    // Μέθοδος για την αποθήκευση του master password
     public void insertMasterPassword(int userId, String masterPassword) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -286,34 +284,33 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     }
 
 
-
+    // REFORMATTED
     // Μέθοδος για έλεγχο αν ο χρήστης υπάρχει με βάση το username και το password
     public boolean checkUser(String username, String password) {
         SQLiteDatabase db = this.getReadableDatabase();
-        String[] columns = {COLUMN_PASSWORD};
-        String selection = COLUMN_USERNAME + " = ?";
-        String[] selectionArgs = {username};
-
-        Cursor cursor = db.query(USER_TABLE, columns, selection, selectionArgs, null, null, null);
+        Cursor cursor = db.query(USER_TABLE,
+                new String[]{COLUMN_PASSWORD},
+                COLUMN_USERNAME + "=?",
+                new String[]{username},
+                null, null, null);
 
         if (cursor != null && cursor.moveToFirst()) {
-            String storedPasswordData = cursor.getString(cursor.getColumnIndex(COLUMN_PASSWORD));
+            String storedPassword = cursor.getString(0);
             cursor.close();
 
-            // Διαχωρίζουμε το hash και το salt
-            String[] parts = storedPasswordData.split(":");
-            if (parts.length == 2) {
-                String storedHash = parts[0];
-                String storedSalt = parts[1];
-
-                // Επαναδημιουργία hash του κωδικού που εισάγει ο χρήστης
-                byte[] salt = PasswordUtil.decodeSalt(storedSalt);
-                String hashedInputPassword = PasswordUtil.hashPassword(password, salt);
-
-                // Σύγκριση hash
-                return storedHash.equals(hashedInputPassword);
+            String[] parts = storedPassword.split(":");
+            if (parts.length != 2) {
+                return false;
             }
+
+            String storedHash = parts[0];
+            byte[] storedSalt = PasswordUtil.decodeSalt(parts[1]);
+
+            String computedHash = PasswordUtil.hashPassword(password, storedSalt);
+
+            return storedHash.equals(computedHash);
         }
+
         return false;
     }
 
@@ -358,6 +355,24 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         SharedPreferences preferences = context.getSharedPreferences("user_credentials", MODE_PRIVATE);
         return preferences.getInt("userId", -1); // Επιστρέφει -1 αν δεν βρεθεί τιμή
     }
+
+    public String getUserEmailByUserId(int userId) {
+        String email = null;
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT " + COLUMN_EMAIL + " FROM " + USER_TABLE + " WHERE " + COLUMN_ID + " = ?", new String[]{String.valueOf(userId)});
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                int columnIndex = cursor.getColumnIndex(COLUMN_EMAIL);
+                if (columnIndex != -1) {
+                    email = cursor.getString(columnIndex);
+                }
+            }
+            cursor.close();
+        }
+        db.close();
+        return email;
+    }
+
 
     // Μέθοδος για την ενημέρωση του password με βάση το email
     public boolean updatePasswordByEmail(String email, String newPassword) {
@@ -533,12 +548,39 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                     int id = cursor.getInt(idColumnIndex);
                     String appName = cursor.getString(appNameColumnIndex);
                     String appLink = cursor.getString(appLinkColumnIndex);
-                    String username = cursor.getString(usernameColumnIndex);
-                    String email = cursor.getString(emailColumnIndex);
-                    String password = cursor.getString(passwordColumnIndex);
+
+                    // Decrypt the sensitive fields
+                    String encryptedUsername = cursor.getString(usernameColumnIndex);
+                    String decryptedUsername = null;
+                    try {
+                        decryptedUsername = EncryptionHelper.decrypt(encryptedUsername);
+                        Log.e("DecryptDebug", "Decrypted: " + decryptedUsername);
+                    } catch (Exception e) {
+                        Log.e("DataBaseHelper", "Decryption error for username: " + e.getMessage());
+                    }
+
+                    String encryptedEmail = cursor.getString(emailColumnIndex);
+                    String decryptedEmail = null;
+                    try {
+                        decryptedEmail = EncryptionHelper.decrypt(encryptedEmail);
+                        Log.e("DecryptDebug", "Decrypted: " + decryptedEmail);
+                    } catch (Exception e) {
+                        Log.e("DataBaseHelper", "Decryption error for email: " + e.getMessage());
+                    }
+
+                    String encryptedPassword = cursor.getString(passwordColumnIndex);
+                    String decryptedPassword = null;
+                    try {
+                        decryptedPassword = EncryptionHelper.decrypt(encryptedPassword);
+                        Log.e("DecryptDebug", "Decrypted: " + decryptedPassword);
+                    } catch (Exception e) {
+                        Log.e("DataBaseHelper", "Decryption error for password: " + e.getMessage());
+                    }
+
                     String imageUriString = cursor.getString(imageUriStringColumnIndex);
 
-                    AppCredentials credentials = new AppCredentials(userId, appName, appLink, username, email, password, imageUriString);
+                    // Create AppCredentials object with decrypted values
+                    AppCredentials credentials = new AppCredentials(userId, appName, appLink, decryptedUsername, decryptedEmail, decryptedPassword, imageUriString);
                     credentials.setId(id);
 
                     credentialsList.add(credentials);
@@ -549,6 +591,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         db.close();
         return credentialsList;
     }
+
 
     public boolean updateMasterPasswordToPlainText(int userId, String newMasterPassword) {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -562,6 +605,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     // Μέθοδος για επαλήθευση του master password
     public boolean checkMasterPassword(int userId, String masterPassword) {
         SQLiteDatabase db = this.getReadableDatabase();
+
         String[] columns = {COLUMN_MASTER_PASSWORD};
         String selection = COLUMN_USERID + " = ?";
         String[] selectionArgs = {String.valueOf(userId)};
@@ -571,21 +615,21 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         if (cursor != null && cursor.moveToFirst()) {
             String storedPasswordData = cursor.getString(cursor.getColumnIndex(COLUMN_MASTER_PASSWORD));
             cursor.close();
-            db.close();
 
             // Διαχωρισμός του hash και του salt
             String[] parts = storedPasswordData.split(":");
-            if (parts.length == 2) {
-                String storedHash = parts[0];
-                String storedSalt = parts[1];
-
-                // Δημιουργία hash για τον εισαγόμενο κωδικό με το αποθηκευμένο salt
-                byte[] salt = PasswordUtil.decodeSalt(storedSalt); // Ανακωδικοποίηση του salt
-                String hashedInputPassword = PasswordUtil.hashPassword(masterPassword, salt);
-
-                // Σύγκριση hash
-                return storedHash.equals(hashedInputPassword);
+            if (parts.length != 2) {
+                return false; // Invalid format
             }
+
+            String storedHash = parts[0];
+            byte[] storedSalt = PasswordUtil.decodeSalt(parts[1]);
+
+            // Hash the entered Master Password with the stored salt
+            String hashedInputPassword = PasswordUtil.hashPassword(masterPassword, storedSalt);
+
+            // Σύγκριση hash
+            return storedHash.equals(hashedInputPassword);
         }
 
         db.close();
@@ -597,65 +641,42 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues cv = new ContentValues();
 
-        cv.put(COLUMN_USER_ID, userId);
-        cv.put(COLUMN_APP_NAME_CREDENTIALS, appName);
-        cv.put(COLUMN_USERNAME_CREDENTIALS, username);
-        cv.put(COLUMN_EMAIL_CREDENTIALS, email);
-        cv.put(COLUMN_PASSWORD_CREDENTIALS, password);
-        cv.put(COLUMN_APP_LINK_CREDENTIALS, link);
-
-        Log.d("DataBaseHelper", "Attempting to insert new credentials for User ID: " + userId);
-
-        // Εισαγωγή νέας εγγραφής
-        long result = db.insert(TABLE_APP_CREDENTIALS, null, cv);
-        db.close();
-
-        if (result == -1) {
-            Log.e("DataBaseHelper", "Failed to insert new credentials for User ID: " + userId);
-            return false;
-        } else {
-            Log.d("DataBaseHelper", "Inserted new credentials successfully for User ID: " + userId);
-            return true;
-        }
-    }
-
-
-
-    //  ΚΡΥΠΤΟΓΡΑΦΗΣΗ *** ΚΡΥΠΤΟΓΡΑΦΗΣΗ *** ΚΡΥΠΤΟΓΡΑΦΗΣΗ *** ΚΡΥΠΤΟΓΡΑΦΗΣΗ *** ΚΡΥΠΤΟΓΡΑΦΗΣΗ
-    // Μέθοδος για την παραγωγή ενός salt
-    public static byte[] generateSalt() throws NoSuchAlgorithmException {
-        SecureRandom sr = SecureRandom.getInstance("SHA1PRNG");
-        byte[] salt = new byte[16];
-        sr.nextBytes(salt);
-        return salt;
-    }
-
-    // Μέθοδος για το hashing του κωδικού με salt
-    public static String hashPassword(String password, byte[] salt) {
         try {
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            md.update(salt);
-            byte[] hashedPassword = md.digest(password.getBytes());
-            StringBuilder sb = new StringBuilder();
-            for (byte b : hashedPassword) {
-                sb.append(String.format("%02x", b));
+            // Ensure the encryption key exists
+            EncryptionHelper.generateKey();
+
+            // Encrypt sensitive data
+            String encryptedUsername = EncryptionHelper.encrypt(username);
+            String encryptedEmail = EncryptionHelper.encrypt(email);
+            String encryptedPassword = EncryptionHelper.encrypt(password);
+
+            // Add encrypted values to ContentValues
+            cv.put(COLUMN_USER_ID, userId);
+            cv.put(COLUMN_APP_NAME_CREDENTIALS, appName);
+            cv.put(COLUMN_USERNAME_CREDENTIALS, encryptedUsername);
+            cv.put(COLUMN_EMAIL_CREDENTIALS, encryptedEmail);
+            cv.put(COLUMN_PASSWORD_CREDENTIALS, encryptedPassword);
+            cv.put(COLUMN_APP_LINK_CREDENTIALS, link);
+
+            Log.d("DataBaseHelper", "Attempting to insert new credentials for User ID: " + userId);
+
+            // Insert new record
+            long result = db.insert(TABLE_APP_CREDENTIALS, null, cv);
+            db.close();
+
+            if (result == -1) {
+                Log.e("DataBaseHelper", "Failed to insert new credentials for User ID: " + userId);
+                return false;
+            } else {
+                Log.d("DataBaseHelper", "Inserted new credentials successfully for User ID: " + userId);
+                return true;
             }
-            return sb.toString();
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            Log.e("DataBaseHelper", "Encryption error: " + e.getMessage());
+            db.close();
+            return false;
         }
     }
-
-    // Μέθοδος για την κωδικοποίηση του salt σε String για αποθήκευση
-    public static String encodeSalt(byte[] salt) {
-        return Base64.encodeToString(salt, Base64.DEFAULT);
-    }
-
-    // Μέθοδος για την αποκωδικοποίηση του salt από String
-    public static byte[] decodeSalt(String saltStr) {
-        return Base64.decode(saltStr, Base64.DEFAULT);
-    }
-
 }
 
 /*

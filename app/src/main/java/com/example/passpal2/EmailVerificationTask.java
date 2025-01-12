@@ -60,7 +60,8 @@ public class EmailVerificationTask extends AsyncTask<String, Void, Boolean> {
 
         HttpURLConnection urlConnection = null;
         try {
-            URL url = new URL("https://api.hunter.io/v2/email-verifier?email=" + emailToVerify + "&api_key=9f387e4dfb8a839b9b246089137cc92244ad5562");
+            // NEW API
+            URL url = new URL("https://emailvalidation.abstractapi.com/v1/?api_key=d62ef45219d64d37b16a5edf831d6496&email=" + emailToVerify);
             urlConnection = (HttpURLConnection) url.openConnection();
             BufferedReader reader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
             StringBuilder result = new StringBuilder();
@@ -70,13 +71,19 @@ public class EmailVerificationTask extends AsyncTask<String, Void, Boolean> {
             }
 
             JSONObject jsonObject = new JSONObject(result.toString());
-            JSONObject data = jsonObject.getJSONObject("data");
 
-            // Καταγραφή της απόκρισης για έλεγχο
-            Log.d("EmailVerification", "API Response: " + data.toString());
+            // Log the full API response for debugging
+            Log.d("EmailVerification", "API Full Response: " + jsonObject.toString());
 
-            // Έλεγχος του αποτελέσματος αν είναι "deliverable"
-            return data.getString("result").equals("deliverable");
+            // Check the deliverability status directly
+            String deliverability = jsonObject.optString("deliverability", "");
+            if (!deliverability.isEmpty()) {
+                Log.d("EmailVerification", "Deliverability: " + deliverability);
+                return "DELIVERABLE".equalsIgnoreCase(deliverability);
+            } else {
+                Log.e("EmailVerification", "Deliverability status not found in API response.");
+                return false;
+            }
 
         } catch (Exception e) {
             e.printStackTrace();

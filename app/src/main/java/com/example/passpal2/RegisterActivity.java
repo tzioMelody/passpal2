@@ -1,9 +1,5 @@
 package com.example.passpal2;
 
-import static com.example.passpal2.DataBaseHelper.encodeSalt;
-import static com.example.passpal2.DataBaseHelper.generateSalt;
-import static com.example.passpal2.DataBaseHelper.hashPassword;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -124,13 +120,10 @@ public class RegisterActivity extends AppCompatActivity implements EmailVerifica
 
     private void registerUser(String username, String email, String password) {
         try {
-            byte[] salt = DataBaseHelper.generateSalt();
-            String hashedPassword = DataBaseHelper.hashPassword(password, salt);
-            String saltStr = DataBaseHelper.encodeSalt(salt);
-            String passwordToStore = hashedPassword + ":" + saltStr;
+            // REMOVED HASHING AND SALTING
 
-            // Χρήση της insertUser() για εισαγωγή στη βάση δεδομένων
-            long userId = dbHelper.insertUser(username, email, passwordToStore);
+            // DIRECTLY CALL insertUser() IN DataBaseHelper
+            long userId = dbHelper.insertUser(username, email, password);
 
             if (userId != -1) {
                 showToast("User registered successfully");

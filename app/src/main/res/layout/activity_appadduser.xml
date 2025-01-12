@@ -64,6 +64,7 @@
                 android:layout_marginTop="16dp"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
                 android:hint="@string/username"
+                android:autofillHints="username"
                 app:boxStrokeColor="@color/white"
                 app:startIconDrawable="@drawable/ic_person">
 
@@ -80,6 +81,7 @@
                 android:layout_marginTop="16dp"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
                 android:hint="@string/email"
+                android:autofillHints="emailAddress"
                 app:boxStrokeColor="@color/white"
                 app:startIconDrawable="@drawable/ic_email">
 
@@ -96,6 +98,7 @@
                 android:layout_marginTop="16dp"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
                 android:hint="@string/password"
+                android:autofillHints="password"
                 app:endIconMode="password_toggle"
                 app:boxStrokeColor="@color/white"
                 app:startIconDrawable="@drawable/ic_password">

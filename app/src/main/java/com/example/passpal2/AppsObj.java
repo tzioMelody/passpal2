@@ -6,7 +6,9 @@ import android.os.Parcelable;
 import androidx.annotation.NonNull;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class AppsObj implements Parcelable {
     private int id;
@@ -185,4 +187,15 @@ public class AppsObj implements Parcelable {
 
     // Στατική λίστα USER_APPS
     public static List<UserApp> USER_APPS = new ArrayList<>();
+
+    public Map<String, Object> toMap() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("id", id);
+        map.put("appNames", AppNames);
+        map.put("username", username);
+        map.put("password", password);
+        map.put("appLink", AppLinks);
+        return map;
+    }
+
 }

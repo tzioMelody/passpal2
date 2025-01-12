@@ -7,7 +7,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,7 +15,6 @@ public class EnterMasterPasswordActivity extends AppCompatActivity {
 
     private EditText masterPasswordEditText;
     private Button submitMasterPasswordButton;
-    private ProgressBar progressBar;
     private DataBaseHelper dbHelper;
     private int userId;
 
@@ -48,46 +46,46 @@ public class EnterMasterPasswordActivity extends AppCompatActivity {
     private void initializeViews() {
         masterPasswordEditText = findViewById(R.id.masterPasswordInput);
         submitMasterPasswordButton = findViewById(R.id.submitMasterPassword);
-        progressBar = findViewById(R.id.progressBar);
     }
 
     private void attemptMasterPasswordVerification() {
-        progressBar.setVisibility(View.VISIBLE);
+        try {
+            String masterPassword = masterPasswordEditText.getText().toString().trim();
 
-        String masterPassword = masterPasswordEditText.getText().toString().trim();
+            Log.d("MasterPasswordDebug", "Master Password entered: [Hidden for security]");
 
-        Log.d("MasterPasswordDebug", "Master Password entered: [Hidden for security]");
+            if (TextUtils.isEmpty(masterPassword)) {
+                showToast("Password field is required");
+                return;
+            }
 
-        if (TextUtils.isEmpty(masterPassword)) {
-            progressBar.setVisibility(View.GONE);
-            showToast("Password field is required");
-            return;
-        }
+            if (masterPassword.length() != 4) {
+                showToast("Password must be exactly 4 characters long");
+                return;
+            }
 
-        if (masterPassword.length() != 4) {
-            progressBar.setVisibility(View.GONE);
-            showToast("Password must be exactly 4 characters long");
-            return;
-        }
+            boolean isMasterPasswordValid = dbHelper.checkMasterPassword(userId, masterPassword);
 
-        boolean isMasterPasswordValid = dbHelper.checkMasterPassword(userId, masterPassword);
+            Log.d("MasterPasswordDebug", "Master Password valid: " + isMasterPasswordValid);
 
-        progressBar.setVisibility(View.GONE);
-        Log.d("MasterPasswordDebug", "Master Password valid: " + isMasterPasswordValid);
+            if (isMasterPasswordValid) {
+                showToast("Password correct");
+                Log.d("MasterPasswordDebug", "Correct Master Password for UserID: " + userId);
 
-        if (isMasterPasswordValid) {
-            showToast("Password correct");
-            Log.d("MasterPasswordDebug", "Correct Master Password for UserID: " + userId);
-
-            Intent intent = new Intent(EnterMasterPasswordActivity.this, PasswordsTableActivity.class);
-            intent.putExtra("user_id", userId);
-            startActivity(intent);
-            finish();
-        } else {
-            showToast("Password incorrect");
-            Log.e("MasterPasswordDebug", "Incorrect Master Password for UserID: " + userId);
+                Intent intent = new Intent(EnterMasterPasswordActivity.this, PasswordsTableActivity.class);
+                intent.putExtra("user_id", userId);
+                startActivity(intent);
+                finish();
+            } else {
+                showToast("Password incorrect");
+                Log.e("MasterPasswordDebug", "Incorrect Master Password for UserID: " + userId);
+            }
+        } catch (Exception e) {
+            Log.e("MasterPasswordDebug", "Error during password verification: ", e);
+            showToast("An error occurred. Please try again.");
         }
     }
+
 
     private void showToast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();

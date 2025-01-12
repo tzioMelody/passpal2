@@ -154,7 +154,12 @@ public class AddAppUserActivity extends AppCompatActivity {
         // Αποθήκευση στη βάση δεδομένων
         boolean result = dbHelper.saveSelectedAppToDatabase(new AppsObj(appName, appLink, 0, username, email, password, appImageBytes), userId);
 
-        if (result) {
+        // Save app credentials
+        boolean credentialsSaveResult = dbHelper.saveAppCredentials(
+                userId, appName, username, email, password, appLink
+        );
+
+        if (result && credentialsSaveResult) {
             // Επιστροφή αποτελεσμάτων πίσω στην `AppSelectionActivity`
             Intent returnIntent = new Intent();
             returnIntent.putExtra("AppName", appName);

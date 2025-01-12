@@ -20,7 +20,7 @@ public class PasswordUtil {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
             md.update(salt);
             byte[] hashedPassword = md.digest(password.getBytes());
-            return Base64.encodeToString(hashedPassword, Base64.DEFAULT);
+            return Base64.encodeToString(hashedPassword, Base64.DEFAULT).trim();
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
@@ -28,7 +28,7 @@ public class PasswordUtil {
 
     // Κωδικοποίηση του salt για αποθήκευση
     public static String encodeSalt(byte[] salt) {
-        return Base64.encodeToString(salt, Base64.DEFAULT);
+        return Base64.encodeToString(salt, Base64.DEFAULT).trim();
     }
 
     // Αποκωδικοποίηση του salt από τη βάση

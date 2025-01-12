@@ -36,6 +36,7 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,10 +54,14 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
     private static final int EDIT_APP_REQUEST = 2;
     int userId;
 
+    FirebaseFirestore firestore;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        firestore = FirebaseFirestore.getInstance();
 
         // Λήψη του user ID από το intent
         Intent intent = getIntent();
@@ -118,6 +123,14 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
         if (requestCode == EDIT_APP_REQUEST && resultCode == RESULT_OK) {
             // Ανανέωση των δεδομένων
             new FetchAppsTask().execute(userId);
+        }
+
+        if (resultCode == RESULT_OK && data != null) {
+            // Get the selected apps - Optional
+            ArrayList<AppsObj> selectedApps = data.getParcelableArrayListExtra("SELECTED_APPS");
+
+            // Recreate the activity to reload it (call onCreate again)
+            recreate();
         }
     }
 
@@ -232,10 +245,11 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
 
         if (UpdateLy != null) {
             UpdateLy.setOnClickListener(v -> {
-                Toast.makeText(MainActivity.this, "Updating...", Toast.LENGTH_SHORT).show();
+                syncDataToFirestore();
                 dialog.dismiss();
             });
         }
+
 
         if (LoginPswLy != null) {
             LoginPswLy.setOnClickListener(v -> {
@@ -253,6 +267,47 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
         dialog.show();
     }
 
+    private void syncDataToFirestore() {
+        String userEmail = dbHelper.getUserEmailByUserId(userId);
+        if (userEmail == null || userEmail.isEmpty()) {
+            Toast.makeText(this, "User email not found. Cannot sync data.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        List<AppsObj> appsToSync = dbHelper.getAllSelectedApps(userId);
+        if (appsToSync.isEmpty()) {
+            Toast.makeText(this, "No apps to sync.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        firestore.collection("users")
+                .document(userEmail)
+                .collection("apps")
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    // Batch write to ensure efficient updates
+                    firestore.runBatch(batch -> {
+                        for (AppsObj app : appsToSync) {
+                            batch.set(
+                                    firestore.collection("users")
+                                            .document(userEmail)
+                                            .collection("apps")
+                                            .document(app.getAppNames()), // Using app name as document ID
+                                    app.toMap() // Convert app to a Map for Firestore
+                            );
+                        }
+                    }).addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            Toast.makeText(this, "Data synced successfully.", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(this, "Error syncing data: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Failed to connect to Firestore: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
 
     // Log out from popup menu LOGOUT FROM APP
     private void performLogout() {

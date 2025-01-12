@@ -75,16 +75,8 @@ public class SetMasterPasswordActivity extends AppCompatActivity {
         }
 
         try {
-            // Δημιουργία salt
-            byte[] salt = DataBaseHelper.generateSalt();
-
-            // Hash του master password με το salt
-            String hashedMasterPassword = DataBaseHelper.hashPassword(masterPassword, salt);
-            String saltStr = DataBaseHelper.encodeSalt(salt);
-
-            // Αποθήκευση του hashed master password και του salt στη βάση δεδομένων
-            dbHelper.insertMasterPassword(userId, hashedMasterPassword + ":" + saltStr);
-
+            // Directly use the insertMasterPassword() method
+            dbHelper.insertMasterPassword(userId, masterPassword);
             showToast("Master Password set successfully");
 
             // Μετάβαση στο MainActivity
@@ -92,9 +84,9 @@ public class SetMasterPasswordActivity extends AppCompatActivity {
             intent.putExtra("user_id", userId);
             startActivity(intent);
             finish();
-        } catch (NoSuchAlgorithmException e) {
+        } catch (Exception e) {
             e.printStackTrace();
-            showToast("Failed to set Master Password due to error");
+            showToast("Failed to set Master Password due to an error");
         }
     }
 

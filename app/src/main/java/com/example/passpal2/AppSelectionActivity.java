@@ -21,6 +21,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 public class AppSelectionActivity extends AppCompatActivity implements RecyclerViewInterface {
@@ -71,13 +72,31 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
     }
 
     private void setUpAppData() {
+        // Retrieve default app names and links from resources
         String[] appNames = getResources().getStringArray(R.array.appNames);
         String[] appLinks = getResources().getStringArray(R.array.appLinks);
 
+        // Create a HashSet to track added app names to avoid duplicates
+        HashSet<String> addedApps = new HashSet<>();
+
+        // Add apps from the database
+        List<AppsObj> dbApps = dbHelper.getAllSelectedApps(userId);
+        for (AppsObj app : dbApps) {
+            if (!addedApps.contains(app.getAppNames())) {
+                appsObjs.add(app);
+                addedApps.add(app.getAppNames());
+            }
+        }
+
+        // Add default apps to the list
         for (int i = 0; i < appNames.length; i++) {
-            appsObjs.add(new AppsObj(appNames[i], appLinks[i], appImages[i]));
+            if (!addedApps.contains(appNames[i])) {
+                appsObjs.add(new AppsObj(appNames[i], appLinks[i], appImages[i]));
+                addedApps.add(appNames[i]);
+            }
         }
     }
+
     @Override
     protected void onStart() {
         super.onStart();
@@ -166,6 +185,14 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
             // Προσθήκη της νέας εφαρμογής στο adapter
             adapter.addApp(newApp);
             adapter.notifyDataSetChanged();
+        }
+
+        if (resultCode == RESULT_OK && data != null) {
+            // Get the selected apps - Optional
+            ArrayList<AppsObj> selectedApps = data.getParcelableArrayListExtra("SELECTED_APPS");
+
+            // Recreate the activity to reload it (call onCreate again)
+            recreate();
         }
     }
 
