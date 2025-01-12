@@ -7,6 +7,7 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.Toast;
@@ -52,6 +53,10 @@ public class AddAppUserActivity extends AppCompatActivity {
         // Αποθήκευση του userId από το Intent
         userId = getIntent().getIntExtra("USER_ID", -1);
 
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true); // Ενεργοποίηση του back arrow
+            getSupportActionBar().setTitle("Add an app");
+        }
         addAppPhoto.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -72,6 +77,15 @@ public class AddAppUserActivity extends AppCompatActivity {
                 generateNewPassword();
             }
         });
+    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            // Αν πατηθεί το back arrow, επιστρέφουμε στην προηγούμενη οθόνη
+            onBackPressed();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     private void showImageSourceDialog() {

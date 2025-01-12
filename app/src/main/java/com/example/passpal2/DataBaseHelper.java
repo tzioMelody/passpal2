@@ -636,6 +636,37 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return false;
     }
 
+    // Ενημέρωση Master Password
+    public boolean updateMasterPassword(int userId, String newMasterPassword) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+
+        try {
+            // Δημιουργία salt και hashing του νέου master password
+            byte[] salt = PasswordUtil.generateSalt(); // Δημιουργία νέου salt
+            String hashedPassword = PasswordUtil.hashPassword(newMasterPassword, salt); // Δημιουργία hash
+            String saltStr = PasswordUtil.encodeSalt(salt); // Κωδικοποίηση του salt σε String
+
+            // Προετοιμασία για ενημέρωση στη βάση
+            values.put(COLUMN_MASTER_PASSWORD, hashedPassword + ":" + saltStr);
+
+            // Εκτέλεση ενημέρωσης
+            int rowsAffected = db.update(
+                    MASTER_PASSWORD_TABLE,
+                    values,
+                    COLUMN_USERID + " = ?",
+                    new String[]{String.valueOf(userId)}
+            );
+
+            db.close();
+            return rowsAffected > 0; // Επιστροφή true αν η ενημέρωση ήταν επιτυχής
+        } catch (Exception e) {
+            e.printStackTrace();
+            db.close();
+            return false; // Σε περίπτωση αποτυχίας
+        }
+    }
+
 
     public boolean saveAppCredentials(int userId, String appName, String username, String email, String password, String link) {
         SQLiteDatabase db = this.getWritableDatabase();

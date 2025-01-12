@@ -1,8 +1,11 @@
 package com.example.passpal2;
 
 import android.content.Intent;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.text.SpannableString;
 import android.text.TextUtils;
+import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -10,6 +13,7 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import com.google.android.material.textfield.TextInputEditText;
 
@@ -35,7 +39,11 @@ public class RegisterActivity extends AppCompatActivity implements EmailVerifica
         initializeViews();
 
         buttonRegister.setOnClickListener(v -> attemptRegistration());
-        getSupportActionBar().setTitle("Sign up");
+
+        // Ρύθμιση Action Bar
+        getSupportActionBar().setBackgroundDrawable(new ColorDrawable(ContextCompat.getColor(this, R.color.dark_blue)));
+        getSupportActionBar().setTitle("Welcome!");
+
 
         Log.d("RegisterActivity", "Η βάση δεδομένων έχει δημιουργηθεί και είναι έτοιμη.");
 

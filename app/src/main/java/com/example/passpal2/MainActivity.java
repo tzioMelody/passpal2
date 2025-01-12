@@ -32,6 +32,7 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -40,6 +41,8 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity implements RecyclerViewInterface {
     String username;
@@ -74,6 +77,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
             return;
         }
 
+
         username = dbHelper.getUsernameByUserId(userId);
         getSupportActionBar().setTitle("Welcome, " + username + "!");
 
@@ -81,13 +85,6 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
 
         // AsyncTask για την ανάκτηση και εμφάνιση των εφαρμογών
         new FetchAppsTask().execute(userId);
-
-        FloatingActionButton appsBtn = findViewById(R.id.appsBtn);
-        appsBtn.setOnClickListener(view -> {
-            Intent intentUserID = new Intent(MainActivity.this, AppSelectionActivity.class);
-            intentUserID.putExtra("USER_ID", userId); // Αποστολή ως int
-            startActivityForResult(intentUserID, 1);
-        });
 
         appsRecyclerView = findViewById(R.id.appsRecyclerView);
         layoutManager = new LinearLayoutManager(this);
@@ -98,7 +95,60 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
 
         // Set adapter to RecyclerView
         appsRecyclerView.setAdapter(mainAppsAdapter);
+
+        // Bottom Navigation Setup
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
+
+        // Set Home as default selected item
+        bottomNavigationView.setSelectedItemId(R.id.bottomNavigationView);
+
+        // Handle Navigation Item Clicks
+        bottomNavigationView.setOnItemSelectedListener(item -> {
+            switch (item.getItemId()) {
+                case R.id.home:
+                    // Stay in MainActivity
+                    Intent homeIntent = new Intent(MainActivity.this, MainActivity.class);
+                    homeIntent.putExtra("user_id", userId); // Pass userId
+                    startActivity(homeIntent);
+                    overridePendingTransition(0, 0);
+                    return true;
+
+                case R.id.appsBtn:
+                    // Go to AppSelectionActivity
+                    Intent appSelectionIntent = new Intent(MainActivity.this, AppSelectionActivity.class);
+                    appSelectionIntent.putExtra("USER_ID", userId); // Pass userId
+                    startActivity(appSelectionIntent);
+                    overridePendingTransition(0, 0);
+                    return true;
+
+                case R.id.newApp:
+                    // Go to AddAppUserActivity
+                    Intent newAppIntent = new Intent(MainActivity.this, AddAppUserActivity.class);
+                    newAppIntent.putExtra("USER_ID", userId); // Pass userId
+                    startActivity(newAppIntent);
+                    overridePendingTransition(0, 0);
+                    return true;
+
+                case R.id.profile:
+                    // Go to ProfileActivity
+                    Intent profileIntent = new Intent(MainActivity.this, ProfileActivity.class);
+                    profileIntent.putExtra("USER_ID", userId); // Pass userId
+                    startActivity(profileIntent);
+                    overridePendingTransition(0, 0);
+                    return true;
+
+                case R.id.settings:
+                    // Go to SettingsActivity
+                    Intent settingsIntent = new Intent(MainActivity.this, SettingsActivity.class);
+                    settingsIntent.putExtra("USER_ID", userId); // Pass userId
+                    startActivity(settingsIntent);
+                    overridePendingTransition(0, 0);
+                    return true;
+            }
+            return false;
+        });
     }
+
 
 
 
@@ -148,172 +198,6 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
         return true;
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            showPopupMenu();
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-    private void showPopupMenu() {
-        PopupMenu popupMenu = new PopupMenu(this, findViewById(R.id.action_settings));
-        popupMenu.getMenuInflater().inflate(R.menu.popup_menu, popupMenu.getMenu());
-
-        popupMenu.setOnMenuItemClickListener(item -> {
-            switch (item.getItemId()) {
-                // Options (bottomsheet)
-                case R.id.menu_item1:
-                    showDialog();
-                    return true;
-                // Log out
-                case R.id.menu_item2:
-                    performLogout();
-                    return true;
-                case R.id.menu_item3:
-                    new AlertDialog.Builder(this)
-                            .setTitle("About")
-                            .setMessage("Ασφάλεια και οργάνωση στην παλάμη σας - αυτό είναι το όραμα του PassPal, της κορυφαίας εφαρμογής διαχείρισης στοιχείων πρόσβασης και εφαρμογών." +
-                                    " Με την έκδοση 1.0, το PassPal προσφέρει έναν άρτιο συνδυασμό απλότητας και καινοτομίας, επιτρέποντας σας να εγγραφείτε, να αποθηκεύσετε και να διαχειριστείτε ασφαλώς " +
-                                    "τις πληροφορίες πρόσβασης σε αγαπημένες σας εφαρμογές και ιστοσελίδες. Χάρη στην κρυπτογράφηση κορυφαίας τεχνολογίας, τα δεδομένα σας είναι προστατευμένα," +
-                                    " ενώ η ενσωματωμένη διασύνδεση με το Hunter API εξασφαλίζει ότι οι διευθύνσεις email που καταχωρίζετε είναι πάντα έγκυρες. " +
-                                    "Κατεβάστε το PassPal και βελτιώστε σήμερα τη διαχείριση των ψηφιακών σας προφίλ!")
-                            .setPositiveButton(android.R.string.ok, (dialog, which) -> {
-                                // Αν ο χρήστης επιλέξει να συνεχίσει, καλούμε την super.onBackPressed()
-                                dialog.dismiss();
-                            })
-                            .show();
-                    return true;
-                case R.id.menu_item4:
-                    new AlertDialog.Builder(this)
-                            .setTitle("Help")
-                            .setMessage("Αγαπητέ χρήστη,\n" +
-                                    "\n" +
-                                    "Σας ευχαριστούμε που επιλέξατε την εφαρμογή PassPal! Αυτή η εφαρμογή σχεδιάστηκε για να κάνει τη διαχείριση των κωδικών πρόσβασης σας απλή και ασφαλή. Ακολουθούν οι βασικές λειτουργίες και πώς να τις χρησιμοποιήσετε:\n" +
-                                    "\n" +
-                                    "1. Εγγραφή/Σύνδεση: Ξεκινήστε δημιουργώντας έναν λογαριασμό χρήστη. Εάν έχετε ήδη λογαριασμό, συνδεθείτε με το όνομα χρήστη και τον κωδικό που έχετε ορίσει.\n" +
-                                    "\n" +
-                                    "2. Προσθήκη Εφαρμογών: Μόλις συνδεθείτε, μπορείτε να προσθέσετε εφαρμογές και ιστοσελίδες στη λίστα σας, καθώς και τους σχετικούς κωδικούς πρόσβασης.\n" +
-                                    "\n" +
-                                    "3. Διαχείριση κωδικών: Αποθηκεύστε και διαχειριστείτε ασφαλώς τους κωδικούς πρόσβασης, με τη δυνατότητα να τους επεξεργαστείτε ή να δημιουργήσετε νέους. Μπορείτε ακόμα να επιτρέψετε και σε εμάς να σας προτείνουμε νέους κωδικούς.\n" +
-                                    "\n" +
-                                    "4. Ασφάλεια: Οι κωδικοί πρόσβασης σας είναι προστατευμένοι με σύγχρονες τεχνικές κρυπτογράφησης για να εξασφαλίζεται η ασφάλεια των δεδομένων σας.\n" +
-                                    "\n" +
-                                    "5. Πρόσβαση από παντού: Με την εφαρμογή PassPal, έχετε πρόσβαση στους κωδικούς σας από οποιαδήποτε συσκευή, ανά πάσα στιγμή.\n" +
-                                    "\n" +
-                                    "Αν χρειάζεστε περισσότερη βοήθεια ή έχετε απορίες, μη διστάσετε να μας επικοινωνήσετε μέσω της ενότητας επικοινωνίας στην εφαρμογή.\n" +
-                                    "\n" +
-                                    "Ειλικρινά,\n" +
-                                    "η ομάδα PassPal")
-                            .setPositiveButton(android.R.string.ok, (dialog, which) -> {
-                                dialog.dismiss();
-                            })
-                            .show();
-                    return true;
-                case R.id.menu_item5:
-                    int userId = DataBaseHelper.getUserId(this);
-                    dbHelper.deleteUserData(userId);
-                    Toast.makeText(this, "All user data deleted", Toast.LENGTH_SHORT).show();
-                    Intent intent = new Intent(this, LoginActivity.class);
-                    startActivity(intent);
-                    finish();
-                    return true;
-
-                default:
-                    return false;
-            }
-        });
-
-        popupMenu.show();
-    }
-
-    // For bottomSheet popup
-    private void showDialog() {
-        final BottomSheetDialog dialog = new BottomSheetDialog(this);
-        dialog.setContentView(R.layout.bottomsheet_layout);
-
-        Button ShareLy = dialog.findViewById(R.id.ShareLy);
-        Button UpdateLy = dialog.findViewById(R.id.UpdateLy);
-        Button LoginPswLy = dialog.findViewById(R.id.LoginPswLy);
-        Button SettingsLy = dialog.findViewById(R.id.SettingsLy);
-
-        if (ShareLy != null) {
-            ShareLy.setOnClickListener(v -> dialog.dismiss());
-        }
-
-        if (UpdateLy != null) {
-            UpdateLy.setOnClickListener(v -> {
-                syncDataToFirestore();
-                dialog.dismiss();
-            });
-        }
-
-
-        if (LoginPswLy != null) {
-            LoginPswLy.setOnClickListener(v -> {
-                Intent intent = new Intent(MainActivity.this, EnterMasterPasswordActivity.class);
-                intent.putExtra("user_id", userId);
-                startActivity(intent);
-                dialog.dismiss();
-            });
-        }
-
-        if (SettingsLy != null) {
-            SettingsLy.setOnClickListener(v -> dialog.dismiss());
-        }
-
-        dialog.show();
-    }
-
-    private void syncDataToFirestore() {
-        String userEmail = dbHelper.getUserEmailByUserId(userId);
-        if (userEmail == null || userEmail.isEmpty()) {
-            Toast.makeText(this, "User email not found. Cannot sync data.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        List<AppsObj> appsToSync = dbHelper.getAllSelectedApps(userId);
-        if (appsToSync.isEmpty()) {
-            Toast.makeText(this, "No apps to sync.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        firestore.collection("users")
-                .document(userEmail)
-                .collection("apps")
-                .get()
-                .addOnSuccessListener(querySnapshot -> {
-                    // Batch write to ensure efficient updates
-                    firestore.runBatch(batch -> {
-                        for (AppsObj app : appsToSync) {
-                            batch.set(
-                                    firestore.collection("users")
-                                            .document(userEmail)
-                                            .collection("apps")
-                                            .document(app.getAppNames()), // Using app name as document ID
-                                    app.toMap() // Convert app to a Map for Firestore
-                            );
-                        }
-                    }).addOnCompleteListener(task -> {
-                        if (task.isSuccessful()) {
-                            Toast.makeText(this, "Data synced successfully.", Toast.LENGTH_SHORT).show();
-                        } else {
-                            Toast.makeText(this, "Error syncing data: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Failed to connect to Firestore: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                });
-    }
-
-    // Log out from popup menu LOGOUT FROM APP
-    private void performLogout() {
-        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-        startActivity(intent);
-    }
 
     private class FetchAppsTask extends AsyncTask<Integer, Void, List<AppsObj>> {
         @Override
@@ -354,47 +238,75 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
                 // Θέτουμε το όριο στο 30% του πλάτους της οθόνης για την επεξεργασία (δεξιά swipe)
                 float limit = recyclerView.getWidth() * 0.3f;
 
-                // Αν το swipe είναι προς τα δεξιά (επεξεργασία) και δεν έχει φτάσει το όριο
                 if (dX > 0 && Math.abs(dX) < limit) {
                     super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
                 } else if (dX > 0) {
-                    // Περιορίζουμε το swipe μέχρι το όριο
                     dX = limit;
                 }
 
-                // Αν το swipe είναι προς τα αριστερά (διαγραφή), αφήνουμε να προχωρήσει κανονικά
                 if (dX < 0) {
                     super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
                 }
 
-                // Εμφανίζουμε το background και τα εικονίδια
                 View itemView = viewHolder.itemView;
                 Paint p = new Paint();
 
+                // Υπολογισμός 15% μικρότερου background
+                float backgroundPadding = itemView.getHeight() * 0.15f;
+                float cornerRadius = 30f; // Ακτίνα καμπυλότητας
+
                 if (dX > 0) {
-                    // Επεξεργασία - Πράσινο background
+                    // Επεξεργασία - Πράσινο background με κυρτές γωνίες
                     p.setColor(Color.parseColor("#388E3C"));
-                    RectF background = new RectF(itemView.getLeft(), itemView.getTop(), dX, itemView.getBottom());
-                    c.drawRect(background, p);
+                    RectF background = new RectF(
+                            itemView.getLeft(),
+                            itemView.getTop() + backgroundPadding, // Κορυφή με περισσότερο padding
+                            itemView.getLeft() + dX,
+                            itemView.getBottom() - backgroundPadding // Κάτω με περισσότερο padding
+                    );
+                    c.drawRoundRect(background, cornerRadius, cornerRadius, p);
                 } else if (dX < 0) {
-                    // Διαγραφή - Κόκκινο background
+                    // Διαγραφή - Κόκκινο background με κυρτές γωνίες
                     p.setColor(Color.parseColor("#D32F2F"));
-                    RectF background = new RectF(itemView.getRight() + dX, itemView.getTop(), itemView.getRight(), itemView.getBottom());
-                    c.drawRect(background, p);
+                    RectF background = new RectF(
+                            itemView.getRight() + dX,
+                            itemView.getTop() + backgroundPadding, // Κορυφή με περισσότερο padding
+                            itemView.getRight(),
+                            itemView.getBottom() - backgroundPadding // Κάτω με περισσότερο padding
+                    );
+                    c.drawRoundRect(background, cornerRadius, cornerRadius, p);
                 }
 
                 Drawable icon;
                 RectF iconDest;
 
                 if (dX > 0) {
-                    icon = ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_edit); // Εικονίδιο επεξεργασίας
-                    iconDest = new RectF(itemView.getLeft() + 50, itemView.getTop() + 50, itemView.getLeft() + 150, itemView.getBottom() - 50);
+                    // Επεξεργασία - Εικονίδιο
+                    icon = ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_edit);
+                    iconDest = new RectF(
+                            itemView.getLeft() + 50,
+                            itemView.getTop() + 40,
+                            itemView.getLeft() + 150,
+                            itemView.getBottom() - 40
+                    );
                 } else {
-                    icon = ContextCompat.getDrawable(getApplicationContext(), R.drawable.deleteappitem); // Εικονίδιο διαγραφής
-                    iconDest = new RectF(itemView.getRight() - 150, itemView.getTop() + 50, itemView.getRight() - 50, itemView.getBottom() - 50);
+                    // Διαγραφή - Εικονίδιο
+                    icon = ContextCompat.getDrawable(getApplicationContext(), R.drawable.deleteappitem);
+                    iconDest = new RectF(
+                            itemView.getRight() - 150,
+                            itemView.getTop() + 40,
+                            itemView.getRight() - 50,
+                            itemView.getBottom() - 40
+                    );
                 }
 
-                icon.setBounds(Math.round(iconDest.left), Math.round(iconDest.top), Math.round(iconDest.right), Math.round(iconDest.bottom));
+                // Σχεδίαση του εικονιδίου
+                icon.setBounds(
+                        Math.round(iconDest.left),
+                        Math.round(iconDest.top),
+                        Math.round(iconDest.right),
+                        Math.round(iconDest.bottom)
+                );
                 icon.draw(c);
             }
 
@@ -403,20 +315,31 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
                 int position = viewHolder.getAdapterPosition();
 
                 if (direction == ItemTouchHelper.LEFT) {
-                    // Διαγραφή της εφαρμογής
                     AppsObj app = mainAppsAdapter.getAppsList().get(position);
-                    dbHelper.deleteApp(app.getAppNames(), dbHelper.getUserIdByUsername(username));
                     mainAppsAdapter.getAppsList().remove(position);
                     mainAppsAdapter.notifyItemRemoved(position);
 
-                    Snackbar.make(appsRecyclerView, "App deleted", Snackbar.LENGTH_LONG).show();
+                    Snackbar snackbar = Snackbar.make(appsRecyclerView, "App deleted", Snackbar.LENGTH_LONG);
+                    snackbar.setAction("UNDO", v -> {
+                        mainAppsAdapter.getAppsList().add(position, app);
+                        mainAppsAdapter.notifyItemInserted(position);
+                        appsRecyclerView.scrollToPosition(position);
+                    });
 
+                    snackbar.addCallback(new Snackbar.Callback() {
+                        @Override
+                        public void onDismissed(Snackbar transientBottomBar, int event) {
+                            if (event != Snackbar.Callback.DISMISS_EVENT_ACTION) {
+                                dbHelper.deleteApp(app.getAppNames(), dbHelper.getUserIdByUsername(username));
+                            }
+                        }
+                    });
+
+                    snackbar.show();
                 } else if (direction == ItemTouchHelper.RIGHT) {
-                    // Έλεγχος αν το swipe ξεπερνάει το 30% του πλάτους της οθόνης
                     float swipePercentage = Math.abs(viewHolder.itemView.getTranslationX()) / appsRecyclerView.getWidth();
 
                     if (swipePercentage >= 0.3f) {
-                        // Αν ξεπεράσει το 30%, ανοίγουμε την επεξεργασία της εφαρμογής
                         AppsObj app = mainAppsAdapter.getAppsList().get(position);
 
                         Intent intent = new Intent(MainActivity.this, EditSelectedAppActivity.class);
@@ -426,15 +349,22 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
                         intent.putExtra("POSITION", position);
                         startActivityForResult(intent, EDIT_APP_REQUEST);
                     } else {
-                        // Αν δεν ξεπεράσει το 30%, κάνουμε bounce back
                         mainAppsAdapter.notifyItemChanged(position);
                     }
                 }
             }
         };
 
-        // Σύνδεση του ItemTouchHelper με το RecyclerView
         new ItemTouchHelper(simpleItemTouchCallback).attachToRecyclerView(appsRecyclerView);
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        // Ανανέωση δεδομένων
+        new FetchAppsTask().execute(userId);
+    }
+
 
 }

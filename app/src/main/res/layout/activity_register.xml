@@ -4,8 +4,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/backpic2"
-    android:fillViewport="true">
+    android:background="@drawable/backpic3"
+    android:fillViewport="true"
+    android:fitsSystemWindows="true">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -13,26 +14,25 @@
         tools:context=".RegisterActivity">
 
 
-
         <!-- CardView for Register Form -->
         <androidx.cardview.widget.CardView
             android:id="@+id/cardViewContainer"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            app:layout_constraintWidth_percent="0.85"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/guideline3"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintVertical_bias="0.50"
+            android:background="@android:color/white"
+            android:padding="16dp"
             app:cardCornerRadius="24dp"
             app:cardElevation="16dp"
-            android:background="@android:color/white"
-            android:padding="16dp">
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/guideline3"
+            app:layout_constraintVertical_bias="0.50"
+            app:layout_constraintWidth_percent="0.85">
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:gravity="center"
                 android:orientation="vertical">
 
@@ -43,7 +43,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="5dp"
                     android:gravity="left"
-                    android:text=" Register"
+                    android:text="  Join us!"
                     android:textColor="@android:color/black"
                     android:textSize="20sp"
                     android:textStyle="bold|italic" />
@@ -52,112 +52,131 @@
                     android:id="@+id/titleText2"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingBottom="5dp"
                     android:gravity="left|center"
-                    android:text=" Join us today and manage your passwords easily!"
+                    android:paddingBottom="5dp"
+                    android:text="   Manage your passwords easily!"
                     android:textColor="@android:color/darker_gray"
                     android:textSize="13sp" />
 
                 <!-- Input Username -->
                 <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="match_parent"
+                    android:layout_width="320dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
-                    android:hint=" Username"
+                    android:layout_marginBottom="8dp"
                     app:boxBackgroundMode="outline"
                     app:boxCornerRadiusBottomEnd="12dp"
-                    app:boxCornerRadiusTopStart="12dp">
+                    app:boxCornerRadiusTopStart="12dp"
+                    app:hintEnabled="false"
+                    app:startIconDrawable="@drawable/ic_person">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/inputUsername"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/custom_edittext"
-                        android:drawableLeft="@drawable/ic_person"
-                        android:inputType="text" />
+                        android:layout_height="match_parent"
+                        android:background="@drawable/custom_edittext2"
+                        app:layout_constraintEnd_toEndOf="@id/guideline6"
+                        app:layout_constraintStart_toStartOf="@id/guideline5"
+                        android:hint="Username"
+                        android:inputType="text"
+                        android:textColor="@color/black"
+                        android:textColorHint="@color/black" />
                 </com.google.android.material.textfield.TextInputLayout>
+
 
                 <!-- Input Email -->
                 <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="match_parent"
+                    android:layout_width="320dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
-                    android:hint=" Email"
+                    android:layout_marginBottom="8dp"
                     app:boxBackgroundMode="outline"
                     app:boxCornerRadiusBottomEnd="12dp"
-                    app:boxCornerRadiusTopStart="12dp">
+                    app:boxCornerRadiusTopStart="12dp"
+                    app:hintEnabled="false">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/inputEmail"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:background="@drawable/custom_edittext"
+                        android:background="@drawable/custom_edittext2"
                         android:drawableLeft="@drawable/ic_email"
+                        android:hint="   Email"
                         android:inputType="textEmailAddress" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- Input Password -->
                 <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="match_parent"
+                    android:layout_width="320dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
-                    android:hint="Password"
+                    android:layout_marginBottom="8dp"
                     app:boxBackgroundMode="outline"
-                    app:startIconDrawable="@drawable/ic_password_login"
                     app:boxCornerRadiusBottomEnd="12dp"
                     app:boxCornerRadiusTopStart="12dp"
-                    app:endIconMode="password_toggle">
+                    app:endIconMode="password_toggle"
+                    app:hintEnabled="false"
+                    app:startIconDrawable="@drawable/ic_password_login">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/inputPassword"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:background="@drawable/custom_edittext"
+                        android:background="@drawable/custom_edittext2"
                         android:drawableLeft="@drawable/ic_password"
+                        android:hint="  Password"
                         android:inputType="textPassword" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- Confirm Password -->
                 <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="match_parent"
+                    android:layout_width="320dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
-                    android:hint="Confirm password"
+                    android:layout_marginBottom="8dp"
                     app:boxBackgroundMode="outline"
-                    app:startIconDrawable="@drawable/ic_password_login"
                     app:boxCornerRadiusBottomEnd="12dp"
                     app:boxCornerRadiusTopStart="12dp"
-                    app:endIconMode="password_toggle">
+                    app:endIconMode="password_toggle"
+                    app:hintEnabled="false"
+                    app:startIconDrawable="@drawable/ic_password_login">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/inputConfirmPassword"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:background="@drawable/custom_edittext"
+                        android:background="@drawable/custom_edittext2"
                         android:drawableLeft="@drawable/ic_password_login"
+                        android:hint="Confirm password"
                         android:inputType="textPassword" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- Register Button -->
-                <Button
-                    android:id="@+id/buttonRegister"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:text="Sign up"
-                    android:textColor="@android:color/white" />
+                <LinearLayout
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                    android:gravity="center">
 
-                <Button
-                    android:id="@+id/alreadyAccount"
-                    style="?attr/materialButtonOutlinedStyle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="#00FFFFFF"
-                    android:text="Already have an account?"
-                    android:textAllCaps="false"
-                    android:textColor="@color/purple"
-                    android:textSize="11dp" />
+                    <Button
+                        android:id="@+id/alreadyAccount"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Sign in"
+                        android:background="@color/transparent"
+                        android:textAllCaps="false"
+                        android:gravity="left|center"
+                        android:textColor="@color/purple"
+                        android:textSize="11dp" />
 
+                    <Button
+                        android:id="@+id/buttonRegister"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="right|center"
+                        android:text="Create account"
+                        android:textAllCaps="false"
+                        android:textColor="@android:color/black"
+                        android:background="@color/transparent"
+                        tools:layout_editor_absoluteX="204dp"
+                        tools:layout_editor_absoluteY="668dp" />
+                </LinearLayout>
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
@@ -198,5 +217,21 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             app:layout_constraintGuide_percent="0.30" />
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guideline5"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_percent="0.10" />
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guideline6"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_percent="0.90" />
+
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

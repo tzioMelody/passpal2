@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "652926316054",
+    "project_id": "passpal2",
+    "storage_bucket": "passpal2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:652926316054:android:4a7d1407affdcdeec4cf37",
+        "android_client_info": {
+          "package_name": "com.example.passpal2"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDg-bLS7jqJXCdgC3NsQqyHKeYByz-B6Xw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,133 @@
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    android:background="@color/white">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Τίτλος Προφίλ -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Profile"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:paddingBottom="16dp"
+            android:textColor="@color/black" />
+
+        <!-- Επεξεργασία Προφίλ -->
+        <Button
+            android:id="@+id/edit_profile_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Edit profile"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:drawableStart="@drawable/ic_edit"
+            android:drawablePadding="8dp"
+            android:textColor="@color/black"
+            android:gravity="start|center_vertical"
+            android:textAllCaps="false"
+            android:background="?attr/selectableItemBackground"
+            android:padding="12dp" />
+
+
+        <Button
+            android:id="@+id/change_master_password_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Change master password"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:drawableStart="@drawable/ic_password"
+            android:drawablePadding="8dp"
+            android:textColor="@color/black"
+            android:gravity="start|center_vertical"
+            android:textAllCaps="false"
+            android:background="?attr/selectableItemBackground"
+            android:padding="12dp" />
+
+        <!-- Διαχωριστής -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/lightGray"
+            android:layout_marginTop="8dp" />
+
+        <!-- Help & Support -->
+        <TextView
+            android:id="@+id/help_support_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Help &amp; support"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:drawablePadding="8dp"
+            android:textColor="@color/black"
+            android:gravity="start|center_vertical"
+            android:background="?attr/selectableItemBackground"
+            android:padding="12dp"
+            android:layout_marginTop="8dp" />
+
+        <!-- About the App -->
+        <Button
+            android:id="@+id/about_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="About the app"
+            android:textSize="18sp"
+            android:drawablePadding="8dp"
+            android:textColor="@color/black"
+            android:gravity="start|center_vertical"
+            android:textAllCaps="false"
+            android:background="?attr/selectableItemBackground"
+            android:padding="12dp" />
+
+        <!-- Διαγραφή Λογαριασμού -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/lightGray"
+            android:layout_marginTop="8dp" />
+        <Button
+            android:id="@+id/log_out_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Log out"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:gravity="start|center_vertical"
+            android:textAllCaps="false"
+            android:background="?attr/selectableItemBackground"
+            android:padding="12dp" />
+        <Button
+            android:id="@+id/delete_account_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Delete account"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/red"
+            android:gravity="start|center_vertical"
+            android:textAllCaps="false"
+            android:background="?attr/selectableItemBackground"
+            android:padding="12dp" />
+
+        <!-- Log Out -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/lightGray"
+            android:layout_marginTop="8dp" />
+
+
+    </LinearLayout>
+</ScrollView>

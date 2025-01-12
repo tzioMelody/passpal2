@@ -199,13 +199,13 @@ public class EditSelectedAppActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         new AlertDialog.Builder(this)
-                .setTitle("Αποθήκευση Αλλαγών")
-                .setMessage("Είστε σίγουροι ότι θέλετε να φύγετε; Όλες οι αλλαγές που δεν έχουν αποθηκευτεί θα χαθούν.")
-                .setPositiveButton("Ναι", (dialog, which) -> {
+                .setTitle("Save Changes")
+                .setMessage("Are you sure you want to leave? The changes you've made will not be saved")
+                .setPositiveButton("Yes", (dialog, which) -> {
                     setResult(RESULT_OK);
                     super.onBackPressed();
                 })
-                .setNegativeButton("Όχι", (dialog, which) -> dialog.dismiss())
+                .setNegativeButton("No", (dialog, which) -> dialog.dismiss())
                 .show();
     }
 

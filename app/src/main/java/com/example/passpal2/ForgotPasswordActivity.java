@@ -3,6 +3,7 @@ package com.example.passpal2;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.ColorDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -13,6 +14,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 public class ForgotPasswordActivity extends AppCompatActivity {
     private EditText inputEmail, newPassword, confirmNewPassword;
@@ -22,7 +24,10 @@ public class ForgotPasswordActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_forgot_password);
-        getSupportActionBar().setTitle("Reset Password");
+
+        // Ρύθμιση Action Bar
+        getSupportActionBar().setBackgroundDrawable(new ColorDrawable(ContextCompat.getColor(this, R.color.dark_blue)));
+        getSupportActionBar().setTitle("Reset your password!");
 
         resetPassBtn = findViewById(R.id.resetpassbtn);
         cancelBtnForgot = findViewById(R.id.CancelbtnForgot);
