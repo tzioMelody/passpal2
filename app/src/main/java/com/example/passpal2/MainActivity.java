@@ -116,11 +116,13 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
 
                 case R.id.profile:
                     // Go to ProfileActivity
+                    Log.d("MainActivity", "User ID: " + userId);
                     Intent profileIntent = new Intent(MainActivity.this, ProfileActivity.class);
                     profileIntent.putExtra("USER_ID", userId); // Pass userId
                     startActivity(profileIntent);
                     overridePendingTransition(0, 0);
                     return true;
+
 
                 case R.id.syncData:
                     syncDataToFirestore();

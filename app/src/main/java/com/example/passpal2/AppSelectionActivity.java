@@ -124,7 +124,7 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
             Uri appImageUri = appImageUriString != null ? Uri.parse(appImageUriString) : null;
 
             // Δημιουργία του νέου αντικειμένου AppsObj
-            int appImageResId = R.drawable.default_app_icon;
+            int appImageResId = R.drawable.default_app_image;
             AppsObj newApp = new AppsObj(appName, "App Link Placeholder", appImageResId);
             newApp.setSelected(true);
 
@@ -191,9 +191,9 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
 
             // Αν δεν έχει εικόνα, ορίζουμε default εικόνα
             if (imageUriString == null || imageUriString.isEmpty()) {
-                imageResId = R.drawable.default_app_icon;
+                imageResId = R.drawable.default_app_image;
             } else {
-                imageResId = Integer.parseInt(imageUriString); // Χειρισμός URI ή default εικόνας
+                imageResId = Integer.parseInt(imageUriString);
             }
 
             AppsObj newApp = new AppsObj(appName, appLink, imageResId);
@@ -221,8 +221,6 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
             for (AppsObj app : selectedApps) {
                 dbHelper.saveSelectedAppToDatabase(app, userId);
             }
-
-            Toast.makeText(this, "Successful import of selected apps!", Toast.LENGTH_SHORT).show();
 
             // Δημιουργία ενός Intent για να περάσει τα δεδομένα στην MainActivity
             Intent resultIntent = new Intent();

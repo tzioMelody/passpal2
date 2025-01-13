@@ -667,6 +667,48 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         }
     }
 
+    public boolean updateUsernameAndEmailWithCheck(int userId, String newUsername, String newEmail) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = null;
+
+        try {
+            // Έλεγχος αν το νέο username υπάρχει ήδη για άλλον χρήστη
+            cursor = db.query(USER_TABLE, null, COLUMN_USERNAME + "=? AND " + COLUMN_ID + "!=?",
+                    new String[]{newUsername, String.valueOf(userId)}, null, null, null);
+            if (cursor.moveToFirst()) {
+                Log.e("DataBaseHelper", "Username already exists: " + newUsername);
+                return false; // Το username υπάρχει ήδη
+            }
+            cursor.close();
+
+            // Έλεγχος αν το νέο email υπάρχει ήδη για άλλον χρήστη
+            cursor = db.query(USER_TABLE, null, COLUMN_EMAIL + "=? AND " + COLUMN_ID + "!=?",
+                    new String[]{newEmail, String.valueOf(userId)}, null, null, null);
+            if (cursor.moveToFirst()) {
+                Log.e("DataBaseHelper", "Email already exists: " + newEmail);
+                return false; // Το email υπάρχει ήδη
+            }
+            cursor.close();
+
+            // Ενημέρωση του χρήστη
+            ContentValues values = new ContentValues();
+            values.put(COLUMN_USERNAME, newUsername);
+            values.put(COLUMN_EMAIL, newEmail);
+
+            int rowsAffected = db.update(USER_TABLE, values, COLUMN_ID + "=?",
+                    new String[]{String.valueOf(userId)});
+            Log.d("DataBaseHelper", "Rows affected: " + rowsAffected);
+            return rowsAffected > 0; // Επιστρέφει true αν έγινε ενημέρωση
+
+        } catch (Exception e) {
+            Log.e("DataBaseHelper", "Error updating username and email: " + e.getMessage());
+            return false; // Κάποιο σφάλμα συνέβη
+        } finally {
+            if (cursor != null) cursor.close();
+            db.close();
+        }
+    }
+
 
     public boolean saveAppCredentials(int userId, String appName, String username, String email, String password, String link) {
         SQLiteDatabase db = this.getWritableDatabase();

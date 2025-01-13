@@ -18,7 +18,7 @@
         android:id="@+id/appsBtn"
         android:title="Apps" />
     <item
-        android:icon="@drawable/ic_settings"
-        android:id="@+id/settings"
-        android:title="Settings" />
+        android:icon="@drawable/baseline_sync_lock_24"
+        android:id="@+id/syncData"
+        android:title="Sync" />
 </menu>

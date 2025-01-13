@@ -4,9 +4,11 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Patterns;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
@@ -71,12 +73,7 @@ public class AddAppUserActivity extends AppCompatActivity {
             }
         });
 
-        findViewById(R.id.generatePasswordButton).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                generateNewPassword();
-            }
-        });
+
     }
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -131,9 +128,6 @@ public class AddAppUserActivity extends AppCompatActivity {
         }
     }
 
-    private void generateNewPassword() {
-        new GeneratePasswordTask(this, newPassword -> newAppPassword.setText(newPassword)).execute();
-    }
 
     private void saveNewApp() {
         String appName = newAppName.getText().toString().trim();
@@ -147,6 +141,23 @@ public class AddAppUserActivity extends AppCompatActivity {
             return;
         }
 
+        // Επαλήθευση URL Format
+        if (!Patterns.WEB_URL.matcher(appLink).matches()) {
+            Toast.makeText(this, "Please enter a valid URL format.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Επαλήθευση Αντικειμενικής Υπαρξης URL
+        new UrlValidationTask(isValid -> {
+            if (!isValid) {
+                Toast.makeText(this, "The URL is not reachable. Please enter a valid URL.", Toast.LENGTH_SHORT).show();
+            } else {
+                proceedWithAppSave(appName, appLink, username, email, password);
+            }
+        }).execute(appLink);
+    }
+
+    private void proceedWithAppSave(String appName, String appLink, String username, String email, String password) {
         if (dbHelper.isAppSelected(appName, userId)) {
             Toast.makeText(this, "Application name already exists.", Toast.LENGTH_SHORT).show();
             return;
@@ -157,34 +168,49 @@ public class AddAppUserActivity extends AppCompatActivity {
             return;
         }
 
-        // Αποθήκευση της εφαρμογής αν δεν υπάρχει το ίδιο link
         byte[] appImageBytes = null;
         if (appImageBitmap != null) {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             appImageBitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
             appImageBytes = baos.toByteArray();
+        } else if (appImageUri != null) {
+            try {
+                Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), appImageUri);
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
+                appImageBytes = baos.toByteArray();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            // Αν δεν έχει επιλεγεί εικόνα, προσθέτουμε μια default
+            appImageBytes = getDefaultImageBytes();
         }
 
-        // Αποθήκευση στη βάση δεδομένων
-        boolean result = dbHelper.saveSelectedAppToDatabase(new AppsObj(appName, appLink, 0, username, email, password, appImageBytes), userId);
+        boolean result = dbHelper.saveSelectedAppToDatabase(
+                new AppsObj(appName, appLink, 0, username, email, password, appImageBytes),
+                userId
+        ) && dbHelper.saveAppCredentials(userId, appName, username, email, password, appLink);
 
-        // Save app credentials
-        boolean credentialsSaveResult = dbHelper.saveAppCredentials(
-                userId, appName, username, email, password, appLink
-        );
-
-        if (result && credentialsSaveResult) {
-            // Επιστροφή αποτελεσμάτων πίσω στην `AppSelectionActivity`
+        if (result) {
             Intent returnIntent = new Intent();
             returnIntent.putExtra("AppName", appName);
             returnIntent.putExtra("AppLink", appLink);
-            returnIntent.putExtra("AppImageUri", appImageUri != null ? appImageUri.toString() : null); // Default εικόνα αν δεν υπάρχει
+            returnIntent.putExtra("AppImageUri", appImageUri != null ? appImageUri.toString() : null);
 
             setResult(RESULT_OK, returnIntent);
             finish();
         } else {
             Toast.makeText(this, "Failed to add application.", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    //Default image
+    private byte[] getDefaultImageBytes() {
+        Bitmap defaultBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.default_app_image);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        defaultBitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
+        return baos.toByteArray();
     }
 
 

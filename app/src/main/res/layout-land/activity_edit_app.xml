@@ -1,27 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true">
-    <RelativeLayout
+    android:background="@drawable/welcome_logo"
+    android:fillViewport="true"
+    android:fitsSystemWindows="true">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@drawable/background"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
         tools:context=".EditSelectedAppActivity">
+
 
         <LinearLayout
             android:id="@+id/EditAppCard"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="364dp"
+            android:layout_height="591dp"
             android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
             android:layout_alignParentEnd="true"
             android:layout_alignParentBottom="true"
-            android:layout_marginStart="-1dp"
-            android:layout_marginEnd="1dp"
-            android:layout_marginBottom="158dp"
+            android:layout_marginStart="5dp"
+            android:layout_marginTop="9dp"
+            android:layout_marginEnd="5dp"
+            android:layout_marginBottom="222dp"
             android:background="@drawable/login_card_background"
             android:elevation="4dp"
             android:gravity="center_horizontal"
@@ -29,8 +34,10 @@
             android:padding="16dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.75">
 
 
             <androidx.constraintlayout.widget.ConstraintLayout
@@ -41,7 +48,7 @@
                     android:id="@+id/appIconImageView"
                     android:layout_width="100dp"
                     android:layout_height="100dp"
-                    android:src="@drawable/default_app_icon"
+                    android:src="@drawable/default_app_image"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintHorizontal_bias="0.498"
@@ -70,6 +77,7 @@
                 android:layout_marginTop="16dp"
                 android:background="#00FFFFFF"
                 android:hint="Username"
+                android:autofillHints="username"
                 android:inputType="text"
                 android:maxLines="1"
                 android:textColor="@color/black"
@@ -102,7 +110,6 @@
                 android:textColorHint="@color/black"
                 app:errorEnabled="true"
                 app:hintTextColor="@color/black"
-                app:startIconDrawable="@drawable/ic_person"
                 app:startIconTint="@null">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -122,12 +129,12 @@
                 android:layout_height="wrap_content"
                 android:background="#00FFFFFF"
                 android:hint="Email"
+                android:autofillHints="emailAddress"
                 android:inputType="text"
                 android:maxLines="1"
                 android:textColorHint="@color/black"
                 app:errorEnabled="true"
                 app:hintTextColor="@color/black"
-                app:startIconDrawable="@drawable/ic_person"
                 app:startIconTint="@null">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -148,6 +155,7 @@
                 android:layout_height="wrap_content"
                 android:background="#00FFFFFF"
                 android:hint="Password"
+                android:autofillHints="password"
                 android:inputType="textPassword"
                 android:maxLines="1"
                 android:textColorHint="@color/black"
@@ -172,52 +180,44 @@
 
         </LinearLayout>
 
-
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_above="@id/SaveSelectedAppData"
-            android:layout_marginBottom="16dp"
-            android:gravity="center_horizontal">
-
-            <Button
-                android:id="@+id/GeneratePsw"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:text="@string/generate_new_password"
-                android:textAllCaps="false"
-                android:textColor="@color/white"
-                app:backgroundTint="@color/dark_purple"
-                app:cornerRadius="28dp" />
-
-            <Button
-                android:id="@+id/OpenAppWebsite"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="Open app/website"
-                android:textAllCaps="false"
-                android:textColor="@color/black"
-                app:backgroundTint="@color/light_purple"
-                app:cornerRadius="28dp" />
-        </LinearLayout>
-
         <Button
             android:id="@+id/SaveSelectedAppData"
-            android:layout_width="312dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
             android:layout_alignParentBottom="true"
-            android:layout_marginEnd="41dp"
-            android:layout_marginBottom="23dp"
+            android:layout_marginEnd="-2dp"
+            android:layout_marginBottom="33dp"
             android:text="Save"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
 
 
-    </RelativeLayout>
+        <Button
+            android:id="@+id/OpenAppWebsite"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Open app/website"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            android:visibility="invisible"
+            app:backgroundTint="@color/light_purple"
+            app:cornerRadius="28dp"
+            app:layout_constraintBottom_toTopOf="@+id/SaveSelectedAppData"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/EditAppCard" />
+
+
+        <View
+            android:id="@+id/spaceHolder"
+            android:layout_width="match_parent"
+            android:layout_height="16dp"
+            android:visibility="gone"
+            app:layout_constraintBottom_toTopOf="@id/OpenAppWebsite"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

@@ -86,7 +86,11 @@ public class LoginActivity extends AppCompatActivity {
             intent.putExtra("username", username);
             startActivity(intent);
             finish();
+        } else {
+            // Εμφάνιση μηνύματος για λάθος credentials
+            Toast.makeText(LoginActivity.this, "Invalid username or password", Toast.LENGTH_SHORT).show();
         }
+
 
     }
 

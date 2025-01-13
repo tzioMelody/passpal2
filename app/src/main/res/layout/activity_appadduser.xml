@@ -1,15 +1,52 @@
-<?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/background"
+    android:background="@drawable/settingsandprofileback"
     tools:context=".AddAppUserActivity">
 
+    <!-- Αριστερή Guideline -->
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/leftGuideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.05" />
+
+    <!-- Δεξιά Guideline -->
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/rightGuideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.95" />
+
+    <!-- Πάνω Guideline -->
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/topGuideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_begin="90dp" />
+
+    <!-- Κάτω Guideline -->
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/bottomGuideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_end="30dp" />
+
+    <!-- ScrollView με τα στοιχεία -->
     <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintStart_toStartOf="@id/leftGuideline"
+        app:layout_constraintEnd_toEndOf="@id/rightGuideline"
+        app:layout_constraintTop_toTopOf="@id/topGuideline"
+        app:layout_constraintBottom_toBottomOf="@id/bottomGuideline"
         android:fillViewport="true">
 
         <LinearLayout
@@ -110,35 +147,14 @@
                     android:inputType="textPassword" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/generatePasswordButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/generate_new_password"
-                android:textAllCaps="false"
-                android:textColor="@color/white"
-                app:backgroundTint="@color/black"
-                android:layout_marginTop="16dp"
-                android:layout_gravity="center"
-                app:cornerRadius="28dp" />
-
-
             <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/saveNewApp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_alignParentBottom="true"
-                android:layout_gravity="bottom|end"
-                android:layout_marginStart="32dp"
-                android:layout_marginTop="32dp"
-                android:layout_marginEnd="32dp"
-                android:layout_marginBottom="32dp"
+                android:layout_gravity="end"
+                android:layout_margin="32dp"
                 android:src="@drawable/ic_menu_saver"
-                android:textDirection="locale"
-                tools:ignore="SpeakableTextPresentCheck"
-                tools:layout_editor_absoluteX="331dp"
-                tools:layout_editor_absoluteY="655dp" />
+                tools:ignore="SpeakableTextPresentCheck" />
         </LinearLayout>
     </ScrollView>
-</RelativeLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

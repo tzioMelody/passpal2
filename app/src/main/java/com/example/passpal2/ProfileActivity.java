@@ -5,47 +5,76 @@ import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.style.ImageSpan;
+import android.util.Log;
+import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
 
 public class ProfileActivity extends AppCompatActivity {
 
-    private Button aboutButton, deleteAccountButton, logOutButton;
+    private Button aboutButton, deleteAccountButton, logOutButton, shareButton, viewCredentialsButton, changeMasterPasswordButton, editProfileButton;
     private TextView helpSupportButton;
+    private int userId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
+
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true); // Ενεργοποίηση του back arrow
+            getSupportActionBar().setTitle("Profile settings");
+        }
+
+        // Λήψη του user ID
+        Intent intent = getIntent();
+        int userId = intent.getIntExtra("USER_ID", -1);
+
+        Log.d("ProfileActivity", "User ID received: " + userId);
+
+        if (userId == -1) {
+            Log.e("ProfileActivity", "User ID is invalid.");
+            Toast.makeText(this, "User ID is invalid", Toast.LENGTH_SHORT).show();
+            finish(); // Τερματισμός αν το user ID δεν είναι έγκυρο
+            return;
+        }
+
         // Συνδέουμε τα στοιχεία από το XML
         aboutButton = findViewById(R.id.about_button);
         deleteAccountButton = findViewById(R.id.delete_account_button);
         helpSupportButton = findViewById(R.id.help_support_button);
         logOutButton = findViewById(R.id.log_out_button);
+        shareButton = findViewById(R.id.shareButton);
+        viewCredentialsButton = findViewById(R.id.loginPasswordButton);
+        editProfileButton = findViewById(R.id.edit_profile_button);
+        changeMasterPasswordButton = findViewById(R.id.change_master_password_button);
+
 
         // Ρύθμιση λειτουργικότητας κουμπιών
-        setupButtons();
+        setupButtonListeners();
     }
 
-    private void setupButtons() {
-        // About the App
-        aboutButton.setOnClickListener(view -> {
-            new AlertDialog.Builder(this)
-                    .setTitle("About")
-                    .setMessage("Security and organization at your fingertips – this is the vision of PassPal, the ultimate application for managing access credentials and applications. " +
-                            "With version 1.0, PassPal offers a perfect combination of simplicity and innovation, allowing you to register, securely store, and manage " +
-                            "your access information for your favorite applications and websites. Thanks to state-of-the-art encryption technology, your data is well-protected, " +
-                            "while the integrated connection with the Hunter API ensures that the email addresses you register are always valid. " +
-                            "Download PassPal today and enhance the management of your digital profiles!")
-                    .setPositiveButton(android.R.string.ok, (dialog, which) -> dialog.dismiss())
-                    .show();
+    private void setupButtonListeners() {
+        // Edit Profile
+        editProfileButton.setOnClickListener(view -> {
+            Intent intent = new Intent(this, EditProfileActivity.class);
+            startActivity(intent);
         });
+
+
+        // Change Master Password
+        changeMasterPasswordButton.setOnClickListener(view -> {
+            Intent intent = new Intent(this, ChangeMasterPasswordActivity.class);
+            startActivity(intent);
+        });
+
+        // View Credentials Button
+        viewCredentialsButton.setOnClickListener(v -> openLoginPasswordActivity());
 
         // Help & Support
         helpSupportButton.setOnClickListener(view -> {
@@ -56,6 +85,34 @@ public class ProfileActivity extends AppCompatActivity {
                     .show();
         });
 
+
+        // About the App
+        aboutButton.setOnClickListener(view -> {
+            new AlertDialog.Builder(this)
+                    .setTitle("About")
+                    .setMessage("Security and organization at your fingertips – this is the vision of PassPal, the ultimate application for managing access credentials and applications. " +
+                            "With version 1.0, PassPal offers a perfect combination of simplicity and innovation, allowing you to register, securely store, and manage " +
+                            "your access information for your favorite applications and websites.")
+                    .setPositiveButton(android.R.string.ok, (dialog, which) -> dialog.dismiss())
+                    .show();
+        });
+
+        // Share Button
+        shareButton.setOnClickListener(v -> {
+            Intent shareIntent = new Intent(Intent.ACTION_SEND);
+            shareIntent.setType("text/plain");
+
+            // Replace with your Google Drive link
+            String downloadLink = "https://drive.google.com/file/d/<your-file-id>/view?usp=sharing";
+            String shareMessage = "Check out PassPal, the ultimate password manager! Download it here: " + downloadLink;
+
+            shareIntent.putExtra(Intent.EXTRA_TEXT, shareMessage);
+            startActivity(Intent.createChooser(shareIntent, "Share via"));
+        });
+
+        // Log Out
+        logOutButton.setOnClickListener(view -> performLogout());
+
         // Delete Account
         deleteAccountButton.setOnClickListener(view -> {
             new AlertDialog.Builder(this)
@@ -65,10 +122,31 @@ public class ProfileActivity extends AppCompatActivity {
                     .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
                     .show();
         });
-        // Log Out
-        logOutButton.setOnClickListener(view -> performLogout());
+
     }
 
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            // Αν πατηθεί το back arrow, επιστρέφουμε στην προηγούμενη οθόνη
+            onBackPressed();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+    @Override
+    public void onBackPressed() {
+        new AlertDialog.Builder(this)
+                .setTitle("Save Changes")
+                .setMessage("Are you sure you want to leave? The changes you've made will not be saved")
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    setResult(RESULT_OK);
+                    super.onBackPressed();
+                })
+                .setNegativeButton("No", (dialog, which) -> dialog.dismiss())
+                .show();
+    }
     private SpannableStringBuilder getAboutMessage() {
         SpannableStringBuilder message = new SpannableStringBuilder();
         message.append("Dear user,\n\n");
@@ -76,7 +154,6 @@ public class ProfileActivity extends AppCompatActivity {
         message.append("1. You have already taken the first step by creating an account in our app and setting a master password, which will keep your data secure from potential attacks.\n\n");
         message.append("2. Adding Applications: On the home screen, you can add your favorite applications using the buttons located at the bottom of the screen. Simply use the '");
 
-        // Προσθήκη εικονιδίου στο μήνυμα
         SpannableString iconSpan = new SpannableString(" ");
         ImageSpan imageSpan = new ImageSpan(this, R.drawable.baseline_apps_24);
         iconSpan.setSpan(imageSpan, 0, 1, 0);
@@ -94,18 +171,20 @@ public class ProfileActivity extends AppCompatActivity {
         return message;
     }
 
-    private void deleteUserAccount() {
-        // Προσθήκη λογικής διαγραφής λογαριασμού
-        Toast.makeText(this, "Account deleted", Toast.LENGTH_SHORT).show();
+    private void openLoginPasswordActivity() {
+        Intent intent = new Intent(this, EnterMasterPasswordActivity.class);
+        intent.putExtra("user_id", userId);
+        startActivity(intent);
+    }
 
-        // Επιστροφή στο LoginActivity
+    private void deleteUserAccount() {
+        Toast.makeText(this, "Account deleted", Toast.LENGTH_SHORT).show();
         Intent intent = new Intent(ProfileActivity.this, LoginActivity.class);
         startActivity(intent);
         finish();
     }
 
     private void performLogout() {
-        // Επιστροφή στο LoginActivity
         Intent intent = new Intent(ProfileActivity.this, LoginActivity.class);
         startActivity(intent);
         finish();
