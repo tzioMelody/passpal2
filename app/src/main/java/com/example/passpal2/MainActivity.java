@@ -199,7 +199,6 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
         }
     }
 
-
     // NEW SWIPE TZIO
     private void attachSwipeToDeleteAndEditHelper() {
         ItemTouchHelper.SimpleCallback simpleItemTouchCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
@@ -376,13 +375,4 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
                     Toast.makeText(this, "Failed to connect to Firestore: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-        // Ανανέωση δεδομένων
-        new FetchAppsTask().execute(userId);
-    }
-
-
 }

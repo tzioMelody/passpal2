@@ -147,14 +147,35 @@
                     android:inputType="textPassword" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/saveNewApp"
-                android:layout_width="wrap_content"
+            <!-- Κουμπιά αποθήκευσης και ακύρωσης -->
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="end"
-                android:layout_margin="32dp"
-                android:src="@drawable/ic_menu_saver"
-                tools:ignore="SpeakableTextPresentCheck" />
+                android:layout_marginTop="16dp"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/cancelNewApp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:hint="Cancel"
+                    android:backgroundTint="@color/light_gray"
+                    android:textColor="@color/black" />
+
+                <Button
+                    android:id="@+id/saveNewApp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:hint="Save"
+                    android:backgroundTint="@color/light_purple"
+                    android:textColor="@color/white" />
+
+
+
+            </LinearLayout>
+
         </LinearLayout>
     </ScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>

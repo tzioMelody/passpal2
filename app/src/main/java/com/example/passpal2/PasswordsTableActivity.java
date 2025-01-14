@@ -18,7 +18,7 @@ public class PasswordsTableActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_passwords_table);
-        getSupportActionBar().setTitle("Passwords Table");
+        getSupportActionBar().setTitle("Passwords vault");
 
         dbHelper = new DataBaseHelper(this);
 

@@ -31,7 +31,6 @@ public class SetMasterPasswordActivity extends AppCompatActivity {
         getSupportActionBar().setTitle("Set master password");
 
         dbHelper = new DataBaseHelper(this);
-        Button notNow = findViewById(R.id.notNow);
         masterPasswordEditText = findViewById(R.id.masterPassword);
         confirmMasterPasswordEditText = findViewById(R.id.confirmMasterPassword);
         submitMasterPasswordButton = findViewById(R.id.submitMasterPassword);
@@ -52,18 +51,6 @@ public class SetMasterPasswordActivity extends AppCompatActivity {
 
         submitMasterPasswordButton.setOnClickListener(v -> submitMasterPassword());
 
-        notNow.setOnClickListener(v -> {
-            // Show a message to the user
-            Toast.makeText(SetMasterPasswordActivity.this,
-                    "You will need to set a master password in the future.",
-                    Toast.LENGTH_LONG).show();
-
-            // Navigate back to MainActivity
-            Intent navigateIntent = new Intent(SetMasterPasswordActivity.this, MainActivity.class);
-            navigateIntent.putExtra("user_id", userId); // Pass the user ID if needed
-            startActivity(navigateIntent);
-            finish(); // Close the current activity
-        });
 
     }
 

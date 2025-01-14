@@ -141,6 +141,16 @@ public class AddAppUserActivity extends AppCompatActivity {
             return;
         }
 
+        if (dbHelper.isAppSelected(appName, userId)) {
+            Toast.makeText(this, "Application name already exists.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (dbHelper.isLinkTaken(appLink, userId)) {
+            Toast.makeText(this, "Application with the same link already exists.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         // Επαλήθευση URL Format
         if (!Patterns.WEB_URL.matcher(appLink).matches()) {
             Toast.makeText(this, "Please enter a valid URL format.", Toast.LENGTH_SHORT).show();
@@ -155,6 +165,35 @@ public class AddAppUserActivity extends AppCompatActivity {
                 proceedWithAppSave(appName, appLink, username, email, password);
             }
         }).execute(appLink);
+
+        // Αποθήκευση της εφαρμογής αν δεν υπάρχει το ίδιο link
+        byte[] appImageBytes = null;
+        if (appImageBitmap != null) {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            appImageBitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
+            appImageBytes = baos.toByteArray();
+        }
+
+        // Αποθήκευση στη βάση δεδομένων
+        boolean result = dbHelper.saveSelectedAppToDatabase(new AppsObj(appName, appLink, 0, username, email, password, appImageBytes), userId);
+
+        // Save app credentials
+        boolean credentialsSaveResult = dbHelper.saveAppCredentials(
+                userId, appName, username, email, password, appLink
+        );
+
+        if (result && credentialsSaveResult) {
+            // Επιστροφή αποτελεσμάτων πίσω στην `AppSelectionActivity`
+            Intent returnIntent = new Intent();
+            returnIntent.putExtra("AppName", appName);
+            returnIntent.putExtra("AppLink", appLink);
+            returnIntent.putExtra("AppImageUri", appImageUri != null ? appImageUri.toString() : null); // Default εικόνα αν δεν υπάρχει
+
+            setResult(RESULT_OK, returnIntent);
+            finish();
+        } else {
+            Toast.makeText(this, "Failed to add application.", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void proceedWithAppSave(String appName, String appLink, String username, String email, String password) {

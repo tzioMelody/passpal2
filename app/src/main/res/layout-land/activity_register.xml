@@ -5,7 +5,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/backpic3"
-    android:scaleType="centerCrop"
     android:fillViewport="true"
     android:fitsSystemWindows="true">
 
@@ -55,7 +54,7 @@
                     android:layout_height="wrap_content"
                     android:gravity="left|center"
                     android:paddingBottom="5dp"
-                    android:text=" Manage your passwords easily!"
+                    android:text="   Manage your passwords easily!"
                     android:textColor="@android:color/darker_gray"
                     android:textSize="13sp" />
 
@@ -75,13 +74,10 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:background="@drawable/custom_edittext2"
-                        app:layout_constraintEnd_toEndOf="@id/guideline6"
-                        app:layout_constraintStart_toStartOf="@id/guideline5"
                         android:hint="Username"
-                        android:inputType="text"
-                        android:textColor="@color/black"
-                        android:textColorHint="@color/black" />
+                        android:inputType="text" />
                 </com.google.android.material.textfield.TextInputLayout>
+
 
 
                 <!-- Input Email -->
@@ -92,17 +88,18 @@
                     app:boxBackgroundMode="outline"
                     app:boxCornerRadiusBottomEnd="12dp"
                     app:boxCornerRadiusTopStart="12dp"
-                    app:hintEnabled="false">
+                    app:hintEnabled="false"
+                    app:startIconDrawable="@drawable/ic_email">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/inputEmail"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:background="@drawable/custom_edittext2"
-                        android:drawableLeft="@drawable/ic_email"
                         android:hint="   Email"
                         android:inputType="textEmailAddress" />
                 </com.google.android.material.textfield.TextInputLayout>
+
 
                 <!-- Input Password -->
                 <com.google.android.material.textfield.TextInputLayout
@@ -181,22 +178,29 @@
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
+        <!-- Overlay View to Disable Interaction -->
         <View
             android:id="@+id/overlayView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_alignParentStart="true"
-            android:layout_alignParentTop="true"
-            android:background="#80B3B3B3"
-            android:visibility="gone" />
+            android:background="#80000000"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
+        <!-- ProgressBar -->
         <ProgressBar
             android:id="@+id/progressBar"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_centerInParent="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
             android:visibility="gone"
-            tools:ignore="MissingConstraints" />
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <androidx.constraintlayout.widget.Guideline
             android:id="@+id/guideline"

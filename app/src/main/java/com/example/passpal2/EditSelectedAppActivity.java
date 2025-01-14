@@ -28,7 +28,7 @@ public class EditSelectedAppActivity extends AppCompatActivity {
     private ImageView appIconImageView;
     private TextView appNameTextView;
     private EditText appLinkEditText;
-    private EditText inputEmailEditedApp, inputUsernameEditedApp;
+    private EditText inputEmailEditedApp, inputUsernameEditedApp,passwordEditText;
     private Button saveSelectedAppData;
     private Button openAppWebsiteBtn;
     private EditText selectedAppPassword;
@@ -49,6 +49,7 @@ public class EditSelectedAppActivity extends AppCompatActivity {
             AppsObj selectedApp = intent.getParcelableExtra("APP_DATA");
             String appName = selectedApp.getAppNames();
 
+
            // να φανει το ονομα της εφαρμογης πανω στην μπαρα
             if (getSupportActionBar() != null) {
                 getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -64,8 +65,13 @@ public class EditSelectedAppActivity extends AppCompatActivity {
             inputUsernameEditedApp = findViewById(R.id.inputUsernameEditedApp);
 
             appIconImageView.setImageResource(selectedApp.getAppImages());
-            appNameTextView.setText(selectedApp.getAppNames());
+            appNameTextView.setText(appName);
             appLinkEditText.setText(selectedApp.getAppLinks());
+
+            Log.d("AppsObj", "Username: " + selectedApp.getUsername());
+            Log.d("AppsObj", "Email: " + selectedApp.getEmail());
+            Log.d("AppsObj", "Password: " + selectedApp.getPassword());
+
         }
         inputEmailEditedApp = findViewById(R.id.inputEmailEditedApp);
         saveSelectedAppData = findViewById(R.id.SaveSelectedAppData);
@@ -96,37 +102,54 @@ public class EditSelectedAppActivity extends AppCompatActivity {
         });
 
         openAppWebsiteBtn.setOnClickListener(view -> {
-            // Get the app name entered by the user
+            // Λήψη του ονόματος της εφαρμογής από τον χρήστη
             String appName = appNameTextView.getText().toString();
 
             PackageManager packageManager = getPackageManager();
             Intent launchIntent = null;
 
-            // Iterate through installed apps to find a match by app name
+            // Αναζήτηση εγκατεστημένων εφαρμογών για αντιστοιχία με το όνομα της εφαρμογής
             for (ApplicationInfo appInfo : packageManager.getInstalledApplications(PackageManager.GET_META_DATA)) {
                 String appLabel = packageManager.getApplicationLabel(appInfo).toString();
                 if (appLabel.equalsIgnoreCase(appName)) {
-                    // Match found, get the launch intent
+                    // Βρέθηκε αντιστοιχία, λήψη του intent εκκίνησης της εφαρμογής
                     launchIntent = packageManager.getLaunchIntentForPackage(appInfo.packageName);
                     break;
                 }
             }
 
             if (launchIntent != null) {
-                // Launch the app if found and exit the method
+                // Εκκίνηση της εφαρμογής αν βρέθηκε
                 startActivity(launchIntent);
             } else {
-                // If no match, fallback to opening the URL
+                // Αν δεν βρεθεί, fallback στο άνοιγμα του URL
                 String url = appLinkEditText.getText().toString();
                 if (!url.startsWith("http://") && !url.startsWith("https://")) {
                     url = "http://" + url;
                 }
+
+                // Άνοιγμα του URL με intent
                 Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
                 startActivity(browserIntent);
 
-                Toast.makeText(EditSelectedAppActivity.this, "Opening", Toast.LENGTH_SHORT).show();
+                Toast.makeText(EditSelectedAppActivity.this, "Opening website", Toast.LENGTH_SHORT).show();
             }
+
+            // Υποστήριξη Autofill Framework για αυτόματη συμπλήρωση
+            AutofillManager autofillManager = getSystemService(AutofillManager.class);
+            if (autofillManager != null && autofillManager.isEnabled()) {
+                inputUsernameEditedApp.setAutofillHints(View.AUTOFILL_HINT_USERNAME);
+                inputEmailEditedApp.setAutofillHints(View.AUTOFILL_HINT_EMAIL_ADDRESS);
+                selectedAppPassword.setAutofillHints(View.AUTOFILL_HINT_PASSWORD);
+
+                autofillManager.commit();
+                autofillManager.notifyValueChanged(inputUsernameEditedApp);
+                autofillManager.notifyValueChanged(inputEmailEditedApp);
+                autofillManager.notifyValueChanged(selectedAppPassword);
+            }
+
         });
+
 
         selectedAppPassword.setOnTouchListener((v, event) -> {
             togglePasswordVisibility();

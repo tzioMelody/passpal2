@@ -74,12 +74,10 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:background="@drawable/custom_edittext2"
-                        app:layout_constraintEnd_toEndOf="@id/guideline6"
-                        app:layout_constraintStart_toStartOf="@id/guideline5"
                         android:hint="Username"
-                        android:inputType="text"
-                        android:textColorHint="@color/black" />
+                        android:inputType="text" />
                 </com.google.android.material.textfield.TextInputLayout>
+
 
 
                 <!-- Input Email -->
@@ -90,17 +88,18 @@
                     app:boxBackgroundMode="outline"
                     app:boxCornerRadiusBottomEnd="12dp"
                     app:boxCornerRadiusTopStart="12dp"
-                    app:hintEnabled="false">
+                    app:hintEnabled="false"
+                    app:startIconDrawable="@drawable/ic_email">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/inputEmail"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:background="@drawable/custom_edittext2"
-                        android:drawableLeft="@drawable/ic_email"
                         android:hint="   Email"
                         android:inputType="textEmailAddress" />
                 </com.google.android.material.textfield.TextInputLayout>
+
 
                 <!-- Input Password -->
                 <com.google.android.material.textfield.TextInputLayout

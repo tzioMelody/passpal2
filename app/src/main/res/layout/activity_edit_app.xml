@@ -20,7 +20,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            app:layout_constraintGuide_percent="0.05" />
+            app:layout_constraintGuide_percent="0.03" />
 
         <!-- Οριζόντια Guideline -->
         <androidx.constraintlayout.widget.Guideline
@@ -28,7 +28,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            app:layout_constraintGuide_percent="0.95" />
+            app:layout_constraintGuide_percent="0.97" />
 
         <!-- Κάθετη Guideline (Αριστερά) -->
         <androidx.constraintlayout.widget.Guideline
@@ -58,14 +58,14 @@
         <LinearLayout
             android:id="@+id/EditAppCard"
             android:layout_width="0dp"
-            android:layout_height="0dp"
+            android:layout_height="wrap_content"
             android:layout_margin="16dp"
             android:background="@drawable/login_card_background"
             android:elevation="4dp"
             android:gravity="center_horizontal"
             android:orientation="vertical"
             android:padding="16dp"
-            app:layout_constraintBottom_toTopOf="@id/SaveSelectedAppData"
+            app:layout_constraintBottom_toTopOf="@id/OpenAppWebsite"
             app:layout_constraintEnd_toStartOf="@id/guideline_end"
             app:layout_constraintStart_toEndOf="@id/guideline_start"
             app:layout_constraintTop_toBottomOf="@id/guideline_top">
@@ -73,7 +73,7 @@
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="200dp">
+                android:layout_height="150dp">
 
                 <ImageView
                     android:id="@+id/appIconImageView"
@@ -94,7 +94,7 @@
                     android:layout_marginTop="8dp"
                     android:gravity="center"
                     android:text="App Name"
-                    android:textSize="18dp"
+                    android:textSize="25dp"
                     android:textStyle="bold|italic"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
@@ -163,26 +163,28 @@
                 android:background="#00FFFFFF"
                 android:hint="Email"
                 android:autofillHints="emailAddress"
-                android:inputType="text"
+                android:inputType="textEmailAddress"
                 android:maxLines="1"
                 android:textColorHint="@color/black"
                 app:errorEnabled="true"
                 app:hintTextColor="@color/black"
-                app:startIconTint="@null">
+                app:startIconDrawable="@drawable/ic_email"
+                app:startIconTint="@color/black">
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/inputEmailEditedApp"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="#00FFFFFF"
-                    android:inputType="text"
-                    android:maxLines="1"
-                    android:textColor="@color/black"
-                    tools:ignore="TouchTargetSizeCheck,SpeakableTextPresentCheck" />
-            </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/inputEmailEditedApp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#00FFFFFF"
+                android:inputType="textEmailAddress"
+                android:maxLines="1"
+                android:textColor="@color/black"
+                tools:ignore="TouchTargetSizeCheck,SpeakableTextPresentCheck" />
+        </com.google.android.material.textfield.TextInputLayout>
 
 
-            <com.google.android.material.textfield.TextInputLayout
+
+        <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/passwordTextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -210,19 +212,20 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
+            <!-- Save Button -->
+            <Button
+                android:id="@+id/SaveSelectedAppData"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Save"
+                app:layout_constraintBottom_toTopOf="@id/guideline_bottom"
+                app:layout_constraintEnd_toStartOf="@id/guideline_end"
+                app:layout_constraintStart_toEndOf="@id/guideline_start" />
 
         </LinearLayout>
 
-        <!-- Save Button -->
-        <Button
-            android:id="@+id/SaveSelectedAppData"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="Save"
-            app:layout_constraintBottom_toTopOf="@id/guideline_bottom"
-            app:layout_constraintEnd_toStartOf="@id/guideline_end"
-            app:layout_constraintStart_toEndOf="@id/guideline_start" />
+
 
         <!-- Open App/Website Button -->
         <Button
@@ -236,7 +239,7 @@
             android:visibility="invisible"
             app:backgroundTint="@color/light_purple"
             app:cornerRadius="28dp"
-            app:layout_constraintBottom_toTopOf="@+id/SaveSelectedAppData"
+            app:layout_constraintBottom_toTopOf="@+id/guideline_bottom"
             app:layout_constraintEnd_toStartOf="@id/guideline_end"
             app:layout_constraintStart_toEndOf="@id/guideline_start" />
 
