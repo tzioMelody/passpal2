@@ -33,7 +33,7 @@ public class ProfileActivity extends AppCompatActivity {
 
         // Λήψη του user ID
         Intent intent = getIntent();
-        int userId = intent.getIntExtra("USER_ID", -1);
+        userId = intent.getIntExtra("USER_ID", -1);
 
         Log.d("ProfileActivity", "User ID received: " + userId);
 
