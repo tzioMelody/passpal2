@@ -16,6 +16,7 @@ import android.view.View;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.ItemTouchHelper;
@@ -61,6 +62,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
             finish();
             return;
         }
+
 
 
         username = dbHelper.getUsernameByUserId(userId);
@@ -135,6 +137,8 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 
+
+
     private void showMasterPasswordActivity(int userId) {
         Intent intent = new Intent(this, SetMasterPasswordActivity.class);
         intent.putExtra("user_id", userId);
@@ -168,13 +172,6 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
         // Να πηγαίνει στην αντίστοιχη ιστοσελίδα ή link
         Toast.makeText(MainActivity.this, "Clicked on app: " + selectedApp.getAppNames(), Toast.LENGTH_SHORT).show();
     }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main_menu, menu);
-        return true;
-    }
-
 
     private class FetchAppsTask extends AsyncTask<Integer, Void, List<AppsObj>> {
         @Override

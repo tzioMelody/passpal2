@@ -70,6 +70,7 @@ public class ProfileActivity extends AppCompatActivity {
         // Change Master Password
         changeMasterPasswordButton.setOnClickListener(view -> {
             Intent intent = new Intent(this, ChangeMasterPasswordActivity.class);
+            intent.putExtra("user_id", userId); // Βεβαιώσου ότι περνάς το σωστό userId
             startActivity(intent);
         });
 
