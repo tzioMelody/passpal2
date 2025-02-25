@@ -593,16 +593,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     }
 
 
-    public boolean updateMasterPasswordToPlainText(int userId, String newMasterPassword) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(COLUMN_MASTER_PASSWORD, newMasterPassword);  // Αποθήκευση σε απλό κείμενο
-        int rowsAffected = db.update(MASTER_PASSWORD_TABLE, values, COLUMN_USERID + " = ?", new String[]{String.valueOf(userId)});
-        db.close();
-        return rowsAffected > 0;
-    }
-
-    // Μέθοδος για επαλήθευση του master password
+     // Μέθοδος για επαλήθευση του master password
     public boolean checkMasterPassword(int userId, String masterPassword) {
         SQLiteDatabase db = this.getReadableDatabase();
 

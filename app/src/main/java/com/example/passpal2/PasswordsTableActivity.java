@@ -1,5 +1,8 @@
 package com.example.passpal2;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.os.Bundle;
 import android.widget.TableLayout;
 import android.widget.TableRow;
@@ -83,6 +86,37 @@ public class PasswordsTableActivity extends AppCompatActivity {
                 });
                 row.addView(showHideTextView);
 
+                // Δημιουργία και ρύθμιση TextView για το κουμπί "Αντιγραφή"
+                TextView copyTextView = new TextView(this);
+                copyTextView.setText("Copy");
+                copyTextView.setTextColor(getResources().getColor(R.color.blue));
+                copyTextView.setOnClickListener(view -> {
+                    // Αντιγραφή του κωδικού στο clipboard
+                    ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                    ClipData clip = ClipData.newPlainText("Password", credential.getPassword());
+                    clipboard.setPrimaryClip(clip);
+                    showToast("Password copied to clipboard");
+                });
+                row.addView(copyTextView);
+
+                /*// Δημιουργία και ρύθμιση TextView για το κουμπί "Κάδο" (Διαγραφή)
+                TextView deleteTextView = new TextView(this);
+                deleteTextView.setText("Delete");
+                deleteTextView.setTextColor(getResources().getColor(R.color.red));
+                deleteTextView.setOnClickListener(view -> {
+                    // Διαγραφή της εγγραφής από τη βάση δεδομένων
+*//*
+                    boolean isDeleted = dbHelper.deleteCredential(credential.getId());
+*//*
+                    if (isDeleted) {
+                        showToast("Credential deleted");
+                        passwordsTableLayout.removeView(row); // Αφαίρεση της γραμμής από το TableLayout
+                    } else {
+                        showToast("Failed to delete credential");
+                    }
+                });
+                row.addView(deleteTextView);
+*/
                 // Προσθήκη της γραμμής στο TableLayout
                 passwordsTableLayout.addView(row);
             }

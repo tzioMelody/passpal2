@@ -3,7 +3,7 @@
     <string name="appNames">name</string>
     <string name="appLinks">link</string>
     <string name="add_photo">Add Photo</string>
-    <string name="app_nameAdded">App Name Added</string>
+    <string name="app_nameAdded">App Name</string>
     <string name="app_link">App Link</string>
     <string name="username">Username</string>
     <string name="email">Email</string>

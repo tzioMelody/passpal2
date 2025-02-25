@@ -11,6 +11,7 @@ import android.provider.MediaStore;
 import android.util.Patterns;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
@@ -34,6 +35,7 @@ public class AddAppUserActivity extends AppCompatActivity {
     private TextInputEditText newAppEmail;
     private TextInputEditText newAppPassword;
     private ImageButton addAppPhoto;
+    private Button cancelNewApp;
     private Uri appImageUri;
     private Bitmap appImageBitmap;
     private DataBaseHelper dbHelper;
@@ -50,6 +52,7 @@ public class AddAppUserActivity extends AppCompatActivity {
         newAppEmail = findViewById(R.id.newAppEmail);
         newAppPassword = findViewById(R.id.newAppPassword);
         addAppPhoto = findViewById(R.id.addAppPhoto);
+        cancelNewApp = findViewById(R.id.cancelNewApp);
         dbHelper = new DataBaseHelper(this);
 
         // Αποθήκευση του userId από το Intent
@@ -59,6 +62,7 @@ public class AddAppUserActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true); // Ενεργοποίηση του back arrow
             getSupportActionBar().setTitle("Add an app");
         }
+
         addAppPhoto.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -73,7 +77,37 @@ public class AddAppUserActivity extends AppCompatActivity {
             }
         });
 
+        cancelNewApp.setOnClickListener(view -> {
+            // Έλεγχος αν όλα τα πεδία είναι κενά
+            if (areAllFieldsEmpty()) {
+                // Αν όλα τα πεδία είναι κενά, επιστροφή στην MainActivity χωρίς διάλογο
+                Intent intent = new Intent(AddAppUserActivity.this, MainActivity.class);
+                startActivity(intent);
+                finish();
+            } else {
+                // Αν υπάρχει περιεχόμενο σε κάποιο πεδίο
+                new AlertDialog.Builder(this)
+                        .setTitle("Are you sure?")
+                        .setMessage("Are you sure you want to leave? The changes you've made will not be saved!")
+                        .setPositiveButton("YES", (dialog, which) -> {
+                            // Δημιουργία ενός νέου Intent για να επιστρέψει στην MainActivity
+                            Intent intent = new Intent(AddAppUserActivity.this, MainActivity.class);
+                            startActivity(intent);
+                            finish();
+                        })
+                        .setNegativeButton("No", (dialog, which) -> dialog.dismiss())
+                        .show();
+            }
+        });
+    }
 
+    // Μέθοδος για έλεγχο αν όλα τα πεδία είναι κενά
+    private boolean areAllFieldsEmpty() {
+        return newAppName.getText().toString().trim().isEmpty() &&
+                newAppLink.getText().toString().trim().isEmpty() &&
+                newAppUsername.getText().toString().trim().isEmpty() &&
+                newAppEmail.getText().toString().trim().isEmpty() &&
+                newAppPassword.getText().toString().trim().isEmpty();
     }
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -128,7 +162,6 @@ public class AddAppUserActivity extends AppCompatActivity {
         }
     }
 
-
     private void saveNewApp() {
         String appName = newAppName.getText().toString().trim();
         String appLink = newAppLink.getText().toString().trim();
@@ -165,48 +198,9 @@ public class AddAppUserActivity extends AppCompatActivity {
                 proceedWithAppSave(appName, appLink, username, email, password);
             }
         }).execute(appLink);
-
-        // Αποθήκευση της εφαρμογής αν δεν υπάρχει το ίδιο link
-        byte[] appImageBytes = null;
-        if (appImageBitmap != null) {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            appImageBitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
-            appImageBytes = baos.toByteArray();
-        }
-
-        // Αποθήκευση στη βάση δεδομένων
-        boolean result = dbHelper.saveSelectedAppToDatabase(new AppsObj(appName, appLink, 0, username, email, password, appImageBytes), userId);
-
-        // Save app credentials
-        boolean credentialsSaveResult = dbHelper.saveAppCredentials(
-                userId, appName, username, email, password, appLink
-        );
-
-        if (result && credentialsSaveResult) {
-            // Επιστροφή αποτελεσμάτων πίσω στην `AppSelectionActivity`
-            Intent returnIntent = new Intent();
-            returnIntent.putExtra("AppName", appName);
-            returnIntent.putExtra("AppLink", appLink);
-            returnIntent.putExtra("AppImageUri", appImageUri != null ? appImageUri.toString() : null); // Default εικόνα αν δεν υπάρχει
-
-            setResult(RESULT_OK, returnIntent);
-            finish();
-        } else {
-            Toast.makeText(this, "Failed to add application.", Toast.LENGTH_SHORT).show();
-        }
     }
 
     private void proceedWithAppSave(String appName, String appLink, String username, String email, String password) {
-        if (dbHelper.isAppSelected(appName, userId)) {
-            Toast.makeText(this, "Application name already exists.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        if (dbHelper.isLinkTaken(appLink, userId)) {
-            Toast.makeText(this, "Application with the same link already exists.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
         byte[] appImageBytes = null;
         if (appImageBitmap != null) {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -244,14 +238,11 @@ public class AddAppUserActivity extends AppCompatActivity {
         }
     }
 
-    //Default image
+    // Default image
     private byte[] getDefaultImageBytes() {
         Bitmap defaultBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.default_app_image);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         defaultBitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
         return baos.toByteArray();
     }
-
-
-
 }

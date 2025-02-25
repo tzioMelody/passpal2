@@ -136,18 +136,7 @@ public class ProfileActivity extends AppCompatActivity {
         }
         return super.onOptionsItemSelected(item);
     }
-    @Override
-    public void onBackPressed() {
-        new AlertDialog.Builder(this)
-                .setTitle("Save Changes")
-                .setMessage("Are you sure you want to leave? The changes you've made will not be saved")
-                .setPositiveButton("Yes", (dialog, which) -> {
-                    setResult(RESULT_OK);
-                    super.onBackPressed();
-                })
-                .setNegativeButton("No", (dialog, which) -> dialog.dismiss())
-                .show();
-    }
+
     private SpannableStringBuilder getAboutMessage() {
         SpannableStringBuilder message = new SpannableStringBuilder();
         message.append("Dear user,\n\n");

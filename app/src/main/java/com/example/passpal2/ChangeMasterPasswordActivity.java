@@ -1,5 +1,6 @@
 package com.example.passpal2;
 
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.widget.Button;
@@ -7,12 +8,13 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import java.security.SecureRandom;
 
 public class ChangeMasterPasswordActivity extends AppCompatActivity {
 
-    private EditText newPasswordEditText, confirmNewPasswordEditText;
+    private EditText newPasswordEditText, confirmNewPasswordEditText,emailConfirmAccount;
     private Button submitButton, cancelButton, generatePasswordButton;
     private DataBaseHelper dbHelper;
     private int userId;
@@ -23,12 +25,16 @@ public class ChangeMasterPasswordActivity extends AppCompatActivity {
         setContentView(R.layout.activity_change_master_password);
 
         dbHelper = new DataBaseHelper(this);
+        getSupportActionBar().setBackgroundDrawable(new ColorDrawable(ContextCompat.getColor(this, R.color.dark_blue)));
+        getSupportActionBar().setTitle("Change master password!");
 
+        emailConfirmAccount = findViewById(R.id.emailInputForVerif);
         newPasswordEditText = findViewById(R.id.newMasterPassword);
         confirmNewPasswordEditText = findViewById(R.id.confirmNewMasterPassword);
         submitButton = findViewById(R.id.submitNewMasterPassword);
         cancelButton = findViewById(R.id.cancelChangeMasterPassword);
         generatePasswordButton = findViewById(R.id.generatePasswordButton);
+
 
         // Retrieve user ID from Intent
         userId = getIntent().getIntExtra("user_id", -1);
@@ -50,23 +56,36 @@ public class ChangeMasterPasswordActivity extends AppCompatActivity {
     private void changeMasterPassword() {
         String newPassword = newPasswordEditText.getText().toString().trim();
         String confirmNewPassword = confirmNewPasswordEditText.getText().toString().trim();
+        String email = emailConfirmAccount.getText().toString().trim();
 
-        if (TextUtils.isEmpty(newPassword) || TextUtils.isEmpty(confirmNewPassword)) {
-            showToast("Both fields are required");
+        // Έλεγχος αν όλα τα πεδία είναι συμπληρωμένα
+        if (TextUtils.isEmpty(newPassword) || TextUtils.isEmpty(confirmNewPassword) || TextUtils.isEmpty(email)) {
+            showToast("All fields are required");
             return;
         }
 
+        // Ανάκτηση του email του συνδεδεμένου χρήστη
+        String loggedInUserEmail = dbHelper.getUserEmailByUserId(userId);
+
+        // Έλεγχος αν το email που εισήγαγε ο χρήστης ταιριάζει με το email του συνδεδεμένου χρήστη
+        if (!email.equals(loggedInUserEmail)) {
+            showToast("The email does not match the logged-in user's email");
+            return;
+        }
+
+        // Έλεγχος αν τα νέα passwords ταιριάζουν
         if (!newPassword.equals(confirmNewPassword)) {
             showToast("Passwords do not match");
             return;
         }
 
+        // Έλεγχος αν το νέο password έχει ακριβώς 4 χαρακτήρες
         if (newPassword.length() != 4) {
             showToast("Password must be exactly 4 characters");
             return;
         }
 
-        // Update the master password in the database
+        // Ενημέρωση του master password στη βάση δεδομένων
         boolean success = dbHelper.updateMasterPassword(userId, newPassword);
         if (success) {
             showToast("Master Password updated successfully");
@@ -78,24 +97,61 @@ public class ChangeMasterPasswordActivity extends AppCompatActivity {
 
     private void generateNewPassword() {
         // Generate a 4-character random password
-        String generatedPassword = generateRandomPassword(4);
+        String generatedPassword = generateRandomPassword();
         newPasswordEditText.setText(generatedPassword);
         confirmNewPasswordEditText.setText(generatedPassword);
     }
-
-    private String generateRandomPassword(int length) {
-        String allowedChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()";
+    private String generateRandomPassword() {
+        String allowedChars = "0123456789"; // Μόνο αριθμοί
         SecureRandom random = new SecureRandom();
         StringBuilder passwordBuilder = new StringBuilder();
 
-        for (int i = 0; i < length; i++) {
-            int randomIndex = random.nextInt(allowedChars.length());
-            passwordBuilder.append(allowedChars.charAt(randomIndex));
-        }
+        while (true) {
+            passwordBuilder.setLength(0); // Εκκαθάριση του StringBuilder
 
-        return passwordBuilder.toString();
+            // Δημιουργία τυχαίου 4ψήφιου κωδικού
+            for (int i = 0; i < 4; i++) {
+                int randomIndex = random.nextInt(allowedChars.length());
+                passwordBuilder.append(allowedChars.charAt(randomIndex));
+            }
+
+            String password = passwordBuilder.toString();
+
+            // Έλεγχος ότι ο κωδικός δεν είναι "1234" ή 4 συνεχόμενα ψηφία
+            if (!isConsecutiveSequence(password) && !password.equals("1234")) {
+                return password;
+            }
+        }
     }
 
+    // Μέθοδος για έλεγχο αν ο κωδικός είναι 4 συνεχόμενα ψηφία (αύξοντα ή φθίνοντα)
+    private boolean isConsecutiveSequence(String password) {
+        boolean isIncreasing = true;
+        boolean isDecreasing = true;
+
+        for (int i = 0; i < password.length() - 1; i++) {
+            int currentDigit = Character.getNumericValue(password.charAt(i));
+            int nextDigit = Character.getNumericValue(password.charAt(i + 1));
+
+            // Έλεγχος για αύξουσα σειρά
+            if (nextDigit != currentDigit + 1) {
+                isIncreasing = false;
+            }
+
+            // Έλεγχος για φθίνουσα σειρά
+            if (nextDigit != currentDigit - 1) {
+                isDecreasing = false;
+            }
+
+            // Αν δεν είναι ούτε αύξουσα ούτε φθίνουσα, σταμάτα τον έλεγχο
+            if (!isIncreasing && !isDecreasing) {
+                break;
+            }
+        }
+
+        // Αν είναι είτε αύξουσα είτε φθίνουσα σειρά, επιστροφή true
+        return isIncreasing || isDecreasing;
+    }
     private void showToast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
