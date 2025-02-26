@@ -159,7 +159,12 @@
                     android:id="@+id/cancelNewApp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:hint="Cancel"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:text="Cancel"
+                    android:textAllCaps="false"
+                    app:layout_constraintStart_toStartOf="parent"
                     android:backgroundTint="@color/light_gray"
                     android:textColor="@color/black" />
 
@@ -170,7 +175,7 @@
                     android:layout_marginEnd="8dp"
                     android:hint="Save"
                     android:backgroundTint="@color/light_purple"
-                    android:textColor="@color/white" />
+                    android:textColor="@color/transWhite" />
 
 
 

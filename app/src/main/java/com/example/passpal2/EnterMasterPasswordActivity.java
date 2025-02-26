@@ -16,7 +16,7 @@ import androidx.appcompat.app.AppCompatActivity;
 public class EnterMasterPasswordActivity extends AppCompatActivity {
 
     private EditText masterPasswordEditText;
-    private Button submitMasterPasswordButton;
+    private Button submitMasterPasswordButton,forgotMasterPassword;
     /*Button cancelButton = findViewById(R.id.cancel);*/
     private DataBaseHelper dbHelper;
     private int userId;
@@ -48,6 +48,8 @@ public class EnterMasterPasswordActivity extends AppCompatActivity {
         Log.d("EnterMasterPasswordActivity", "Received UserID: " + userId);
 
         submitMasterPasswordButton.setOnClickListener(v -> attemptMasterPasswordVerification());
+        forgotMasterPassword.setOnClickListener(v -> forgotMasterPasswordToChabgePass());
+
 
 
     }
@@ -55,6 +57,7 @@ public class EnterMasterPasswordActivity extends AppCompatActivity {
     private void initializeViews() {
         masterPasswordEditText = findViewById(R.id.masterPasswordInput);
         submitMasterPasswordButton = findViewById(R.id.submitMasterPassword);
+        forgotMasterPassword = findViewById(R.id.forgotMasterPassword);
     }
 
     private void attemptMasterPasswordVerification() {
@@ -78,7 +81,7 @@ public class EnterMasterPasswordActivity extends AppCompatActivity {
             Log.d("MasterPasswordDebug", "Master Password valid: " + isMasterPasswordValid);
 
             if (isMasterPasswordValid) {
-                showToast("Password correct");
+                showToast("Password is correct");
                 Log.d("MasterPasswordDebug", "Correct Master Password for UserID: " + userId);
 
                 Intent intent = new Intent(EnterMasterPasswordActivity.this, PasswordsTableActivity.class);
@@ -94,27 +97,31 @@ public class EnterMasterPasswordActivity extends AppCompatActivity {
             showToast("An error occurred. Please try again.");
         }
     }
+
+    public void forgotMasterPasswordToChabgePass() {
+        Intent intent = new Intent(EnterMasterPasswordActivity.this, ChangeMasterPasswordActivity.class);
+        intent.putExtra("user_id", userId);
+        startActivity(intent);
+        finish();
+    }
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            // Αν πατηθεί το back arrow, επιστρέφουμε στην προηγούμενη οθόνη
-            onBackPressed();
+            // το κουμπί για να επιστρέψει στην προηγούμενη οθόνη
+            new AlertDialog.Builder(this)
+                    .setTitle("Are you sure?")
+                    .setMessage("Are you sure you want to leave? ")
+                    .setPositiveButton("Yes", (dialog, which) -> {
+                        setResult(RESULT_OK);
+                        super.onBackPressed();
+                    })
+                    .setNegativeButton("No", (dialog, which) -> dialog.dismiss())
+                    .show();
                         return true;
         }
         return super.onOptionsItemSelected(item);
     }
-    @Override
-    public void onBackPressed() {
-        new AlertDialog.Builder(this)
-                .setTitle("Are you sure?")
-                .setMessage("Are you sure you want to leave? ")
-                .setPositiveButton("Yes", (dialog, which) -> {
-                    setResult(RESULT_OK);
-                    super.onBackPressed();
-                })
-                .setNegativeButton("No", (dialog, which) -> dialog.dismiss())
-                .show();
-    }
+
 
     private void showToast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();

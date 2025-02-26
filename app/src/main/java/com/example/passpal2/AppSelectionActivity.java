@@ -29,6 +29,7 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
     private static final String SELECTED_APPS_KEY = "selected_apps";
     DataBaseHelper dbHelper = new DataBaseHelper(this);
     AdapterRecycler adapter;
+    Button selectionApps,CancelBtn;
     int userId;
     ArrayList<AppsObj> appsObjs = new ArrayList<>();
     ArrayList<AppsObj> selectedApps = new ArrayList<>();
@@ -60,13 +61,13 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        Button addUserAppsButton = findViewById(R.id.AddUserApps);
-        Button selectionApps = findViewById(R.id.selectionApp);
+         CancelBtn = findViewById(R.id.cancelBtn);
+         selectionApps = findViewById(R.id.selectionApp);
 
-        addUserAppsButton.setOnClickListener(new View.OnClickListener() {
+        CancelBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                onAddUserAppsButtonClick(v);
+                onCancelButtonClick(v);
             }
         });
         selectionApps.setOnClickListener(new View.OnClickListener() {
@@ -261,9 +262,9 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
 
 
     // Λειτουργία κουμπιών
-    public void onAddUserAppsButtonClick(View view) {
+    public void onCancelButtonClick(View view) {
         if (selectedApps.isEmpty()) {
-            Intent intentUserId = new Intent(this, AddAppUserActivity.class);
+            Intent intentUserId = new Intent(this, MainActivity.class);
             intentUserId.putExtra("USER_ID", userId);
             startActivityForResult(intentUserId, 1);
         } else {
@@ -271,7 +272,7 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
                     .setTitle("Continue")
                     .setMessage("Are you sure you want to continue? Your selected apps will be lost.")
                     .setPositiveButton(android.R.string.yes, (dialog, which) -> {
-                        Intent intentUserId = new Intent(this, AddAppUserActivity.class);
+                        Intent intentUserId = new Intent(this, MainActivity.class);
                         intentUserId.putExtra("USER_ID", userId);
                         startActivityForResult(intentUserId, 1);
                     })
