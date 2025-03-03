@@ -106,17 +106,9 @@ public class EnterMasterPasswordActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            // το κουμπί για να επιστρέψει στην προηγούμενη οθόνη
-            new AlertDialog.Builder(this)
-                    .setTitle("Are you sure?")
-                    .setMessage("Are you sure you want to leave? ")
-                    .setPositiveButton("Yes", (dialog, which) -> {
-                        setResult(RESULT_OK);
-                        super.onBackPressed();
-                    })
-                    .setNegativeButton("No", (dialog, which) -> dialog.dismiss())
-                    .show();
-                        return true;
+            // back arrow
+            onBackPressed();
+            return true;
         }
         return super.onOptionsItemSelected(item);
     }

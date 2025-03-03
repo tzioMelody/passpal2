@@ -3,12 +3,20 @@ package com.example.passpal2;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.Gravity;
+import android.view.MenuItem;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
 import java.util.List;
 
@@ -17,11 +25,18 @@ public class PasswordsTableActivity extends AppCompatActivity {
     private int userId;
     private TableLayout passwordsTableLayout;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_passwords_table);
-        getSupportActionBar().setTitle("Passwords vault");
+
+        // να φανει το ονομα της εφαρμογης πανω στην μπαρα
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setTitle("Passwords vault");
+        }
+
 
         dbHelper = new DataBaseHelper(this);
 
@@ -38,11 +53,13 @@ public class PasswordsTableActivity extends AppCompatActivity {
         // Αρχικοποίηση του TableLayout
         passwordsTableLayout = findViewById(R.id.passwordsTableLayout);
 
+
         // Φόρτωση δεδομένων
         loadCredentials();
     }
 
     // Φόρτωση credentials από τη βάση δεδομένων και προσθήκη δυναμικών γραμμών στο TableLayout
+    @RequiresApi(api = Build.VERSION_CODES.HONEYCOMB)
     private void loadCredentials() {
         List<DataBaseHelper.AppCredentials> credentialsList = dbHelper.getAllCredentialsForUser(userId);
         if (credentialsList != null && !credentialsList.isEmpty()) {
@@ -69,6 +86,73 @@ public class PasswordsTableActivity extends AppCompatActivity {
                 passwordTextView.setText("••••••••");  // Κρυμμένος κωδικός
                 row.addView(passwordTextView);
 
+
+
+
+                // Δημιουργία και ρύθμιση TextView για το κουμπί Copy
+                TextView copyTextView = new TextView(this);
+                copyTextView.setTextColor(getResources().getColor(R.color.blue));
+                copyTextView.setLayoutParams(new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1));
+                copyTextView.setPadding(0, 8, 8, 8);
+                copyTextView.setGravity(Gravity.CENTER);
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                    copyTextView.setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ic_copy, 0, 0, 0);
+                } else {
+                    copyTextView.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_copy, 0, 0, 0);
+                }
+                copyTextView.setCompoundDrawablePadding(2);
+
+                copyTextView.setOnClickListener(view -> {
+                    String password = credential.getPassword();
+                    ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                    ClipData clip = ClipData.newPlainText("Password", password);
+                    clipboard.setPrimaryClip(clip);
+                    Toast.makeText(this, "Password copied to clipboard", Toast.LENGTH_SHORT).show();
+                });
+                row.addView(copyTextView);
+
+                // Δημιουργία και ρύθμιση TextView για το κουμπί Delete
+                TextView deleteTextView = new TextView(this);
+                deleteTextView.setTextColor(getResources().getColor(R.color.red));
+                deleteTextView.setLayoutParams(new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1));
+                deleteTextView.setPadding(0, 8, 8, 8);
+                deleteTextView.setGravity(Gravity.CENTER);
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                    deleteTextView.setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ic_delete, 0, 0, 0);
+                } else {
+                    deleteTextView.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_delete, 0, 0, 0);
+                }
+                deleteTextView.setCompoundDrawablePadding(5);
+
+
+                deleteTextView.setOnClickListener(view -> {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(PasswordsTableActivity.this);
+                    builder.setTitle("Delete Item");
+                    builder.setMessage("Are you sure you want to delete this item?");
+
+                    builder.setPositiveButton("Yes", (dialog, which) -> {
+                        // Διαγραφή του row
+                        boolean isDeleted = dbHelper.deleteItem(credential.getUsername(), credential.getAppName(), credential.getUserId(), credential.getEmail(), credential.getPassword());
+
+                        if (isDeleted) {
+                            Toast.makeText(PasswordsTableActivity.this, "Item deleted successfully", Toast.LENGTH_SHORT).show();
+                            ((TableLayout) row.getParent()).removeView(row);
+                        } else {
+                            Toast.makeText(PasswordsTableActivity.this, "Failed to delete item", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+
+                    builder.setNegativeButton("No", (dialog, which) -> {
+
+                        dialog.dismiss();
+                    });
+
+                    builder.show();
+                });
+                row.addView(deleteTextView);
+
                 // Δημιουργία και ρύθμιση TextView για το κουμπί Show/Hide
                 TextView showHideTextView = new TextView(this);
                 showHideTextView.setText("Show");
@@ -86,43 +170,22 @@ public class PasswordsTableActivity extends AppCompatActivity {
                 });
                 row.addView(showHideTextView);
 
-                // Δημιουργία και ρύθμιση TextView για το κουμπί "Αντιγραφή"
-                TextView copyTextView = new TextView(this);
-                copyTextView.setText("Copy");
-                copyTextView.setTextColor(getResources().getColor(R.color.blue));
-                copyTextView.setOnClickListener(view -> {
-                    // Αντιγραφή του κωδικού στο clipboard
-                    ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-                    ClipData clip = ClipData.newPlainText("Password", credential.getPassword());
-                    clipboard.setPrimaryClip(clip);
-                    showToast("Password copied to clipboard");
-                });
-                row.addView(copyTextView);
-
-                /*// Δημιουργία και ρύθμιση TextView για το κουμπί "Κάδο" (Διαγραφή)
-                TextView deleteTextView = new TextView(this);
-                deleteTextView.setText("Delete");
-                deleteTextView.setTextColor(getResources().getColor(R.color.red));
-                deleteTextView.setOnClickListener(view -> {
-                    // Διαγραφή της εγγραφής από τη βάση δεδομένων
-*//*
-                    boolean isDeleted = dbHelper.deleteCredential(credential.getId());
-*//*
-                    if (isDeleted) {
-                        showToast("Credential deleted");
-                        passwordsTableLayout.removeView(row); // Αφαίρεση της γραμμής από το TableLayout
-                    } else {
-                        showToast("Failed to delete credential");
-                    }
-                });
-                row.addView(deleteTextView);
-*/
-                // Προσθήκη της γραμμής στο TableLayout
                 passwordsTableLayout.addView(row);
             }
         } else {
             showToast("No saved credentials found.");
         }
+    }
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            // back arrow
+            onBackPressed();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     private void showToast(String message) {

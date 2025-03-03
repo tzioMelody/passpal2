@@ -15,6 +15,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -409,7 +410,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         db.close();
     }
 
-
     public void deleteUserData(int userId) {
         SQLiteDatabase db = this.getWritableDatabase();
 
@@ -483,6 +483,61 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             return true; //  Η εισαγωγή είναι επιτυχής
         }
     }
+
+
+    public boolean deleteItem(String username, String appName, int userId, String email, String password) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = null;
+
+        try {
+            // 1. Ανάκτηση του κρυπτογραφημένου κωδικού από τη βάση
+            cursor = db.query(DataBaseHelper.TABLE_APP_CREDENTIALS,
+                    new String[]{DataBaseHelper.COLUMN_PASSWORD_CREDENTIALS},
+                    DataBaseHelper.COLUMN_USERNAME_CREDENTIALS + "=? AND " +
+                            DataBaseHelper.COLUMN_APP_NAME_CREDENTIALS + "=? AND " +
+                            DataBaseHelper.COLUMN_USER_ID + "=? AND " +
+                            DataBaseHelper.COLUMN_EMAIL_CREDENTIALS + "=?",
+                    new String[]{username, appName, String.valueOf(userId), email},
+                    null, null, null);
+
+            if (cursor != null && cursor.moveToFirst()) {
+                String encryptedPassword = cursor.getString(0);
+
+                String[] parts = encryptedPassword.split(":");
+                if (parts.length != 2) {
+                    return false;
+                }
+
+                // 2. Αποκρυπτογράφηση
+                String storedHash = parts[0];
+                byte[] storedSalt = PasswordUtil.decodeSalt(parts[1]);
+                String computedHash = PasswordUtil.hashPassword(password, storedSalt);
+
+                // 3. Έλεγχος αν οι κωδικοί ταιριάζουν
+                if (storedHash.equals(computedHash)) {
+                    int rowsDeleted = db.delete(
+                            DataBaseHelper.TABLE_APP_CREDENTIALS,
+                            DataBaseHelper.COLUMN_USERNAME_CREDENTIALS + "=? AND " +
+                                    DataBaseHelper.COLUMN_APP_NAME_CREDENTIALS + "=? AND " +
+                                    DataBaseHelper.COLUMN_USER_ID + "=? AND " +
+                                    DataBaseHelper.COLUMN_EMAIL_CREDENTIALS + "=?",
+                            new String[]{username, appName, String.valueOf(userId), email});
+
+                    return rowsDeleted > 0;
+                }
+            }
+            return false;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+            db.close();
+        }
+    }
+
 
     public boolean isLinkTaken(String appLink, int userId) {
         SQLiteDatabase db = this.getReadableDatabase();

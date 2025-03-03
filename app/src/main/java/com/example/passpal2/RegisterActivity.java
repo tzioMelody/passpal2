@@ -130,8 +130,6 @@ public class RegisterActivity extends AppCompatActivity implements EmailVerifica
 
     private void registerUser(String username, String email, String password) {
         try {
-            // REMOVED HASHING AND SALTING
-
             // DIRECTLY CALL insertUser() IN DataBaseHelper
             long userId = dbHelper.insertUser(username, email, password);
 
