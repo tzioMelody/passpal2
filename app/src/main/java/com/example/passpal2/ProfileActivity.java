@@ -70,7 +70,7 @@ public class ProfileActivity extends AppCompatActivity {
         // Change Master Password
         changeMasterPasswordButton.setOnClickListener(view -> {
             Intent intent = new Intent(this, ChangeMasterPasswordActivity.class);
-            intent.putExtra("user_id", userId); // Βεβαιώσου ότι περνάς το σωστό userId
+            intent.putExtra("user_id", userId);
             startActivity(intent);
         });
 
@@ -92,7 +92,7 @@ public class ProfileActivity extends AppCompatActivity {
             new AlertDialog.Builder(this)
                     .setTitle("About")
                     .setMessage("Security and organization at your fingertips – this is the vision of PassPal, the ultimate application for managing access credentials and applications. " +
-                            "With version 1.0, PassPal offers a perfect combination of simplicity and innovation, allowing you to register, securely store, and manage " +
+                            "PassPal offers a perfect combination of simplicity and innovation, allowing you to register, securely store, and manage " +
                             "your access information for your favorite applications and websites.")
                     .setPositiveButton(android.R.string.ok, (dialog, which) -> dialog.dismiss())
                     .show();
@@ -130,7 +130,7 @@ public class ProfileActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            // Αν πατηθεί το back arrow, επιστρέφουμε στην προηγούμενη οθόνη
+            //back arrow
             onBackPressed();
             return true;
         }

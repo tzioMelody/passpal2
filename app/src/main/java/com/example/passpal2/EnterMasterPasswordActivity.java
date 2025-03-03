@@ -17,7 +17,6 @@ public class EnterMasterPasswordActivity extends AppCompatActivity {
 
     private EditText masterPasswordEditText;
     private Button submitMasterPasswordButton,forgotMasterPassword;
-    /*Button cancelButton = findViewById(R.id.cancel);*/
     private DataBaseHelper dbHelper;
     private int userId;
 
@@ -27,7 +26,7 @@ public class EnterMasterPasswordActivity extends AppCompatActivity {
         setContentView(R.layout.activity_enter_masterpassword);
 
         if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true); // Ενεργοποίηση του back arrow
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setTitle("Password Vault");
         }
 

@@ -1,5 +1,6 @@
 package com.example.passpal2;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
@@ -12,6 +13,7 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
@@ -135,13 +137,27 @@ public class RegisterActivity extends AppCompatActivity implements EmailVerifica
 
             if (userId != -1) {
                 showToast("User registered successfully");
+                    new AlertDialog.Builder(RegisterActivity.this)
+                            .setTitle("Welcome")
+                            .setMessage("Since you have registered in the application, to ensure the security of your data, " +
+                                    "a Master Password will need to be created. This code must be unique and consist of exactly 4 characters." +
+                                    "If you want to change or have forgotten it, " +
+                                    "you can navigate to the bottom of the main screen, go to the profile section, and update it.")
+                            .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    // Μετά το πάτημα του OK προχωράμε στην επόμενη δραστηριότητα
+                                    Intent intent = new Intent(RegisterActivity.this, SetMasterPasswordActivity.class);
+                                    intent.putExtra("user_id", (int) userId);
+                                    startActivity(intent);
+                                    finish();
+                                }
+                            })
+                            .setCancelable(false)
+                            .show();
 
-                Intent intent = new Intent(RegisterActivity.this, SetMasterPasswordActivity.class);
-                intent.putExtra("user_id", (int) userId);
-                startActivity(intent);
-                finish();
             } else {
-                showToast("Failed to register user");
+                showToast("Failed to register user.Please try again!");
             }
         } catch (Exception e) {
             e.printStackTrace();

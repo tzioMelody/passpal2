@@ -224,10 +224,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         values.put(COLUMN_EMAIL, email);
         values.put(COLUMN_PASSWORD, hashedPassword + ":" + saltStr);
 
-
-
-
-        return db.insert(USER_TABLE, null, values);
+      return db.insert(USER_TABLE, null, values);
     }
 
 

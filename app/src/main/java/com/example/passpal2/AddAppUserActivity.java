@@ -59,7 +59,7 @@ public class AddAppUserActivity extends AppCompatActivity {
         userId = getIntent().getIntExtra("USER_ID", -1);
 
         if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true); // Ενεργοποίηση του back arrow
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setTitle("Add an app");
         }
 
@@ -112,7 +112,7 @@ public class AddAppUserActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            // Αν πατηθεί το back arrow, επιστρέφουμε στην προηγούμενη οθόνη
+            // back arrow
             onBackPressed();
             return true;
         }
@@ -120,7 +120,7 @@ public class AddAppUserActivity extends AppCompatActivity {
     }
 
     private void showImageSourceDialog() {
-        // Διάλογος για επιλογή πηγής εικόνας: Κάμερα ή Συλλογή
+        // Κάμερα ή Συλλογή
         new AlertDialog.Builder(this)
                 .setTitle("Select Image Source")
                 .setItems(new String[]{"Take Photo", "Choose from Gallery"}, (dialog, which) -> {

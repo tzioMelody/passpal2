@@ -159,7 +159,7 @@ public class EditSelectedAppActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            // Αν πατηθεί το back arrow, επιστρέφουμε στην προηγούμενη οθόνη
+            // back arrow
             onBackPressed();
             return true;
         }

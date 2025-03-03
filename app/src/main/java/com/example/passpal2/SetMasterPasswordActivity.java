@@ -106,7 +106,7 @@ public class SetMasterPasswordActivity extends AppCompatActivity {
     }
 
     private boolean isCommonPassword(String password) {
-        return password.equals("1234") || password.equals("abcd");
+        return password.equals("1234");
     }
 
     private void showToast(String message) {

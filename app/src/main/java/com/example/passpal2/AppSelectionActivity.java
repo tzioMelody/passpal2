@@ -53,7 +53,7 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
         adapter = new AdapterRecycler(this, appsObjs, this);
 
         if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true); // Ενεργοποίηση του back arrow
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setTitle("Choose your favourite apps");
         }
 
@@ -81,7 +81,7 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            // Αν πατηθεί το back arrow, επιστρέφουμε στην προηγούμενη οθόνη
+            //back arrow
             onBackPressed();
             return true;
         }
@@ -148,7 +148,7 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
                 // Έλεγχος αν το userId είναι έγκυρο
                 if (userId == -1) {
                     Log.e("AppSelectionActivity", "Άκυρο USER_ID");
-                    Toast.makeText(AppSelectionActivity.this, "Πρόβλημα με το User ID", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(AppSelectionActivity.this, "There was an error. Please try again", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
