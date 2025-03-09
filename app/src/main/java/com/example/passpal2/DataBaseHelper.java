@@ -225,7 +225,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         values.put(COLUMN_EMAIL, email);
         values.put(COLUMN_PASSWORD, hashedPassword + ":" + saltStr);
 
-      return db.insert(USER_TABLE, null, values);
+        return db.insert(USER_TABLE, null, values);
     }
 
 
@@ -408,6 +408,13 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         // Διαγραφή της εφαρμογής με βάση το όνομα και το userId από την main activity
         db.delete(TABLE_APPS_INFO, COLUMN_APP_NAME + "=? AND " + COLUMN_USER_ID + "=?", new String[]{appName, String.valueOf(userId)});
         db.close();
+    }
+
+    public boolean deleteAppCredentials(int id) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        int result = db.delete(TABLE_APP_CREDENTIALS, "ID = ?", new String[]{String.valueOf(id)});
+        db.close();
+        return result > 0;
     }
 
     public void deleteUserData(int userId) {
@@ -645,7 +652,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     }
 
 
-     // Μέθοδος για επαλήθευση του master password
+    // Μέθοδος για επαλήθευση του master password
     public boolean checkMasterPassword(int userId, String masterPassword) {
         SQLiteDatabase db = this.getReadableDatabase();
 
@@ -720,6 +727,47 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             return false;
         }
     }
+    public boolean updateAppCredentials(int id,int userId, String appName, String username, String email, String password, String link) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues cv = new ContentValues();
+
+        try {
+            // Ensure the encryption key exists
+            EncryptionHelper.generateKey();
+
+            // Encrypt sensitive data
+            String encryptedUsername = EncryptionHelper.encrypt(username);
+            String encryptedEmail = EncryptionHelper.encrypt(email);
+            String encryptedPassword = EncryptionHelper.encrypt(password);
+
+            // Add encrypted values to ContentValues
+            cv.put(COLUMN_APP_NAME_CREDENTIALS, appName);
+            cv.put(COLUMN_USERNAME_CREDENTIALS, encryptedUsername);
+            cv.put(COLUMN_EMAIL_CREDENTIALS, encryptedEmail);
+            cv.put(COLUMN_PASSWORD_CREDENTIALS, encryptedPassword);
+            cv.put(COLUMN_APP_LINK_CREDENTIALS, link);
+
+            Log.d("DataBaseHelper", "Attempting to update credentials for ID: " + id);
+
+            // Update the record based on the unique ID
+            int result = db.update(TABLE_APP_CREDENTIALS, cv, COLUMN_ID + " = ?", new String[]{String.valueOf(id)});
+            db.close();
+
+            if (result > 0) {
+                Log.d("DataBaseHelper", "Updated credentials successfully for ID: " + id);
+                return true;
+            } else {
+                Log.e("DataBaseHelper", "Failed to update credentials for ID: " + id);
+                return false;
+            }
+        } catch (Exception e) {
+            Log.e("DataBaseHelper", "Encryption error: " + e.getMessage());
+            db.close();
+            return false;
+        }
+    }
+
+
     // Ενημέρωση Master Password
     public boolean updateMasterPassword(int userId, String newMasterPassword) {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -793,4 +841,3 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         }
     }
 }
-

@@ -4,11 +4,17 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.SpannableString;
+import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.text.method.HideReturnsTransformationMethod;
 import android.text.method.PasswordTransformationMethod;
+import android.text.style.ClickableSpan;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -33,9 +39,13 @@ public class EditSelectedAppActivity extends AppCompatActivity {
     private Button openAppWebsiteBtn;
     private EditText selectedAppPassword;
     private boolean isPasswordVisible = false;
+    private boolean isDataSaved = false;
     private DataBaseHelper dbHelper;
     int appId;
     int userId;
+    private boolean isEditingExistingAccount = false;
+    private String originalUsername, originalEmail, originalPassword;
+    private int credentialId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,22 +53,45 @@ public class EditSelectedAppActivity extends AppCompatActivity {
         setContentView(R.layout.activity_edit_app);
 
         dbHelper = new DataBaseHelper(this);
+        inputEmailEditedApp = findViewById(R.id.inputEmailEditedApp);
+        inputUsernameEditedApp = findViewById(R.id.inputUsernameEditedApp);
+        selectedAppPassword = findViewById(R.id.passwordEditText);
+
+        saveSelectedAppData = findViewById(R.id.SaveSelectedAppData);
+        openAppWebsiteBtn = findViewById(R.id.OpenAppWebsite);
 
         Intent intent = getIntent();
         if (intent != null && intent.hasExtra("APP_DATA")) {
             AppsObj selectedApp = intent.getParcelableExtra("APP_DATA");
             String appName = selectedApp.getAppNames();
+            credentialId = intent.getIntExtra("CREDENTIAL_ID", -1);
+            appId = intent.getIntExtra("APP_ID", -1);
+            userId = intent.getIntExtra("USER_ID", -1);
+            originalUsername = intent.getStringExtra("USERNAME");
+            originalEmail = intent.getStringExtra("EMAIL");
+            originalPassword = intent.getStringExtra("PASSWORD");
 
+            // Εμφάνιση των δεδομένων στα πεδία
+            inputUsernameEditedApp.setText(originalUsername != null ? originalUsername : "");
+            inputEmailEditedApp.setText(originalEmail != null ? originalEmail : "");
+            selectedAppPassword.setText(originalPassword != null ? originalPassword : ""); isEditingExistingAccount = originalUsername != null || originalEmail != null || originalPassword != null;
 
-           // να φανει το ονομα της εφαρμογης πανω στην μπαρα
+            isEditingExistingAccount = originalUsername != null
+                    || originalEmail != null || originalPassword != null;
+            // Αρχική κατάσταση: Αν επεξεργάζεται υπάρχοντα λογαριασμό, εμφάνισε μόνο το "Open App/Website"
+            if (isEditingExistingAccount) {
+                saveSelectedAppData.setVisibility(View.GONE); // Κρύψε το "Save"
+                openAppWebsiteBtn.setVisibility(View.VISIBLE); // Εμφάνισε το "Open App/Website"
+            } else {
+                saveSelectedAppData.setVisibility(View.VISIBLE); // Εμφάνισε το "Save"
+                openAppWebsiteBtn.setVisibility(View.GONE); // Κρύψε το "Open App/Website"
+            }
+
+            // να φανει το ονομα της εφαρμογης πανω στην μπαρα
             if (getSupportActionBar() != null) {
                 getSupportActionBar().setDisplayHomeAsUpEnabled(true);
                 getSupportActionBar().setTitle(appName);
             }
-
-            appId = intent.getIntExtra("APP_ID", -1);
-            userId = intent.getIntExtra("USER_ID", -1);
-
             appIconImageView = findViewById(R.id.appIconImageView);
             appNameTextView = findViewById(R.id.appNameTextView);
             appLinkEditText = findViewById(R.id.inputLinkEditedApp);
@@ -72,19 +105,22 @@ public class EditSelectedAppActivity extends AppCompatActivity {
             Log.d("AppsObj", "Email: " + selectedApp.getEmail());
             Log.d("AppsObj", "Password: " + selectedApp.getPassword());
 
+            setupTextWatchers();
+
         }
-        inputEmailEditedApp = findViewById(R.id.inputEmailEditedApp);
-        saveSelectedAppData = findViewById(R.id.SaveSelectedAppData);
-        openAppWebsiteBtn = findViewById(R.id.OpenAppWebsite);
-        selectedAppPassword = findViewById(R.id.passwordEditText);
 
         inputEmailEditedApp.setAutofillHints(View.AUTOFILL_HINT_EMAIL_ADDRESS);
         inputUsernameEditedApp.setAutofillHints(View.AUTOFILL_HINT_USERNAME);
         selectedAppPassword.setAutofillHints(View.AUTOFILL_HINT_PASSWORD);
 
         saveSelectedAppData.setOnClickListener(v -> {
-            String email = inputEmailEditedApp.getText().toString();
+            if (!haveFieldsChanged()) {
 
+                Toast.makeText(this, "No changes were made", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            String email = inputEmailEditedApp.getText().toString();
             if (TextUtils.isEmpty(email)) {
                 Toast.makeText(EditSelectedAppActivity.this, "Please fill in the email field", Toast.LENGTH_SHORT).show();
                 return;
@@ -98,7 +134,6 @@ public class EditSelectedAppActivity extends AppCompatActivity {
                 }
             });
             verificationTask.execute(email);
-
         });
 
         openAppWebsiteBtn.setOnClickListener(view -> {
@@ -150,12 +185,35 @@ public class EditSelectedAppActivity extends AppCompatActivity {
 
         });
 
-
         selectedAppPassword.setOnTouchListener((v, event) -> {
             togglePasswordVisibility();
             return false;
         });
     }
+    private void setupTextWatchers() {
+        TextWatcher textWatcher = new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                // Αν υπάρχουν αλλαγές, εμφάνισε το "Save" και κρύψε το "Open App/Website"
+                if (haveFieldsChanged()) {
+                    saveSelectedAppData.setVisibility(View.VISIBLE);
+                    openAppWebsiteBtn.setVisibility(View.GONE);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        };
+
+        inputUsernameEditedApp.addTextChangedListener(textWatcher);
+        inputEmailEditedApp.addTextChangedListener(textWatcher);
+        selectedAppPassword.addTextChangedListener(textWatcher);
+        appLinkEditText.addTextChangedListener(textWatcher);
+    }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
@@ -164,6 +222,20 @@ public class EditSelectedAppActivity extends AppCompatActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private boolean haveFieldsChanged() {
+        String currentUsername = inputUsernameEditedApp.getText().toString();
+        String currentEmail = inputEmailEditedApp.getText().toString();
+        String currentPassword = selectedAppPassword.getText().toString();
+
+        // Έλεγχος αν τα πεδία έχουν αλλάξει
+        boolean usernameChanged = !currentUsername.equals(originalUsername);
+        boolean emailChanged = !currentEmail.equals(originalEmail);
+        boolean passwordChanged = !currentPassword.equals(originalPassword);
+
+        // Επιστροφή true αν τουλάχιστον ένα πεδίο έχει αλλάξει
+        return usernameChanged || emailChanged || passwordChanged;
     }
 
     private void saveChanges() {
@@ -175,16 +247,24 @@ public class EditSelectedAppActivity extends AppCompatActivity {
 
         try {
             // Insert new credentials into the database (not updating existing ones)
-            boolean success = dbHelper.saveAppCredentials(userId, appName, username, email, password, link);
+            boolean success;
+            if(isEditingExistingAccount){
+                success = dbHelper.updateAppCredentials(credentialId,userId, appName, username, email, password, link);
+            } else {
+                // Αποθήκευση νέου λογαριασμού
+                success = dbHelper.saveAppCredentials(userId, appName, username, email, password, link);
+            }
 
             if (success) {
                 Toast.makeText(this, "Credentials saved successfully", Toast.LENGTH_SHORT).show();
+                isDataSaved = true;
 
                 saveCredentialsToAutofill(username, email, password);
 
                 // Hide save button and show the "Open app/website" button
                 saveSelectedAppData.setVisibility(View.GONE);
                 openAppWebsiteBtn.setVisibility(View.VISIBLE);
+
 
                 // Keep the entered data visible and show a result message
                 Intent returnIntent = new Intent();
@@ -197,9 +277,10 @@ public class EditSelectedAppActivity extends AppCompatActivity {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            Toast.makeText(this, "Failed to hash password", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Failed to save credentials", Toast.LENGTH_SHORT).show();
         }
     }
+
 
     private void saveCredentialsToAutofill(String username, String email, String password) {
         AutofillManager autofillManager = getSystemService(AutofillManager.class);
@@ -219,19 +300,23 @@ public class EditSelectedAppActivity extends AppCompatActivity {
         }
     }
 
+
     @Override
     public void onBackPressed() {
-        new AlertDialog.Builder(this)
-                .setTitle("Save Changes")
-                .setMessage("Are you sure you want to leave? The changes you've made will not be saved")
-                .setPositiveButton("Yes", (dialog, which) -> {
-                    setResult(RESULT_OK);
-                    super.onBackPressed();
-                })
-                .setNegativeButton("No", (dialog, which) -> dialog.dismiss())
-                .show();
+        if (isDataSaved) {
+            super.onBackPressed();
+        } else {
+            new AlertDialog.Builder(this)
+                    .setTitle("Save Changes")
+                    .setMessage("Are you sure you want to leave? The changes you've made will not be saved")
+                    .setPositiveButton("Yes", (dialog, which) -> {
+                        setResult(RESULT_OK);
+                        super.onBackPressed();
+                    })
+                    .setNegativeButton("No", (dialog, which) -> dialog.dismiss())
+                    .show();
+        }
     }
-
 
     private void togglePasswordVisibility() {
         if (isPasswordVisible) {

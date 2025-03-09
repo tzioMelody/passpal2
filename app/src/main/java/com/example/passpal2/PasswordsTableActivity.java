@@ -52,6 +52,7 @@ public class PasswordsTableActivity extends AppCompatActivity {
 
         // Αρχικοποίηση του TableLayout
         passwordsTableLayout = findViewById(R.id.passwordsTableLayout);
+        passwordsTableLayout.setStretchAllColumns(true);
 
 
         // Φόρτωση δεδομένων
@@ -70,6 +71,7 @@ public class PasswordsTableActivity extends AppCompatActivity {
                         TableRow.LayoutParams.MATCH_PARENT,
                         TableRow.LayoutParams.WRAP_CONTENT
                 ));
+                Log.d("SwipeAction", "credentials List : " + credentialsList);
 
                 // Δημιουργία και ρύθμιση TextView για το όνομα της εφαρμογής
                 TextView appNameTextView = new TextView(this);
@@ -86,20 +88,17 @@ public class PasswordsTableActivity extends AppCompatActivity {
                 passwordTextView.setText("••••••••");  // Κρυμμένος κωδικός
                 row.addView(passwordTextView);
 
-
-
-
                 // Δημιουργία και ρύθμιση TextView για το κουμπί Copy
                 TextView copyTextView = new TextView(this);
                 copyTextView.setTextColor(getResources().getColor(R.color.blue));
                 copyTextView.setLayoutParams(new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1));
-                copyTextView.setPadding(0, 8, 8, 8);
+                copyTextView.setPadding(0, 5, 12, 5);
                 copyTextView.setGravity(Gravity.CENTER);
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
                     copyTextView.setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ic_copy, 0, 0, 0);
                 } else {
-                    copyTextView.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_copy, 0, 0, 0);
+                    copyTextView.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_copy, 0, 10, 0);
                 }
                 copyTextView.setCompoundDrawablePadding(2);
 
@@ -116,41 +115,39 @@ public class PasswordsTableActivity extends AppCompatActivity {
                 TextView deleteTextView = new TextView(this);
                 deleteTextView.setTextColor(getResources().getColor(R.color.red));
                 deleteTextView.setLayoutParams(new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1));
-                deleteTextView.setPadding(0, 8, 8, 8);
+                deleteTextView.setPadding(0, 5, 2, 5);
                 deleteTextView.setGravity(Gravity.CENTER);
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
                     deleteTextView.setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ic_delete, 0, 0, 0);
                 } else {
-                    deleteTextView.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_delete, 0, 0, 0);
+                    deleteTextView.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_delete, 0, 10, 0);
                 }
-                deleteTextView.setCompoundDrawablePadding(5);
+                deleteTextView.setCompoundDrawablePadding(0);
 
-
+                final TableRow currentRow = row;
                 deleteTextView.setOnClickListener(view -> {
                     AlertDialog.Builder builder = new AlertDialog.Builder(PasswordsTableActivity.this);
                     builder.setTitle("Delete Item");
                     builder.setMessage("Are you sure you want to delete this item?");
 
                     builder.setPositiveButton("Yes", (dialog, which) -> {
-                        // Διαγραφή του row
-                        boolean isDeleted = dbHelper.deleteItem(credential.getUsername(), credential.getAppName(), credential.getUserId(), credential.getEmail(), credential.getPassword());
+                        boolean isDeleted = dbHelper.deleteAppCredentials(credential.getId());
 
                         if (isDeleted) {
                             Toast.makeText(PasswordsTableActivity.this, "Item deleted successfully", Toast.LENGTH_SHORT).show();
-                            ((TableLayout) row.getParent()).removeView(row);
+                            if (currentRow.getParent() != null) {
+                                ((TableLayout) currentRow.getParent()).removeView(currentRow);
+                            }
                         } else {
                             Toast.makeText(PasswordsTableActivity.this, "Failed to delete item", Toast.LENGTH_SHORT).show();
                         }
                     });
 
-                    builder.setNegativeButton("No", (dialog, which) -> {
-
-                        dialog.dismiss();
-                    });
-
+                    builder.setNegativeButton("No", (dialog, which) -> dialog.dismiss());
                     builder.show();
                 });
+
                 row.addView(deleteTextView);
 
                 // Δημιουργία και ρύθμιση TextView για το κουμπί Show/Hide
