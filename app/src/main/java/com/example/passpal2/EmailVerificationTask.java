@@ -61,7 +61,7 @@ public class EmailVerificationTask extends AsyncTask<String, Void, Boolean> {
         HttpURLConnection urlConnection = null;
         try {
             // NEW API
-            URL url = new URL("https://emailvalidation.abstractapi.com/v1/?api_key=d62ef45219d64d37b16a5edf831d6496&email=" + emailToVerify);
+            URL url = new URL("https://emailvalidation.abstractapi.com/v1/?api_key=f2fcd72b6e7345e4885c5cebb4e39b2f&email=" + emailToVerify);
             urlConnection = (HttpURLConnection) url.openConnection();
             BufferedReader reader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
             StringBuilder result = new StringBuilder();

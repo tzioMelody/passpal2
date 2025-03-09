@@ -651,6 +651,81 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return credentialsList;
     }
 
+    public List<AppCredentials> getAllCredentialsForUserOG(int credentialId, int userId, String appName) {
+        List<AppCredentials> credentialsList = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query = "SELECT * FROM " + TABLE_APP_CREDENTIALS +
+                " WHERE " + COLUMN_ID + " = ?" +
+                " AND " + COLUMN_USER_ID + " = ?" +
+                " AND " + COLUMN_APP_NAME_CREDENTIALS + " = ?";
+
+        Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(credentialId), String.valueOf(userId), appName});
+
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                int idColumnIndex = cursor.getColumnIndex(COLUMN_ID);
+                int appNameColumnIndex = cursor.getColumnIndex(COLUMN_APP_NAME_CREDENTIALS);
+                int appLinkColumnIndex = cursor.getColumnIndex(COLUMN_APP_LINK_CREDENTIALS);
+                int usernameColumnIndex = cursor.getColumnIndex(COLUMN_USERNAME_CREDENTIALS);
+                int emailColumnIndex = cursor.getColumnIndex(COLUMN_EMAIL_CREDENTIALS);
+                int passwordColumnIndex = cursor.getColumnIndex(COLUMN_PASSWORD_CREDENTIALS);
+                int imageUriStringColumnIndex = cursor.getColumnIndex(COLUMN_IMAGE_URI_STRING);
+
+                // Get the data from the cursor and assign to variables
+                int id = cursor.getInt(idColumnIndex);
+                String appNameFromDb = cursor.getString(appNameColumnIndex);  // You can use this if you need the app name from the DB
+                String appLink = cursor.getString(appLinkColumnIndex);
+
+                // Decrypt the sensitive fields
+                String encryptedUsername = cursor.getString(usernameColumnIndex);
+                String originalUsername = null;
+                try {
+                    originalUsername = EncryptionHelper.decrypt(encryptedUsername);
+                    Log.e("DecryptDebug", "Decrypted Username: " + originalUsername);
+                } catch (Exception e) {
+                    Log.e("DataBaseHelper", "Decryption error for username: " + e.getMessage());
+                }
+
+                String encryptedEmail = cursor.getString(emailColumnIndex);
+                String originalEmail = null;
+                try {
+                    originalEmail = EncryptionHelper.decrypt(encryptedEmail);
+                    Log.e("DecryptDebug", "Decrypted Email: " + originalEmail);
+                } catch (Exception e) {
+                    Log.e("DataBaseHelper", "Decryption error for email: " + e.getMessage());
+                }
+
+                String encryptedPassword = cursor.getString(passwordColumnIndex);
+                String originalPassword = null;
+                try {
+                    originalPassword = EncryptionHelper.decrypt(encryptedPassword);
+                    Log.e("DecryptDebug", "Decrypted Password: " + originalPassword);
+                } catch (Exception e) {
+                    Log.e("DataBaseHelper", "Decryption error for password: " + e.getMessage());
+                }
+
+                String imageUriString = cursor.getString(imageUriStringColumnIndex);
+
+                // Create AppCredentials object with the decrypted values
+                AppCredentials credentials = new AppCredentials(userId, appNameFromDb, appLink, originalUsername, originalEmail, originalPassword, imageUriString);
+                credentials.setId(id);
+
+                credentialsList.add(credentials);
+            }
+            cursor.close();
+        }
+        db.close();
+        return credentialsList;
+    }
+
+    private String decryptField(String encryptedField, String fieldName) {
+        try {
+            return EncryptionHelper.decrypt(encryptedField);
+        } catch (Exception e) {
+            Log.e("DataBaseHelper", "Decryption error for " + fieldName + ": " + e.getMessage());
+            return null; // Return null or a placeholder if decryption fails
+        }
+    }
 
     // Μέθοδος για επαλήθευση του master password
     public boolean checkMasterPassword(int userId, String masterPassword) {

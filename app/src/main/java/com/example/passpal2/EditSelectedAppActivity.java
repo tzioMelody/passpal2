@@ -80,11 +80,11 @@ public class EditSelectedAppActivity extends AppCompatActivity {
                     || originalEmail != null || originalPassword != null;
             // Αρχική κατάσταση: Αν επεξεργάζεται υπάρχοντα λογαριασμό, εμφάνισε μόνο το "Open App/Website"
             if (isEditingExistingAccount) {
-                saveSelectedAppData.setVisibility(View.GONE); // Κρύψε το "Save"
-                openAppWebsiteBtn.setVisibility(View.VISIBLE); // Εμφάνισε το "Open App/Website"
+                saveSelectedAppData.setVisibility(View.VISIBLE);
+                openAppWebsiteBtn.setVisibility(View.VISIBLE);
             } else {
-                saveSelectedAppData.setVisibility(View.VISIBLE); // Εμφάνισε το "Save"
-                openAppWebsiteBtn.setVisibility(View.GONE); // Κρύψε το "Open App/Website"
+                saveSelectedAppData.setVisibility(View.VISIBLE);
+                openAppWebsiteBtn.setVisibility(View.VISIBLE);
             }
 
             // να φανει το ονομα της εφαρμογης πανω στην μπαρα
@@ -114,12 +114,12 @@ public class EditSelectedAppActivity extends AppCompatActivity {
         selectedAppPassword.setAutofillHints(View.AUTOFILL_HINT_PASSWORD);
 
         saveSelectedAppData.setOnClickListener(v -> {
-            if (!haveFieldsChanged()) {
+            /*if (!haveFieldsChanged()) {
 
                 Toast.makeText(this, "No changes were made", Toast.LENGTH_SHORT).show();
                 return;
             }
-
+*/
             String email = inputEmailEditedApp.getText().toString();
             if (TextUtils.isEmpty(email)) {
                 Toast.makeText(EditSelectedAppActivity.this, "Please fill in the email field", Toast.LENGTH_SHORT).show();
@@ -262,7 +262,7 @@ public class EditSelectedAppActivity extends AppCompatActivity {
                 saveCredentialsToAutofill(username, email, password);
 
                 // Hide save button and show the "Open app/website" button
-                saveSelectedAppData.setVisibility(View.GONE);
+                saveSelectedAppData.setVisibility(View.VISIBLE);
                 openAppWebsiteBtn.setVisibility(View.VISIBLE);
 
 
