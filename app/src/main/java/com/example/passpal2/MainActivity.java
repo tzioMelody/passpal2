@@ -348,13 +348,21 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
 
                             builder.setPositiveButton("Edit", (dialog, which) -> {
                                 Log.d("SwipeAction", "User chose to edit existing account.");
+                                for (DataBaseHelper.AppCredentials cred : appCredentials) {
                                 Intent intent = new Intent(MainActivity.this, EditSelectedAppActivity.class);
-                                intent.putExtra("APP_DATA", app);
-                                intent.putExtra("APP_ID", app.getId());
-                                intent.putExtra("USER_ID", userId);
-                                intent.putExtra("POSITION", position);
-                                intent.putExtra("APP_CREDENTIALS", new ArrayList<>(appCredentials));
-                                startActivityForResult(intent, EDIT_APP_REQUEST);
+                                    intent.putExtra("APP_DATA", app);
+                                    intent.putExtra("CREDENTIAL_ID", cred.getId());
+                                    intent.putExtra("APP_ID", app.getId());
+                                    intent.putExtra("USER_ID", userId);
+                                    intent.putExtra("POSITION", position);
+
+                                    // Νέα πεδία που στέλνουμε στην επεξεργασία
+                                    intent.putExtra("USERNAME", cred.getUsername());
+                                    intent.putExtra("PASSWORD", cred.getPassword());
+                                    intent.putExtra("EMAIL", cred.getEmail());
+
+                                    startActivityForResult(intent, EDIT_APP_REQUEST);
+                                }
                             });
 
                             builder.setNegativeButton("Add new account", (dialog, which) -> {
