@@ -73,15 +73,6 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
             finish();
             return;
         }
-
-
-        // Επαλήθευση αν το user ID είναι έγκυρο
-        if (userId == -1) {
-            showToast("User ID is invalid");
-            finish();
-            return;
-        }
-
         // Ορισμός του τίτλου
         username = dbHelper.getUsernameByUserId(userId);
         getSupportActionBar().setTitle("Welcome, " + username + "!");

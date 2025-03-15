@@ -417,6 +417,19 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return result > 0;
     }
 
+    public int countAccountsForApp(String appName) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT COUNT(*) FROM app_credentials WHERE app_name = ?", new String[]{appName});
+
+        int count = 0;
+        if (cursor.moveToFirst()) {
+            count = cursor.getInt(0);
+        }
+        cursor.close();
+        db.close();
+        return count;
+    }
+
     public void deleteUserData(int userId) {
         SQLiteDatabase db = this.getWritableDatabase();
 

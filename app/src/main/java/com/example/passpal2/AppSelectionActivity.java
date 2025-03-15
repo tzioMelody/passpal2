@@ -6,9 +6,11 @@ import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.health.connect.datatypes.AppInfo;
 import android.net.Uri;
+import androidx.appcompat.widget.SearchView;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
@@ -24,15 +26,15 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 
 public class AppSelectionActivity extends AppCompatActivity implements RecyclerViewInterface {
-    private static final String SELECTED_APPS_KEY = "selected_apps";
     DataBaseHelper dbHelper = new DataBaseHelper(this);
     AdapterRecycler adapter;
-    Button selectionApps,CancelBtn;
+    Button selectionApps, CancelBtn;
     int userId;
     ArrayList<AppsObj> appsObjs = new ArrayList<>();
-    ArrayList<AppsObj> selectedApps = new ArrayList<>();
+    private List<AppsObj> appsObjsList;
     int[] appImages = {R.drawable.app_icon1, R.drawable.app_icon2, R.drawable.app_icon3, R.drawable.app_icon4,
             R.drawable.app_icon5, R.drawable.app_icon6, R.drawable.app_icon7, R.drawable.app_icon8, R.drawable.app_icon9,
             R.drawable.app_icon10, R.drawable.app_icon11, R.drawable.app_icon12, R.drawable.app_icon13, R.drawable.app_icon14,
@@ -45,24 +47,28 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
         setContentView(R.layout.activity_app_selection);
         // Αντληση του userID από το Intent με τη χρήση του σωστού κλειδιού
         userId = getIntent().getIntExtra("USER_ID", -1);
-
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
 
         setUpAppData();
 
+        if (appsObjs == null) {
+            Log.e("AppSelectionActivity", "appsObjs is null!");
+            appsObjs = new ArrayList<>();
+        }
         adapter = new AdapterRecycler(this, appsObjs, this);
 
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle("Choose your favourite apps");
+            getSupportActionBar().setTitle("Apps");
         }
 
 
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        appsObjsList = new ArrayList<>();
 
-         CancelBtn = findViewById(R.id.cancelBtn);
-         selectionApps = findViewById(R.id.selectionApp);
+        CancelBtn = findViewById(R.id.cancelBtn);
+        selectionApps = findViewById(R.id.selectionApp);
 
         CancelBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -76,6 +82,59 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
                 SelectBtnClick(v);
             }
         });
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_search, menu);
+
+        MenuItem searchItem = menu.findItem(R.id.action_search);
+        SearchView searchView = (SearchView) searchItem.getActionView();
+
+        searchView.setOnQueryTextListener(new androidx.appcompat.widget.SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                filterList(newText);
+                Log.e("AppSelectionActivity", "kaleitai h filterlist");
+                return true;
+            }
+        });
+
+        return true;
+    }
+
+
+    // Μέθοδος για φιλτράρισμα των δεδομένων
+    private void filterList(String text) {
+        Log.e("AppSelectionActivity", "text : " + text);
+        Log.e("AppSelectionActivity", "Μεσα στην filterlist");
+
+        List<AppsObj> dbApps = dbHelper.getAllSelectedApps(userId);
+        // Δημιουργία μιας νέας λίστας για τα φιλτραρισμένα αποτελέσματα
+        List<AppsObj> filteredList = new ArrayList<>();
+
+        for (AppsObj appsObj : dbApps) {
+            Log.e("AppSelectionActivity", "appName: " + appsObj.getAppNames());
+            Log.e("AppSelectionActivity", "Ποια ειναι η appsObjsList" + appsObjsList);
+
+            if (appsObj.getAppNames().toLowerCase(Locale.getDefault()).contains(text.toLowerCase(Locale.getDefault()))) {
+                filteredList.add(appsObj); // Προσθήκη στη νέα λίστα
+            }
+        }
+
+        if (filteredList.isEmpty()) {
+            Toast.makeText(this, "No apps found", Toast.LENGTH_SHORT).show();
+        }
+
+        // Ενημέρωση της λίστας appsObjs με τα φιλτραρισμένα αποτελέσματα
+        appsObjs.clear();
+        appsObjs.addAll(filteredList);
+        adapter.notifyDataSetChanged();
     }
 
     @Override
@@ -112,7 +171,16 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
                 addedApps.add(appNames[i]);
             }
         }
+
+        // Ενημέρωση του adapter με τα νέα δεδομένα
+        if (adapter != null) {
+            adapter.notifyDataSetChanged();
+            Log.e("AppSelectionActivity", "Chose an app");
+        } else {
+            Log.e("AppSelectionActivity", "AdapterRecycler is null!");
+        }
     }
+
 
     @Override
     protected void onStart() {
@@ -131,8 +199,7 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
 
             adapter.addApp(newApp);
 
-            // Ενημέρωση του adapter
-            adapter.notifyDataSetChanged();
+           adapter.notifyDataSetChanged();
         }
     }
 
@@ -214,7 +281,6 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
         }
     }
 
-
     public void SelectBtnClick(View view) {
         ArrayList<AppsObj> selectedApps = adapter.getSelectedApps();
 
@@ -228,7 +294,7 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
             resultIntent.putParcelableArrayListExtra("SELECTED_APPS", selectedApps);
             resultIntent.putExtra("USER_ID", userId);
             setResult(RESULT_OK, resultIntent); // Επιστρέφει τα αποτελέσματα
-            finish(); // Τερματισμός της Activity και επιστροφή στην MainActivity
+            finish();
         } else {
             Toast.makeText(this, "You can only choose up to 10 apps", Toast.LENGTH_SHORT).show();
         }
@@ -238,6 +304,7 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
 
     @Override
     public void onBackPressed() {
+        ArrayList<AppsObj> selectedApps = adapter.getSelectedApps();
         if (selectedApps.isEmpty()) {
             new AlertDialog.Builder(this)
                     .setTitle("Exit")
@@ -263,6 +330,8 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
 
     // Λειτουργία κουμπιών
     public void onCancelButtonClick(View view) {
+        ArrayList<AppsObj> selectedApps = adapter.getSelectedApps();
+
         if (selectedApps.isEmpty()) {
             Intent intentUserId = new Intent(this, MainActivity.class);
             intentUserId.putExtra("USER_ID", userId);
