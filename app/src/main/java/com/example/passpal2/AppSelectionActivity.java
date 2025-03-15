@@ -45,10 +45,13 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_app_selection);
-        // Αντληση του userID από το Intent με τη χρήση του σωστού κλειδιού
+
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setTitle("Apps");
+        }
         userId = getIntent().getIntExtra("USER_ID", -1);
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
-
         setUpAppData();
 
         if (appsObjs == null) {
@@ -57,31 +60,35 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
         }
         adapter = new AdapterRecycler(this, appsObjs, this);
 
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle("Apps");
-        }
-
-
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         appsObjsList = new ArrayList<>();
 
         CancelBtn = findViewById(R.id.cancelBtn);
-        selectionApps = findViewById(R.id.selectionApp);
-
         CancelBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onCancelButtonClick(v);
             }
         });
+        selectionApps = findViewById(R.id.selectionApp);
         selectionApps.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 SelectBtnClick(v);
             }
         });
+    }
+
+    //action bar items
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            //back arrow
+            onBackPressed();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -137,15 +144,6 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
         adapter.notifyDataSetChanged();
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == android.R.id.home) {
-            //back arrow
-            onBackPressed();
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
 
     private void setUpAppData() {
         // Retrieve default app names and links from resources
@@ -214,7 +212,6 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
 
                 // Έλεγχος αν το userId είναι έγκυρο
                 if (userId == -1) {
-                    Log.e("AppSelectionActivity", "Άκυρο USER_ID");
                     Toast.makeText(AppSelectionActivity.this, "There was an error. Please try again", Toast.LENGTH_SHORT).show();
                     return;
                 }
@@ -227,7 +224,7 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
                     if (selectedAppsCount > 10) {
                         Toast.makeText(AppSelectionActivity.this, "You can only choose 10 apps", Toast.LENGTH_SHORT).show();
                     } else if (selectedAppsCount == 0) {
-                        Log.d("MyApp", "ΛΑΘΟΣ ΕΔΩ αν δεν εχει επιλεξει καμια εφαρμογη " + userId);
+                        Log.d("MyApp", "αν δεν εχει επιλεξει καμια εφαρμογη " + userId);
                     } else {
                         Log.d("MyApp", "UserID " + userId);
                         boolean isSaved = dbHelper.saveSelectedAppToDatabase(selectedApp, userId);
@@ -257,7 +254,7 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
             String imageUriString = data.getStringExtra("AppImageUri");
             int imageResId;
 
-            // Αν δεν έχει εικόνα, ορίζουμε default εικόνα
+            // Αν δεν έχει εικόνα ορίζεται default εικόνα
             if (imageUriString == null || imageUriString.isEmpty()) {
                 imageResId = R.drawable.default_app_image;
             } else {
@@ -273,15 +270,15 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
         }
 
         if (resultCode == RESULT_OK && data != null) {
-            // Get the selected apps - Optional
             ArrayList<AppsObj> selectedApps = data.getParcelableArrayListExtra("SELECTED_APPS");
-
-            // Recreate the activity to reload it (call onCreate again)
             recreate();
         }
     }
 
-    public void SelectBtnClick(View view) {
+
+    // Λειτουργία κουμπιών
+
+    public void SelectBtnClick(View view) { //save the selected apps
         ArrayList<AppsObj> selectedApps = adapter.getSelectedApps();
 
         if (selectedApps.size() <= 10) {
@@ -299,54 +296,45 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
             Toast.makeText(this, "You can only choose up to 10 apps", Toast.LENGTH_SHORT).show();
         }
     }
-
-
-
     @Override
     public void onBackPressed() {
         ArrayList<AppsObj> selectedApps = adapter.getSelectedApps();
-        if (selectedApps.isEmpty()) {
-            new AlertDialog.Builder(this)
+
+        if (selectedApps == null || selectedApps.isEmpty()) {
+            AlertDialog dialog = new AlertDialog.Builder(this)
                     .setTitle("Exit")
-                    .setMessage("You haven't picked any apps are you sure you want to go?")
-                    .setPositiveButton(android.R.string.yes, (dialog, which) -> {
-                        // Αν ο χρήστης επιλέξει να συνεχίσει, καλούμε την super.onBackPressed()
-                        super.onBackPressed();
+                    .setMessage("You haven't picked any apps. Are you sure you want to go?")
+                    .setPositiveButton(android.R.string.yes, (dialogInterface, which) -> {
+                        dialogInterface.dismiss();
+                        Intent intent = new Intent(AppSelectionActivity.this, MainActivity.class);
+                        intent.putExtra("USER_ID", userId);
+                        startActivity(intent);
+                        finish();
                     })
                     .setNegativeButton(android.R.string.no, null)
-                    .show();
+                    .create();
+
+            dialog.show();
         } else {
-            new AlertDialog.Builder(this)
+            AlertDialog dialog = new AlertDialog.Builder(this)
                     .setTitle("Exit")
-                    .setMessage("Are you sure you want to continue? Your choosen apps will be lost.")
-                    .setPositiveButton(android.R.string.yes, (dialog, which) -> {
-                        super.onBackPressed();
+                    .setMessage("Are you sure you want to continue? Your chosen apps will be lost.")
+                    .setPositiveButton(android.R.string.yes, (dialogInterface, which) -> {
+                        dialogInterface.dismiss();
+                        Intent intent = new Intent(AppSelectionActivity.this, MainActivity.class);
+                        intent.putExtra("USER_ID", userId);
+                        startActivity(intent);
+                        finish();
                     })
                     .setNegativeButton(android.R.string.no, null)
-                    .show();
+                    .create();
+
+            dialog.show();
         }
     }
 
 
-    // Λειτουργία κουμπιών
-    public void onCancelButtonClick(View view) {
-        ArrayList<AppsObj> selectedApps = adapter.getSelectedApps();
-
-        if (selectedApps.isEmpty()) {
-            Intent intentUserId = new Intent(this, MainActivity.class);
-            intentUserId.putExtra("USER_ID", userId);
-            startActivityForResult(intentUserId, 1);
-        } else {
-            new AlertDialog.Builder(this)
-                    .setTitle("Continue")
-                    .setMessage("Are you sure you want to continue? Your selected apps will be lost.")
-                    .setPositiveButton(android.R.string.yes, (dialog, which) -> {
-                        Intent intentUserId = new Intent(this, MainActivity.class);
-                        intentUserId.putExtra("USER_ID", userId);
-                        startActivityForResult(intentUserId, 1);
-                    })
-                    .setNegativeButton(android.R.string.no, null)
-                    .show();
-        }
+    public void onCancelButtonClick(View view) { //cancel button
+        onBackPressed();
     }
 }
