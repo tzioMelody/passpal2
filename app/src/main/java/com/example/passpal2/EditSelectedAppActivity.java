@@ -1,20 +1,15 @@
 package com.example.passpal2;
 
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
-import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
-import android.text.SpannableString;
-import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.text.method.HideReturnsTransformationMethod;
 import android.text.method.PasswordTransformationMethod;
-import android.text.style.ClickableSpan;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -27,8 +22,6 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-
-import java.security.NoSuchAlgorithmException;
 
 public class EditSelectedAppActivity extends AppCompatActivity {
     private ImageView appIconImageView;
@@ -46,6 +39,7 @@ public class EditSelectedAppActivity extends AppCompatActivity {
     private boolean isEditingExistingAccount = false;
     private String originalUsername, originalEmail, originalPassword;
     private int credentialId;
+    String imageUri;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,6 +86,9 @@ public class EditSelectedAppActivity extends AppCompatActivity {
                 getSupportActionBar().setDisplayHomeAsUpEnabled(true);
                 getSupportActionBar().setTitle(appName);
             }
+
+
+
             appIconImageView = findViewById(R.id.appIconImageView);
             appNameTextView = findViewById(R.id.appNameTextView);
             appLinkEditText = findViewById(R.id.inputLinkEditedApp);
@@ -243,11 +240,10 @@ public class EditSelectedAppActivity extends AppCompatActivity {
         try {
             // Insert new credentials into the database (not updating existing ones)
             boolean success;
-            if(isEditingExistingAccount){
-                success = dbHelper.updateAppCredentials(credentialId,userId, appName, username, email, password, link);
+            if (isEditingExistingAccount) {
+                success = dbHelper.updateAppCredentials(credentialId, userId, appName, username, email, password, link);
             } else {
-                // Αποθήκευση νέου λογαριασμού
-                success = dbHelper.saveAppCredentials(userId, appName, username, email, password, link);
+                success = dbHelper.saveAppCredentials(userId, appName, username, email, password, link, imageUri);
             }
 
             if (success) {
