@@ -114,12 +114,7 @@ public class EditSelectedAppActivity extends AppCompatActivity {
         selectedAppPassword.setAutofillHints(View.AUTOFILL_HINT_PASSWORD);
 
         saveSelectedAppData.setOnClickListener(v -> {
-            /*if (!haveFieldsChanged()) {
 
-                Toast.makeText(this, "No changes were made", Toast.LENGTH_SHORT).show();
-                return;
-            }
-*/
             String email = inputEmailEditedApp.getText().toString();
             if (TextUtils.isEmpty(email)) {
                 Toast.makeText(EditSelectedAppActivity.this, "Please fill in the email field", Toast.LENGTH_SHORT).show();
