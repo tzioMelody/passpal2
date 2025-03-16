@@ -95,6 +95,8 @@ public class AppsObj implements Parcelable {
         return AppImages;
     }
 
+    public int setAppImages(){return AppImages;}
+
     public boolean isSelected() {
         return isSelected;
     }
