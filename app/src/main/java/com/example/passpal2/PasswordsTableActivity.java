@@ -3,51 +3,49 @@ package com.example.passpal2;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
-import android.net.Credentials;
+import android.content.res.ColorStateList;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.SearchView;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class PasswordsTableActivity extends AppCompatActivity {
+
     private DataBaseHelper dbHelper;
     private int userId;
     private TableLayout passwordsTableLayout;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_passwords_table);
 
-        // να φανει το ονομα της εφαρμογης πανω στην μπαρα
+        // Εμφάνιση του τίτλου στην ActionBar
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle("Passwords vault");
+            getSupportActionBar().setTitle("Passwords Vault");
         }
-
 
         dbHelper = new DataBaseHelper(this);
 
-        // Λήψη του user ID από το intent
+        // Λήψη του user ID από το Intent
         userId = getIntent().getIntExtra("user_id", -1);
-
-        // Επαλήθευση αν το user ID είναι έγκυρο
         if (userId == -1) {
             showToast("User ID is invalid");
             finish();
@@ -58,29 +56,26 @@ public class PasswordsTableActivity extends AppCompatActivity {
         passwordsTableLayout = findViewById(R.id.passwordsTableLayout);
         passwordsTableLayout.setStretchAllColumns(true);
 
-
-        // Φόρτωση δεδομένων
+        // Φόρτωση των credentials
         loadCredentials();
     }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_search, menu); // Φόρτωση του μενού από το XML
+        getMenuInflater().inflate(R.menu.menu_search, menu);
 
-        // Αναφορά στο SearchView
+        // Ρύθμιση του SearchView
         MenuItem searchItem = menu.findItem(R.id.action_search);
         androidx.appcompat.widget.SearchView searchView = (androidx.appcompat.widget.SearchView) searchItem.getActionView();
 
-        // Ρύθμιση του ακροατή (listener) για την αναζήτηση
         searchView.setOnQueryTextListener(new androidx.appcompat.widget.SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                // Εκτέλεση αναζήτησης όταν ο χρήστης πατάει "Submit"
                 return false;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                // Καλούμε τη μέθοδο filterCredentials με το νέο κείμενο
                 filterCredentials(newText);
                 return true;
             }
@@ -89,137 +84,29 @@ public class PasswordsTableActivity extends AppCompatActivity {
         return true;
     }
 
-    // Φόρτωση credentials από τη βάση δεδομένων και προσθήκη δυναμικών γραμμών στο TableLayout
-    @RequiresApi(api = Build.VERSION_CODES.HONEYCOMB)
-    private void loadCredentials() {
-        List<DataBaseHelper.AppCredentials> credentialsList = dbHelper.getAllCredentialsForUser(userId);
-        if (credentialsList != null && !credentialsList.isEmpty()) {
-            for (DataBaseHelper.AppCredentials credential : credentialsList) {
-                // Δημιουργία νέου TableRow
-                TableRow row = new TableRow(this);
-                row.setLayoutParams(new TableRow.LayoutParams(
-                        TableRow.LayoutParams.MATCH_PARENT,
-                        TableRow.LayoutParams.WRAP_CONTENT
-                ));
-                Log.d("SwipeAction", "credentials List : " + credentialsList);
-
-                // Δημιουργία και ρύθμιση TextView για το όνομα της εφαρμογής
-                TextView appNameTextView = new TextView(this);
-                appNameTextView.setText(credential.getAppName());
-                row.addView(appNameTextView);
-
-                // Δημιουργία και ρύθμιση TextView για το όνομα χρήστη
-                TextView usernameTextView = new TextView(this);
-                usernameTextView.setText(credential.getUsername());
-                row.addView(usernameTextView);
-
-                // Δημιουργία και ρύθμιση TextView για τον κωδικό
-                TextView passwordTextView = new TextView(this);
-                passwordTextView.setText("••••••••");  // Κρυμμένος κωδικός
-                row.addView(passwordTextView);
-
-                // Δημιουργία και ρύθμιση TextView για το κουμπί Copy
-                TextView copyTextView = new TextView(this);
-                copyTextView.setTextColor(getResources().getColor(R.color.blue));
-                copyTextView.setLayoutParams(new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1));
-                copyTextView.setPadding(0, 5, 12, 5);
-                copyTextView.setGravity(Gravity.CENTER);
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                    copyTextView.setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ic_copy, 0, 0, 0);
-                } else {
-                    copyTextView.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_copy, 0, 10, 0);
-                }
-                copyTextView.setCompoundDrawablePadding(2);
-
-                copyTextView.setOnClickListener(view -> {
-                    String password = credential.getPassword();
-                    ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-                    ClipData clip = ClipData.newPlainText("Password", password);
-                    clipboard.setPrimaryClip(clip);
-                    Toast.makeText(this, "Password copied to clipboard", Toast.LENGTH_SHORT).show();
-                });
-                row.addView(copyTextView);
-
-                // Δημιουργία και ρύθμιση TextView για το κουμπί Delete
-                TextView deleteTextView = new TextView(this);
-                deleteTextView.setTextColor(getResources().getColor(R.color.red));
-                deleteTextView.setLayoutParams(new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1));
-                deleteTextView.setPadding(0, 5, 2, 5);
-                deleteTextView.setGravity(Gravity.CENTER);
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                    deleteTextView.setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ic_delete, 0, 0, 0);
-                } else {
-                    deleteTextView.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_delete, 0, 10, 0);
-                }
-                deleteTextView.setCompoundDrawablePadding(0);
-
-                final TableRow currentRow = row;
-                deleteTextView.setOnClickListener(view -> {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(PasswordsTableActivity.this);
-                    builder.setTitle("Delete Item");
-                    builder.setMessage("Are you sure you want to delete this item? Once deleted, " +
-                                    "it will be permanently removed from the database and cannot be restored.");
-
-                    builder.setPositiveButton("Yes", (dialog, which) -> {
-                        boolean isDeleted = dbHelper.deleteAppCredentials(credential.getId());
-
-                        if (isDeleted) {
-                            Toast.makeText(PasswordsTableActivity.this, "Item deleted successfully", Toast.LENGTH_SHORT).show();
-                            if (currentRow.getParent() != null) {
-                                ((TableLayout) currentRow.getParent()).removeView(currentRow);
-                            }
-                        } else {
-                            Toast.makeText(PasswordsTableActivity.this, "Failed to delete item", Toast.LENGTH_SHORT).show();
-                        }
-                    });
-
-                    builder.setNegativeButton("No", (dialog, which) -> dialog.dismiss());
-                    builder.show();
-                });
-
-                row.addView(deleteTextView);
-
-                // Δημιουργία και ρύθμιση TextView για το κουμπί Show/Hide
-                TextView showHideTextView = new TextView(this);
-                showHideTextView.setText("Show");
-                showHideTextView.setTextColor(getResources().getColor(R.color.purple_500));
-
-                // Προσθήκη λειτουργικότητας εμφάνισης/απόκρυψης
-                showHideTextView.setOnClickListener(view -> {
-                    if (showHideTextView.getText().equals("Show")) {
-                        passwordTextView.setText(credential.getPassword()); // Εμφάνιση κωδικού
-                        showHideTextView.setText("Hide");
-                    } else {
-                        passwordTextView.setText("••••••••");  // Απόκρυψη κωδικού
-                        showHideTextView.setText("Show");
-                    }
-                });
-                row.addView(showHideTextView);
-
-                passwordsTableLayout.addView(row);
-            }
-        } else {
-            showToast("No saved credentials found.");
-        }
-    }
-
-
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            // back arrow
             onBackPressed();
             return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.HONEYCOMB)
+    private void loadCredentials() {
+        List<DataBaseHelper.AppCredentials> credentialsList = dbHelper.getAllCredentialsForUser(userId);
+        if (credentialsList != null && !credentialsList.isEmpty()) {
+            for (DataBaseHelper.AppCredentials credential : credentialsList) {
+                addCredentialRow(credential);
+            }
+        } else {
+            showToast("No saved credentials found.");
+        }
+    }
 
     private void filterCredentials(String query) {
         passwordsTableLayout.removeAllViews();
-
         List<DataBaseHelper.AppCredentials> credentialsList = dbHelper.getAllCredentialsForUser(userId);
 
         for (DataBaseHelper.AppCredentials credential : credentialsList) {
@@ -229,125 +116,143 @@ public class PasswordsTableActivity extends AppCompatActivity {
             }
         }
     }
-        // Μέθοδος για την προσθήκη μιας γραμμής (TableRow) για ένα credential
-        @RequiresApi(api = Build.VERSION_CODES.HONEYCOMB)
-        private void addCredentialRow(DataBaseHelper.AppCredentials credential) {
-            TableRow row = createTableRow();
-            addAppNameToRow(row, credential.getAppName());
-            addUsernameToRow(row, credential.getUsername());
-            addPasswordToRow(row, credential.getPassword());
-            addCopyButtonToRow(row, credential);
-            addDeleteButtonToRow(row, credential);
-            addShowHideButtonToRow(row, credential);
-            passwordsTableLayout.addView(row);
-        }
 
-    private TableRow createTableRow() {
+    @RequiresApi(api = Build.VERSION_CODES.HONEYCOMB)
+    private void addCredentialRow(DataBaseHelper.AppCredentials credential) {
         TableRow row = new TableRow(this);
         row.setLayoutParams(new TableRow.LayoutParams(
                 TableRow.LayoutParams.MATCH_PARENT,
                 TableRow.LayoutParams.WRAP_CONTENT
         ));
-        return row;
-    }
 
-    private void addAppNameToRow(TableRow row, String appName) {
+        // Προσθήκη App Name
         TextView appNameTextView = new TextView(this);
-        appNameTextView.setText(appName);
+        appNameTextView.setText(truncateAppName(credential.getAppName(), 12));
+        appNameTextView.setLayoutParams(new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1));
+        appNameTextView.setGravity(Gravity.CENTER);
         row.addView(appNameTextView);
-    }
 
-    private void addUsernameToRow(TableRow row, String username) {
+        // Προσθήκη Username
         TextView usernameTextView = new TextView(this);
-        usernameTextView.setText(username);
+        usernameTextView.setText(credential.getUsername());
+        usernameTextView.setLayoutParams(new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1));
+        usernameTextView.setGravity(Gravity.CENTER);
         row.addView(usernameTextView);
-    }
 
-    private void addPasswordToRow(TableRow row, String password) {
+        // Προσθήκη Password
         TextView passwordTextView = new TextView(this);
-        passwordTextView.setText("••••••••");  // Κρυμμένος κωδικός
+        passwordTextView.setText("••••••••");
+        passwordTextView.setLayoutParams(new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1));
+        passwordTextView.setGravity(Gravity.CENTER);
         row.addView(passwordTextView);
-    }
 
-    private void addCopyButtonToRow(TableRow row, DataBaseHelper.AppCredentials credential) {
+        // Προσθήκη Copy Button
+        // Προσθήκη Copy Button
         TextView copyTextView = new TextView(this);
         copyTextView.setTextColor(getResources().getColor(R.color.blue));
         copyTextView.setLayoutParams(new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1));
-        copyTextView.setPadding(0, 5, 12, 5);
         copyTextView.setGravity(Gravity.CENTER);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            copyTextView.setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ic_copy, 0, 0, 0);
+// Αλλαγή χρώματος του εικονιδίου copy και μετακίνηση προς τα δεξια
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            copyTextView.setCompoundDrawablesRelativeWithIntrinsicBounds(
+                    null,
+                    null,
+                    getResources().getDrawable(R.drawable.ic_copy, getTheme()),
+                    null
+            );
         } else {
-            copyTextView.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_copy, 0, 10, 0);
+            copyTextView.setCompoundDrawablesWithIntrinsicBounds(
+                    null,
+                    null,
+                    getResources().getDrawable(R.drawable.ic_copy),
+                    null
+            );
         }
-        copyTextView.setCompoundDrawablePadding(2);
-
-        copyTextView.setOnClickListener(view -> {
-            String password = credential.getPassword();
-            ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-            ClipData clip = ClipData.newPlainText("Password", password);
-            clipboard.setPrimaryClip(clip);
-            Toast.makeText(this, "Password copied to clipboard", Toast.LENGTH_SHORT).show();
-        });
+        copyTextView.setCompoundDrawableTintList(ColorStateList.valueOf(getResources().getColor(R.color.blue))); // Μπλε εικονίδιο
+        copyTextView.setCompoundDrawablePadding(8); // Μετακίνηση εικονιδίου προς τα δεξια
+        copyTextView.setPadding(0, 0, 16, 0); // Μετακίνηση κειμένου προς τα δεξια
+        copyTextView.setOnClickListener(v -> copyToClipboard(credential.getPassword()));
         row.addView(copyTextView);
-    }
 
-    private void addDeleteButtonToRow(TableRow row, DataBaseHelper.AppCredentials credential) {
+// Προσθήκη Delete Button
         TextView deleteTextView = new TextView(this);
         deleteTextView.setTextColor(getResources().getColor(R.color.red));
         deleteTextView.setLayoutParams(new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1));
-        deleteTextView.setPadding(0, 5, 2, 5);
         deleteTextView.setGravity(Gravity.CENTER);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            deleteTextView.setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ic_delete, 0, 0, 0);
+// Αλλαγή χρώματος του εικονιδίου delete και μετακίνηση προς τα δεξια
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            deleteTextView.setCompoundDrawablesRelativeWithIntrinsicBounds(
+                    null,
+                    null,
+                    getResources().getDrawable(R.drawable.ic_delete, getTheme()),
+                    null
+            );
         } else {
-            deleteTextView.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_delete, 0, 10, 0);
+            deleteTextView.setCompoundDrawablesWithIntrinsicBounds(
+                    null,
+                    null,
+                    getResources().getDrawable(R.drawable.ic_delete),
+                    null
+            );
         }
-        deleteTextView.setCompoundDrawablePadding(0);
-
-        deleteTextView.setOnClickListener(view -> {
-            AlertDialog.Builder builder = new AlertDialog.Builder(PasswordsTableActivity.this);
-            builder.setTitle("Delete Item");
-            builder.setMessage("Are you sure you want to delete this item? Once deleted, " +
-                    "it will be permanently removed from the database and cannot be restored.");
-
-            builder.setPositiveButton("Yes", (dialog, which) -> {
-                boolean isDeleted = dbHelper.deleteAppCredentials(credential.getId());
-
-                if (isDeleted) {
-                    Toast.makeText(PasswordsTableActivity.this, "Item deleted successfully", Toast.LENGTH_SHORT).show();
-                    passwordsTableLayout.removeView(row);
-                } else {
-                    Toast.makeText(PasswordsTableActivity.this, "Failed to delete item", Toast.LENGTH_SHORT).show();
-                }
-            });
-
-            builder.setNegativeButton("No", (dialog, which) -> dialog.dismiss());
-            builder.show();
-        });
+        deleteTextView.setCompoundDrawableTintList(ColorStateList.valueOf(getResources().getColor(R.color.red))); // Κόκκινο εικονίδιο
+        deleteTextView.setCompoundDrawablePadding(8); // Μετακίνηση εικονιδίου προς τα δεξια
+        deleteTextView.setPadding(0, 0, 16, 0); // Μετακίνηση κειμένου προς τα δεξια
+        deleteTextView.setOnClickListener(v -> deleteCredential(credential, row));
         row.addView(deleteTextView);
-    }
 
-    private void addShowHideButtonToRow(TableRow row, DataBaseHelper.AppCredentials credential) {
+        // Προσθήκη Show/Hide Button
         TextView showHideTextView = new TextView(this);
         showHideTextView.setText("Show");
         showHideTextView.setTextColor(getResources().getColor(R.color.purple_500));
+        showHideTextView.setLayoutParams(new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1));
+        showHideTextView.setGravity(Gravity.CENTER);
+        showHideTextView.setOnClickListener(v -> togglePasswordVisibility(passwordTextView, showHideTextView, credential.getPassword()));
+        row.addView(showHideTextView);
 
-        TextView passwordTextView = (TextView) row.getChildAt(2); // Το password TextView είναι το τρίτο στοιχείο της γραμμής
+        passwordsTableLayout.addView(row);
+    }
 
-        showHideTextView.setOnClickListener(view -> {
-            if (showHideTextView.getText().equals("Show")) {
-                passwordTextView.setText(credential.getPassword()); // Εμφάνιση κωδικού
-                showHideTextView.setText("Hide");
+    private void copyToClipboard(String text) {
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipData clip = ClipData.newPlainText("Password", text);
+        clipboard.setPrimaryClip(clip);
+        showToast("Password copied to clipboard");
+    }
+
+    private void deleteCredential(DataBaseHelper.AppCredentials credential, TableRow row) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Delete Item");
+        builder.setMessage("Are you sure you want to delete this item?");
+        builder.setPositiveButton("Yes", (dialog, which) -> {
+            boolean isDeleted = dbHelper.deleteAppCredentials(credential.getId());
+            if (isDeleted) {
+                passwordsTableLayout.removeView(row);
+                showToast("Item deleted successfully");
             } else {
-                passwordTextView.setText("••••••••");  // Απόκρυψη κωδικού
-                showHideTextView.setText("Show");
+                showToast("Failed to delete item");
             }
         });
-        row.addView(showHideTextView);
+        builder.setNegativeButton("No", (dialog, which) -> dialog.dismiss());
+        builder.show();
     }
+
+    private void togglePasswordVisibility(TextView passwordTextView, TextView showHideTextView, String password) {
+        if (showHideTextView.getText().toString().equals("Show")) {
+            passwordTextView.setText(password);
+            showHideTextView.setText("Hide");
+        } else {
+            passwordTextView.setText("••••••••");
+            showHideTextView.setText("Show");
+        }
+    }
+
+    private String truncateAppName(String appName, int maxLength) {
+        return appName.length() > maxLength ? appName.substring(0, maxLength - 3) + "..." : appName;
+    }
+
     private void showToast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
