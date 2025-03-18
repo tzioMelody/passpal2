@@ -4,8 +4,10 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.res.ColorStateList;
+import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -21,6 +23,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
@@ -35,6 +38,7 @@ public class PasswordsTableActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_passwords_table);
+
 
         // Εμφάνιση του τίτλου στην ActionBar
         if (getSupportActionBar() != null) {
@@ -107,6 +111,7 @@ public class PasswordsTableActivity extends AppCompatActivity {
 
     private void filterCredentials(String query) {
         passwordsTableLayout.removeAllViews();
+        addHeaderRow();
         List<DataBaseHelper.AppCredentials> credentialsList = dbHelper.getAllCredentialsForUser(userId);
 
         for (DataBaseHelper.AppCredentials credential : credentialsList) {
@@ -116,6 +121,33 @@ public class PasswordsTableActivity extends AppCompatActivity {
             }
         }
     }
+
+    private void addHeaderRow() {
+        TableRow headerRow = new TableRow(this);
+        headerRow.setBackgroundColor(ContextCompat.getColor(this, R.color.light_purple));
+        headerRow.setPadding(8, 8, 8, 8);
+
+        String[] headers = {"App name", "Username", "Password", "Copy", "Delete", "Show/Hide"};
+        int[] textColors = {
+                R.color.black, R.color.black, R.color.black,
+                R.color.blue, R.color.red, R.color.purple_500
+        };
+
+        for (int i = 0; i < headers.length; i++) {
+            TextView textView = new TextView(this);
+            textView.setLayoutParams(new TableRow.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+            textView.setGravity(Gravity.CENTER);
+            textView.setMaxLines(1);
+            textView.setEllipsize(TextUtils.TruncateAt.END);
+            textView.setText(headers[i]);
+            textView.setTypeface(null, Typeface.BOLD);
+            textView.setTextColor(ContextCompat.getColor(this, textColors[i]));
+            headerRow.addView(textView);
+        }
+
+        passwordsTableLayout.addView(headerRow);
+    }
+
 
     @RequiresApi(api = Build.VERSION_CODES.HONEYCOMB)
     private void addCredentialRow(DataBaseHelper.AppCredentials credential) {
