@@ -41,6 +41,8 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity implements RecyclerViewInterface {
     String username;
@@ -78,8 +80,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
         getSupportActionBar().setTitle("Welcome, " + username + "!");
         Main_layout = findViewById(R.id.Main_layout);
 
-        // AsyncTask για την ανάκτηση και εμφάνιση των εφαρμογών
-        new FetchAppsTask().execute(userId);
+        fetchApps();
 
         appsRecyclerView = findViewById(R.id.appsRecyclerView);
         layoutManager = new LinearLayoutManager(this);
@@ -95,17 +96,12 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
 
         // Set Home as default selected item
-        bottomNavigationView.setSelectedItemId(R.id.bottomNavigationView);
+        bottomNavigationView.setSelectedItemId(R.id.home);
 
         // Handle Navigation Item Clicks
         bottomNavigationView.setOnItemSelectedListener(item -> {
             switch (item.getItemId()) {
                 case R.id.home:
-                    // Stay in MainActivity
-                    Intent homeIntent = new Intent(MainActivity.this, MainActivity.class);
-                    homeIntent.putExtra("user_id", userId); // Pass userId
-                    startActivity(homeIntent);
-                    overridePendingTransition(0, 0);
                     return true;
 
                 case R.id.appsBtn:
@@ -152,8 +148,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == EDIT_APP_REQUEST && resultCode == RESULT_OK) {
             // Ανανέωση των δεδομένων
-            new FetchAppsTask().execute(userId);
-        }
+            fetchApps();        }
 
         if (resultCode == RESULT_OK && data != null) {
             // Get the selected apps - Optional
@@ -172,17 +167,26 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
         Toast.makeText(MainActivity.this, "Clicked on app: " + selectedApp.getAppNames(), Toast.LENGTH_SHORT).show();
     }
 
-    private class FetchAppsTask extends AsyncTask<Integer, Void, List<AppsObj>> {
-        @Override
-        protected List<AppsObj> doInBackground(Integer... userIds) {
-            List<AppsObj> apps = dbHelper.getAllSelectedApps(userIds[0]);
-            Log.d("FetchAppsTask", "Επιστρεφόμενες εφαρμογές: " + apps.size());
-            Log.d("FetchAppsTask", "Ποιες είναι οι εφαρμογές : " + apps);
+    private void fetchApps() {
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        executor.execute(() -> {
+            List<AppsObj> apps = dbHelper.getAllSelectedApps(userId); // Ασύγχρονη εργασία
+            runOnUiThread(() -> {
+                mainAppsAdapter.setSelectedApps(apps); // Ενημέρωσε τον adapter στο κύριο νήμα
+                attachSwipeToDeleteAndEditHelper(); // Επαναφόρτωσε τη λειτουργικότητα swipe
+            });
+        });
+    }
 
-            return apps;
-        }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
+        bottomNavigationView.setSelectedItemId(R.id.home);
+        fetchApps(); // Φόρτωσε τα δεδομένα
+    }
 
-        @Override
+       /* @Override
         protected void onPostExecute(List<AppsObj> apps) {
             super.onPostExecute(apps);
             mainAppsAdapter.setSelectedApps(apps);
@@ -192,8 +196,8 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
             for (AppsObj app : apps) {
                 Log.d("FetchApps", "App: " + app.getAppNames());
             }
-        }
-    }
+        }*/
+
 
     // NEW SWIPE TZIO
     private void attachSwipeToDeleteAndEditHelper() {
