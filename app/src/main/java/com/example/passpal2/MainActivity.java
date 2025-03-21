@@ -4,12 +4,15 @@ package com.example.passpal2;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Spannable;
@@ -52,7 +55,6 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
     private List<AppsObj> selectedApps = new ArrayList<>();
     private LinearLayoutManager layoutManager;
     RelativeLayout Main_layout;
-    private List<AppsObj> apps = new ArrayList<>();
     private static final int EDIT_APP_REQUEST = 2;
     int userId;
 
@@ -87,7 +89,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
         appsRecyclerView.setLayoutManager(layoutManager);
 
         // Αρχικοποίηση του MainAppsAdapter
-        mainAppsAdapter = new MainAppsAdapter(this, selectedApps);
+        mainAppsAdapter = new MainAppsAdapter(this, selectedApps,this);
 
         // Set adapter to RecyclerView
         appsRecyclerView.setAdapter(mainAppsAdapter);
@@ -161,12 +163,55 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
 
 
     // RecyclerViewInterface method implementation
+    @Override
     public void onItemClick(int position) {
-        AppsObj selectedApp = selectedApps.get(position);
-        // Να πηγαίνει στην αντίστοιχη ιστοσελίδα ή link
-        Toast.makeText(MainActivity.this, "Clicked on app: " + selectedApp.getAppNames(), Toast.LENGTH_SHORT).show();
-    }
+        if (mainAppsAdapter != null) {
+            Log.d("onItemClick", "in on item click");
 
+            AppsObj app = mainAppsAdapter.getAppsList().get(position);
+
+            if (dbHelper.isAppSelected(app.getAppNames(), userId)) {
+                Log.d("onItemClick", "in the if " + app);
+
+                // Αναζήτηση εγκατεστημένων εφαρμογών για αντιστοιχία με το όνομα της εφαρμογής
+                PackageManager packageManager = getPackageManager();
+                Intent launchIntent = null;
+                String appName = app.getAppNames();
+
+                for (ApplicationInfo appInfo : packageManager.getInstalledApplications(PackageManager.GET_META_DATA)) {
+                    String appLabel = packageManager.getApplicationLabel(appInfo).toString();
+                    if (appLabel.equalsIgnoreCase(appName)) {
+                        // Βρέθηκε αντιστοιχία, λήψη του intent εκκίνησης της εφαρμογής
+                        launchIntent = packageManager.getLaunchIntentForPackage(appInfo.packageName);
+                        break;
+                    }
+                }
+
+                if (launchIntent != null) {
+                    // Εκκίνηση της εφαρμογής αν βρέθηκε
+                    startActivity(launchIntent);
+                } else {
+                    // Αν δεν βρεθεί, fallback στο άνοιγμα του URL
+                    String url = app.getAppLinks() != null ? app.getAppLinks().toString() : "";
+                    if (!url.isEmpty() && !url.startsWith("http://") && !url.startsWith("https://")) {
+                        url = "http://" + url;
+                    }
+
+                    if (!url.isEmpty()) {
+                        // Άνοιγμα του URL με intent
+                        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                        startActivity(browserIntent);
+
+                        Toast.makeText(MainActivity.this, "Opening website", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(MainActivity.this, "No app or URL found", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+
+        }
+
+    }
     private void fetchApps() {
         ExecutorService executor = Executors.newSingleThreadExecutor();
         executor.execute(() -> {
@@ -185,19 +230,6 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
         bottomNavigationView.setSelectedItemId(R.id.home);
         fetchApps(); // Φόρτωσε τα δεδομένα
     }
-
-       /* @Override
-        protected void onPostExecute(List<AppsObj> apps) {
-            super.onPostExecute(apps);
-            mainAppsAdapter.setSelectedApps(apps);
-            attachSwipeToDeleteAndEditHelper();
-
-            Log.d("FetchAppsTask", "Ενημέρωση adapter με " + apps.size() + " εφαρμογές.");
-            for (AppsObj app : apps) {
-                Log.d("FetchApps", "App: " + app.getAppNames());
-            }
-        }*/
-
 
     // NEW SWIPE TZIO
     private void attachSwipeToDeleteAndEditHelper() {
