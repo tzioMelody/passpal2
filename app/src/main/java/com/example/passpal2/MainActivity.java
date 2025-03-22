@@ -27,6 +27,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.widget.Toolbar;
@@ -139,8 +140,69 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
             return false;
         });
     }
-    private void showToast(String message) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+    @Override
+    public boolean onCreateOptionsMenu(android.view.Menu menu) {
+        getMenuInflater().inflate(R.menu.popup_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                onBackPressed();
+                return true;
+            case R.id.about_button:
+                showAboutDialog();
+                return true;
+            case R.id.helpSupportButton:
+                showHelpDialog();
+                return true;
+            case R.id.shareButton:
+                shareApp();
+                return true;
+            case R.id.log_out_button:
+                performLogout();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private void showAboutDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("About")
+                .setMessage("Security and organization at your fingertips – this is the vision of PassPal, the ultimate application for managing access credentials and applications. " +
+                        " PassPal offers a perfect combination of simplicity and innovation, allowing you to register, securely store, and manage " +
+                        "your access information for your favorite applications and websites.")
+                .setPositiveButton(android.R.string.ok, (dialog, which) -> dialog.dismiss())
+                .show();
+    }
+
+    private void showHelpDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Help & Support");
+
+        // Χρήση ScrollView για μεγάλα μηνύματα
+        ScrollView scrollView = new ScrollView(this);
+        TextView textView = new TextView(this);
+        textView.setText(getAboutMessage());
+        Log.d("HelpDialog", "Message: " + getAboutMessage());
+        textView.setPadding(20, 20, 20, 20);
+        scrollView.addView(textView);
+
+        builder.setView(scrollView);
+        builder.setPositiveButton(android.R.string.ok, (dialog, which) -> dialog.dismiss());
+        builder.show();
+    }
+
+    private void shareApp() {
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType("text/plain");
+        String downloadLink = "https://drive.google.com/file/d/<your-file-id>/view?usp=sharing";
+        String shareMessage = "Check out PassPal, the ultimate password manager! Download it here: " + downloadLink;
+        shareIntent.putExtra(Intent.EXTRA_TEXT, shareMessage);
+        startActivity(Intent.createChooser(shareIntent, "Share via"));
     }
 
 
@@ -215,10 +277,10 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
     private void fetchApps() {
         ExecutorService executor = Executors.newSingleThreadExecutor();
         executor.execute(() -> {
-            List<AppsObj> apps = dbHelper.getAllSelectedApps(userId); // Ασύγχρονη εργασία
+            List<AppsObj> apps = dbHelper.getAllSelectedApps(userId);
             runOnUiThread(() -> {
-                mainAppsAdapter.setSelectedApps(apps); // Ενημέρωσε τον adapter στο κύριο νήμα
-                attachSwipeToDeleteAndEditHelper(); // Επαναφόρτωσε τη λειτουργικότητα swipe
+                mainAppsAdapter.setSelectedApps(apps);
+                attachSwipeToDeleteAndEditHelper();
             });
         });
     }
@@ -228,7 +290,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
         super.onResume();
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
         bottomNavigationView.setSelectedItemId(R.id.home);
-        fetchApps(); // Φόρτωσε τα δεδομένα
+        fetchApps();
     }
 
     // NEW SWIPE TZIO
@@ -547,5 +609,72 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
                 });
     }
 
+    private void performLogout() {
+        // Καθαρίζουμε τα SharedPreferences
+        getSharedPreferences("UserPrefs", MODE_PRIVATE)
+                .edit()
+                .clear()
+                .apply();
+
+        Toast.makeText(this, "Logout successful!" , Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
+    }
+
+    private SpannableStringBuilder getAboutMessage() {
+        SpannableStringBuilder message = new SpannableStringBuilder();
+        message.append("Dear user,\n\n");
+        message.append("Thank you for choosing PassPal! Our app is designed to make managing your passwords both simple and highly secure. Here’s a quick guide to help you get the most out of it:\n\n");
+
+        // Step 1
+        message.append("1. You have successfully created your account and set a master password to keep your data protected from unauthorized access.\n\n");
+
+        // Step 2 - Add Apps
+        message.append("2. Adding Applications: On the home screen, you can easily add your favorite apps using the apps button ");
+        SpannableString iconSpan1 = new SpannableString(" ");
+        ImageSpan imageSpan1 = new ImageSpan(this, R.drawable.baseline_apps_24);
+        iconSpan1.setSpan(imageSpan1, 0, 1, 0);
+        message.append(iconSpan1);
+        message.append(". Simply tap it to get started.\n\n");
+
+        // Step 3 - Add custom apps
+        message.append("3. Adding Custom Applications: Want to add an app that's not listed? Tap the plus button in the middle, to create and manage your own custom apps securely.\n\n");
+
+        // Step 4 - Sync Data
+        message.append("4. Sync Data: Keep your data safe and up-to-date by using the sync button ");
+        SpannableString iconSpan3 = new SpannableString(" ");
+        ImageSpan imageSpan3 = new ImageSpan(this, R.drawable.baseline_sync_lock_24);
+        iconSpan3.setSpan(imageSpan3, 0, 1, 0);
+        message.append(iconSpan3);
+        message.append(" which allows you to back up and restore your encrypted data across devices.\n\n");
+
+        // Step 5 - Edit Profile
+        message.append("5. Edit Profile: In the 'Edit Profile' section ");
+        SpannableString iconSpan4 = new SpannableString(" ");
+        ImageSpan imageSpan4 = new ImageSpan(this,  R.drawable.ic_person);
+        iconSpan4.setSpan(imageSpan4, 0, 1, 0);
+        message.append(iconSpan4);
+        message.append(", you can update your username and email anytime.\n\n");
+
+        // Step 6 - Change Master Password
+        message.append("6. Change Master Password: Visit the 'Change Master Password' section to enhance your account’s security by updating your master password.\n\n");
+
+        // Step 7 - Security
+        message.append("7. Security: Your passwords are protected using advanced encryption methods to keep your data safe and private. You can see them in the password vault where you can either copy them for your use or you can delete them.\n\n");
+
+        // Step 8 - Manage favorite apps
+        message.append("8. Managing Your Favorite Apps: Once you select your favorite applications, they will appear on the home screen. From there, you can:\n");
+        message.append("- Edit your credentials and add as many accounts as you want.\n");
+        message.append("- Delete them whenever you want.\n");
+        message.append("- Tap on them to quickly visit their official website.\n\n");
+
+        message.append("9. \n");
+
+        message.append("Sincerely,\nThe PassPal Team");
+
+        return message;
+    }
 
 }
