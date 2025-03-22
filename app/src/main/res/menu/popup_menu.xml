@@ -1,19 +1,23 @@
-<?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:tools="http://schemas.android.com/tools"
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
-    <item
-        android:id="@+id/AboutBtn"
-        android:title="About" />
-    <item
-        android:id="@+id/ShareBtn"
-        android:title="Share" />
-    <item
-        android:id="@+id/HelpSuppBtn"
-        android:title="Help &amp; support" />
-    <item
-        android:id="@+id/LogOutBtn"
-        android:title="Log out" />
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <item
+        android:id="@+id/about_button"
+        android:title="About the app"
+        app:showAsAction="never" />
 
+    <item
+        android:id="@+id/helpSupportButton"
+        android:title="Help &amp; Support"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/shareButton"
+        android:title="Share"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/log_out_button"
+        android:title="Log Out"
+        app:showAsAction="never" />
 </menu>
