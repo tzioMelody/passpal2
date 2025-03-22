@@ -477,7 +477,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             }
             cursor.close();
         }
-        db.close();
+        //db.close();
         return selectedApps;
     }
 
