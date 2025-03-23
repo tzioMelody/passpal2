@@ -45,11 +45,8 @@ public class ProfileActivity extends AppCompatActivity {
         }
 
         // Συνδέουμε τα στοιχεία από το XML
-        aboutButton = findViewById(R.id.about_button);
         deleteAccountButton = findViewById(R.id.delete_account_button);
-        helpSupportButton = findViewById(R.id.help_support_button);
         logOutButton = findViewById(R.id.log_out_button);
-        shareButton = findViewById(R.id.shareButton);
         viewCredentialsButton = findViewById(R.id.loginPasswordButton);
         editProfileButton = findViewById(R.id.edit_profile_button);
         changeMasterPasswordButton = findViewById(R.id.change_master_password_button);

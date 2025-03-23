@@ -132,7 +132,6 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
                     overridePendingTransition(0, 0);
                     return true;
 
-
                 case R.id.syncData:
                     syncDataToFirestore();
                     return true;
@@ -466,11 +465,11 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
 
                             builder.setNeutralButton("Cancel", (dialog, which) -> {
                                 Log.d("SwipeAction", "User cancelled action.");
+                                fetchApps();
                                 dialog.dismiss();
                             });
                             builder.show();
-                        } else {
-                            // Αν υπάρχουν 2 ή περισσότεροι λογαριασμοί εμφανίζουμε διάλογο με clickable usernames
+                        }else if (appCredentials.size() > 1) {
                             Log.d("SwipeAction", "Multiple credentials found. Showing clickable usernames.");
                             AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                             builder.setTitle("Do you want to edit one of the following accounts?");
@@ -498,7 +497,6 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
                                     intent.putExtra("USER_ID", userId);
                                     intent.putExtra("POSITION", position);
 
-                                    // Νέα πεδία που στέλνουμε στην επεξεργασία
                                     intent.putExtra("USERNAME", cred.getUsername());
                                     intent.putExtra("PASSWORD", cred.getPassword());
                                     intent.putExtra("EMAIL", cred.getEmail());
@@ -509,16 +507,9 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
                                 Log.d("SwipeAction", "TextView added for username: " + cred.getUsername());
                             }
 
-                            // 🔹 Προσθήκη επιλογής "Προσθήκη Νέου"
-                            Log.d("SwipeAction", "Adding 'Add New Account' option.");
-                            TextView addNewAccount = new TextView(MainActivity.this);
-                            addNewAccount.setText("Αdd new account to app");
-                            addNewAccount.setTextColor(Color.BLACK);
-                            addNewAccount.setPadding(10, 20, 10, 10);
-                            addNewAccount.setTextSize(18);
-                            addNewAccount.setGravity(Gravity.LEFT);
-                            addNewAccount.setClickable(true);
-                            addNewAccount.setOnClickListener(v -> {
+                            builder.setView(layout);
+
+                            builder.setNeutralButton("NEW", (dialog, which) -> {
                                 Log.d("SwipeAction", "User chose to add a new account.");
                                 Intent intent = new Intent(MainActivity.this, EditSelectedAppActivity.class);
                                 intent.putExtra("APP_DATA", app);
@@ -528,15 +519,15 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
                                 startActivityForResult(intent, EDIT_APP_REQUEST);
                             });
 
-                            layout.addView(addNewAccount);
-
-                            builder.setView(layout);
                             builder.setNegativeButton("Cancel", (dialog, which) -> {
                                 Log.d("SwipeAction", "User cancelled multiple accounts dialog.");
+                                fetchApps();
                                 dialog.dismiss();
                             });
+
                             builder.show();
                         }
+
                     } else {
                         Log.d("SwipeAction", "Swipe percentage is too small. Item not swiped.");
                         mainAppsAdapter.notifyItemChanged(position);
