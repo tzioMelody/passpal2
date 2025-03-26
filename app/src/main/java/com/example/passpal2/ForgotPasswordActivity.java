@@ -42,9 +42,33 @@ public class ForgotPasswordActivity extends AppCompatActivity {
             String email = inputEmail.getText().toString().trim();
             String newPasswordText = newPassword.getText().toString().trim();
             String confirmNewPasswordText = confirmNewPassword.getText().toString().trim();
-
             DataBaseHelper dbHelper = new DataBaseHelper(ForgotPasswordActivity.this);
 
+            // Ανάκτηση του αποθηκευμένου κωδικού του χρήστη
+            String existingPass = dbHelper.getStoredPassword(email);
+            if (existingPass == null) {
+                showToast("No password found for this email.");
+                return;
+            }
+
+            // Εδώ διαχωρίζουμε το stored password και το salt
+            String[] parts = existingPass.split(":");
+            if (parts.length != 2) {
+                showToast("Error retrieving password.");
+                return;
+            }
+            String storedHash = parts[0];
+            String storedSaltStr = parts[1];
+            byte[] storedSalt = PasswordUtil.decodeSalt(storedSaltStr);
+
+            // Έλεγχος αν ο νέος κωδικός είναι ίδιος με τον αποθηκευμένο
+            String hashedNewPassword = PasswordUtil.hashPassword(newPasswordText, storedSalt);
+            if (hashedNewPassword.equals(storedHash)) {
+                showToast("The new password must be different from the current one.");
+                return;
+            }
+
+            // Έλεγχοι για το email και τα passwords
             if (TextUtils.isEmpty(email) || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
                 showToast("Please enter a valid email address.");
             } else if (!dbHelper.isEmailTaken(email)) {
@@ -54,9 +78,11 @@ public class ForgotPasswordActivity extends AppCompatActivity {
             } else if (!newPasswordText.equals(confirmNewPasswordText)) {
                 showToast("Passwords do not match.");
             } else {
+                // Εκτέλεση του Task για ενημέρωση του κωδικού
                 new UpdatePasswordTask(email, newPasswordText, ForgotPasswordActivity.this).execute();
             }
         });
+
     }
 
     private class UpdatePasswordTask extends AsyncTask<Void, Void, Boolean> {
