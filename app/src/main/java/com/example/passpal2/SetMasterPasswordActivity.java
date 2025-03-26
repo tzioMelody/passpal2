@@ -63,8 +63,8 @@ public class SetMasterPasswordActivity extends AppCompatActivity {
             return;
         }
 
-        if (masterPassword.length() != 4 || confirmMasterPassword.length() != 4) {
-            showToast("Password must be exactly 4 characters long");
+        if (masterPassword.length() < 4 || confirmMasterPassword.length() < 4) {
+            showToast("Password must be at least 4 characters long");
             return;
         }
 

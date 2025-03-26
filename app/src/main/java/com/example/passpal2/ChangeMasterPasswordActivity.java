@@ -80,8 +80,8 @@ public class ChangeMasterPasswordActivity extends AppCompatActivity {
         }
 
         // Έλεγχος αν το νέο password έχει ακριβώς 4 χαρακτήρες
-        if (newPassword.length() != 4) {
-            showToast("Password must be exactly 4 characters");
+        if (newPassword.length() < 4) {
+            showToast("Password must be at least 4 characters long");
             return;
         }
 
@@ -106,11 +106,14 @@ public class ChangeMasterPasswordActivity extends AppCompatActivity {
         SecureRandom random = new SecureRandom();
         StringBuilder passwordBuilder = new StringBuilder();
 
+        // Δημιουργία τυχαίου κωδικού με τουλάχιστον 4 χαρακτήρες
+        int passwordLength = 4 + random.nextInt(5); // Από 4 έως 8 χαρακτήρες
+
         while (true) {
             passwordBuilder.setLength(0); // Εκκαθάριση του StringBuilder
 
             // Δημιουργία τυχαίου 4ψήφιου κωδικού
-            for (int i = 0; i < 4; i++) {
+            for (int i = 0; i < passwordLength; i++) {
                 int randomIndex = random.nextInt(allowedChars.length());
                 passwordBuilder.append(allowedChars.charAt(randomIndex));
             }

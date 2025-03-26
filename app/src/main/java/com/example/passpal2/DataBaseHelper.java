@@ -245,41 +245,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    public boolean verifyPassword(String email, String inputPassword) {
-        Log.d("PasswordUtil", "Verifying password for email: " + email);
-
-        String storedPasswordData = getStoredPassword(email);  // Πάρτε το αποθηκευμένο hash + salt
-        if (storedPasswordData == null) {
-            Log.d("PasswordUtil", "No stored password data for email: " + email);
-            return false;
-        }
-
-        // Διαχωρισμός του αποθηκευμένου hash και salt
-        String[] parts = storedPasswordData.split(":");
-        if (parts.length != 2) {
-            Log.d("PasswordUtil", "Invalid stored password format for email: " + email);
-            return false; // Σφάλμα στη μορφή του αποθηκευμένου δεδομένου
-        }
-
-        String storedHash = parts[0];
-        String storedSaltStr = parts[1];
-        byte[] storedSalt = PasswordUtil.decodeSalt(storedSaltStr);
-
-        Log.d("PasswordUtil", "Decoded salt for email: " + email + " is: " + storedSaltStr);
-
-        // Hashing του εισαγόμενου κωδικού με το ίδιο salt
-        String inputHash = PasswordUtil.hashPassword(inputPassword, storedSalt);
-        Log.d("PasswordUtil", "Input password hash for email: " + email + " is: " + inputHash);
-
-        // Σύγκριση των hashes
-        if (inputHash.equals(storedHash)) {
-            Log.d("PasswordUtil", "Password match for email: " + email);
-            return true;
-        } else {
-            Log.d("PasswordUtil", "Password does not match for email: " + email);
-            return false;
-        }
-    }
 
 
     // Check if username exists
