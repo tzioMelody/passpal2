@@ -2,6 +2,7 @@ package com.example.passpal2;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.text.SpannableString;
@@ -135,6 +136,13 @@ public class RegisterActivity extends AppCompatActivity implements EmailVerifica
 
             if (userId != -1) {
                 showToast("User registered successfully");
+
+                // Αποθήκευση userId για το remember me
+                SharedPreferences sharedPreferences = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putInt("remembered_user_id", (int) userId);
+                editor.apply();
+
                     new AlertDialog.Builder(RegisterActivity.this)
                             .setTitle("Welcome")
                             .setMessage("Since you have registered in the application, to ensure the security of your data, " +
@@ -144,7 +152,6 @@ public class RegisterActivity extends AppCompatActivity implements EmailVerifica
                             .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    // Μετά το πάτημα του OK προχωράμε στην επόμενη δραστηριότητα
                                     Intent intent = new Intent(RegisterActivity.this, SetMasterPasswordActivity.class);
                                     intent.putExtra("user_id", (int) userId);
                                     startActivity(intent);

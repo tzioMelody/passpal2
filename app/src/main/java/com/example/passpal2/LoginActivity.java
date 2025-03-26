@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
@@ -18,6 +19,8 @@ import com.google.android.material.textfield.TextInputEditText;
 
 public class LoginActivity extends AppCompatActivity {
 
+    private CheckBox rememberMeCheckBox;
+    SharedPreferences preferences;
     private TextInputEditText usernameEditText, passwordEditText;
     private ProgressBar progressBar;
     private Button logInBtn, forgotPasswordBtn, donthaveaccountBtn;
@@ -36,6 +39,20 @@ public class LoginActivity extends AppCompatActivity {
         dbHelper = new DataBaseHelper(this);
         dbHelper.getWritableDatabase();
 
+        // Χρησιμοποίησε το ίδιο όνομα αρχείου για τα SharedPreferences
+        preferences = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+
+        // Αν το remembered_user_id υπάρχει, πήγαινε κατευθείαν στο MainActivity
+        int rememberedUserId = preferences.getInt("remembered_user_id", -1);
+
+        if (rememberedUserId != -1) {
+            // Ο χρήστης είναι ήδη συνδεδεμένος, πήγαινε κατευθείαν στο κύριο Activity
+            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+            intent.putExtra("user_id", rememberedUserId);
+            startActivity(intent);
+            finish();
+        }
+
         logInBtn.setOnClickListener(v -> attemptLogin());
         donthaveaccountBtn.setOnClickListener(v -> navigateToRegister());
         forgotPasswordBtn.setOnClickListener(v -> startActivity(new Intent(LoginActivity.this, ForgotPasswordActivity.class)));
@@ -48,6 +65,8 @@ public class LoginActivity extends AppCompatActivity {
         forgotPasswordBtn = findViewById(R.id.forgotPasswordBtn);
         donthaveaccountBtn = findViewById(R.id.donthaveaccountBtn);
         progressBar = findViewById(R.id.progressBar);
+        rememberMeCheckBox = findViewById(R.id.rememberMeCheckBox);
+
     }
 
     private void navigateToRegister() {
@@ -73,10 +92,16 @@ public class LoginActivity extends AppCompatActivity {
         if (isUserValid) {
             int userId = dbHelper.getUserIdByUsername(username);
 
-            // Αποθήκευση user_id στα Shared Preferences
-            SharedPreferences preferences = getSharedPreferences("user_credentials", MODE_PRIVATE);
+            // Αποθήκευση user_id στα Shared Preferences με το σωστό όνομα
+            preferences = getSharedPreferences("UserPrefs", MODE_PRIVATE);  // Χρησιμοποίησε το ίδιο όνομα αρχείου
             SharedPreferences.Editor editor = preferences.edit();
             editor.putInt("userId", userId);
+            if (rememberMeCheckBox.isChecked()) {
+                // Αν είναι τσεκαρισμένο, αποθήκευσε το remembered_user_id
+                editor.putInt("remembered_user_id", userId);
+            } else {
+                editor.remove("remembered_user_id");  // Αλλιώς αφαίρεσέ το
+            }
             editor.apply();
 
             // Προώθηση στην κύρια δραστηριότητα
@@ -90,8 +115,6 @@ public class LoginActivity extends AppCompatActivity {
             // Εμφάνιση μηνύματος για λάθος credentials
             Toast.makeText(LoginActivity.this, "Invalid username or password", Toast.LENGTH_SHORT).show();
         }
-
-
     }
 
     private void showToast(String message) {

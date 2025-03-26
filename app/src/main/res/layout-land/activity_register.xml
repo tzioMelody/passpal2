@@ -60,7 +60,7 @@
 
                 <!-- Input Username -->
                 <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="320dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="8dp"
                     app:boxBackgroundMode="outline"
@@ -82,7 +82,7 @@
 
                 <!-- Input Email -->
                 <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="320dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="8dp"
                     app:boxBackgroundMode="outline"
@@ -103,7 +103,7 @@
 
                 <!-- Input Password -->
                 <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="320dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="8dp"
                     app:boxBackgroundMode="outline"
@@ -125,7 +125,7 @@
 
                 <!-- Confirm Password -->
                 <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="320dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="8dp"
                     app:boxBackgroundMode="outline"
@@ -144,6 +144,17 @@
                         android:hint="Confirm password"
                         android:inputType="textPassword" />
                 </com.google.android.material.textfield.TextInputLayout>
+
+                <CheckBox
+                    android:id="@+id/rememberMeCheckBox"
+                    android:layout_width="wrap_content"
+                    android:layout_height="27dp"
+                    android:layout_gravity="right"
+                    android:layout_marginTop="-10dp"
+                    android:layout_marginBottom="5dp"
+                    android:scaleX="0.8"
+                    android:scaleY="0.8"
+                    android:text="Remember me" />
 
                 <!-- Register Button -->
                 <LinearLayout
