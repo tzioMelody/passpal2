@@ -144,11 +144,12 @@ public class RegisterActivity extends AppCompatActivity implements EmailVerifica
                 editor.apply();
 
                     new AlertDialog.Builder(RegisterActivity.this)
-                            .setTitle("Welcome")
-                            .setMessage("Since you have registered in the application, to ensure the security of your data, " +
-                                    "a Master Password will need to be created. This code must be unique and consist of exactly 4 characters." +
-                                    "If you want to change or have forgotten it, " +
+                            .setTitle("Welcome to PassPal \uD83C\uDF89")
+                            .setMessage("You've just been registered in the application. To ensure the security of your data, " +
+                                    "a Master Password needs to be created. This password must be unique and consist of at least 4 digits. " +
+                                    "If you want to change it or have forgotten it, " +
                                     "you can navigate to the bottom of the main screen, go to the profile section, and update it.")
+
                             .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {

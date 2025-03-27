@@ -1,6 +1,7 @@
 package com.example.passpal2;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
@@ -16,9 +17,10 @@ import androidx.appcompat.app.AppCompatActivity;
 
 public class ProfileActivity extends AppCompatActivity {
 
-    private Button aboutButton, deleteAccountButton, logOutButton, shareButton, viewCredentialsButton, changeMasterPasswordButton, editProfileButton;
-    private TextView helpSupportButton;
+    private Button  deleteAccountButton, logOutButton, viewCredentialsButton, changeMasterPasswordButton, editProfileButton;
     private int userId;
+    private DataBaseHelper dbHelper;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,6 +32,8 @@ public class ProfileActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true); // Ενεργοποίηση του back arrow
             getSupportActionBar().setTitle("Profile settings");
         }
+
+        dbHelper = new DataBaseHelper(this);
 
         // Λήψη του user ID
         Intent intent = getIntent();
@@ -82,12 +86,14 @@ public class ProfileActivity extends AppCompatActivity {
             new AlertDialog.Builder(this)
                     .setTitle("Delete Account")
                     .setMessage("Are you sure you want to delete your account? This action cannot be undone. Your credentials will be deleted for your safety.")
-                    .setPositiveButton("Delete", (dialog, which) -> deleteUserAccount())
+                    .setPositiveButton("Delete", (dialog, which) -> deleteUserAccount(userId))
                     .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
                     .show();
         });
 
     }
+
+
 
 
     @Override
@@ -108,12 +114,30 @@ public class ProfileActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    private void deleteUserAccount() {
-        Toast.makeText(this, "Account deleted", Toast.LENGTH_SHORT).show();
-        Intent intent = new Intent(ProfileActivity.this, LoginActivity.class);
-        startActivity(intent);
-        finish();
+    private void deleteUserAccount(int userId) {
+        boolean isDeleted = dbHelper.deleteUserData(userId);
+
+        if (isDeleted) {
+            // Διαγραφή των δεδομένων "Remember Me" από τις SharedPreferences
+            SharedPreferences preferences = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.remove("userId");  // Διαγραφή του userId
+            editor.remove("rememberMe");  // Διαγραφή του "Remember Me" (αν υπάρχει)
+            editor.apply();  // Εφαρμογή των αλλαγών
+
+            // Εμφάνιση μηνύματος για επιτυχή διαγραφή
+            Toast.makeText(this, "Account deleted", Toast.LENGTH_SHORT).show();
+
+            // Μετάβαση στην οθόνη σύνδεσης (LoginActivity)
+            Intent intent = new Intent(ProfileActivity.this, LoginActivity.class);
+            startActivity(intent);
+            finish();  // Κλείσιμο της τρέχουσας οθόνης
+        } else {
+            Toast.makeText(this, "Failed to delete account", Toast.LENGTH_SHORT).show();
+        }
     }
+
+
 
     private void performLogout() {
         // Καθαρίζουμε τα SharedPreferences

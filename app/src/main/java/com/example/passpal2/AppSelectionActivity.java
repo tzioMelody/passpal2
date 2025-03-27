@@ -2,6 +2,7 @@ package com.example.passpal2;
 
 import static com.example.passpal2.DataBaseHelper.TABLE_APPS_INFO;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.health.connect.datatypes.AppInfo;
@@ -35,6 +36,7 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
     int userId;
     ArrayList<AppsObj> appsObjs = new ArrayList<>();
     private List<AppsObj> appsObjsList;
+    private boolean isUnsavedChanges = false;
     int[] appImages = {R.drawable.app_icon1, R.drawable.app_icon2, R.drawable.app_icon3, R.drawable.app_icon4,
             R.drawable.app_icon5, R.drawable.app_icon6, R.drawable.app_icon7, R.drawable.app_icon8, R.drawable.app_icon9,
             R.drawable.app_icon10, R.drawable.app_icon11, R.drawable.app_icon12, R.drawable.app_icon13, R.drawable.app_icon14,
@@ -335,6 +337,25 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
 
 
     public void onCancelButtonClick(View view) { //cancel button
-        onBackPressed();
+        if (isUnsavedChanges) {
+            // Show a confirmation dialog to the user
+            new AlertDialog.Builder(this)
+                    .setTitle("Unsaved Changes")
+                    .setMessage("You have unsaved changes. Do you want to discard them and cancel?")
+                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            // User confirmed to discard changes and exit
+                            finish(); // Close the current activity and return to the previous screen
+                        }
+                    })
+                    .setNegativeButton("No", null) // If No, just dismiss the dialog
+                    .show();
+        } else {
+            // If no unsaved changes, simply exit the activity
+            finish();
+        }
+    }
+    private void onFieldChanged() {
+        isUnsavedChanges = true; // Mark as unsaved changes when user modifies any field
     }
 }

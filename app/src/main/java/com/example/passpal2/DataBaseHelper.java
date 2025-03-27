@@ -447,20 +447,24 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return count;
     }
 
-    public void deleteUserData(int userId) {
+    public boolean deleteUserData(int userId) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         // Διαγραφή από τον πίνακα app_credentials
-        db.delete(TABLE_APP_CREDENTIALS, COLUMN_ID + " = ?", new String[]{String.valueOf(userId)});
+        int rowsDeleted = db.delete(TABLE_APP_CREDENTIALS, COLUMN_ID + " = ?", new String[]{String.valueOf(userId)});
 
         // Διαγραφή από τον πίνακα app_info_table
-        db.delete(TABLE_APPS_INFO, COLUMN_ID + " = ?", new String[]{String.valueOf(userId)});
+        rowsDeleted += db.delete(TABLE_APPS_INFO, COLUMN_ID + " = ?", new String[]{String.valueOf(userId)});
 
         // Διαγραφή από τον πίνακα user_table
-        db.delete(USER_TABLE, COLUMN_ID + " = ?", new String[]{String.valueOf(userId)});
+        rowsDeleted += db.delete(USER_TABLE, COLUMN_ID + " = ?", new String[]{String.valueOf(userId)});
 
         db.close();
+
+        // Επιστρέφουμε αν έγινε επιτυχής διαγραφή (τουλάχιστον μία γραμμή διαγράφηκε)
+        return rowsDeleted > 0;
     }
+
 
     // Κώδικας για την ανάκτηση όλων των επιλεγμένων εφαρμογών
     public List<AppsObj> getAllSelectedApps(int userId) {
