@@ -36,7 +36,6 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
     int userId;
     ArrayList<AppsObj> appsObjs = new ArrayList<>();
     private List<AppsObj> appsObjsList;
-    private boolean isUnsavedChanges = false;
     int[] appImages = {R.drawable.app_icon1, R.drawable.app_icon2, R.drawable.app_icon3, R.drawable.app_icon4,
             R.drawable.app_icon5, R.drawable.app_icon6, R.drawable.app_icon7, R.drawable.app_icon8, R.drawable.app_icon9,
             R.drawable.app_icon10, R.drawable.app_icon11, R.drawable.app_icon12, R.drawable.app_icon13, R.drawable.app_icon14,
@@ -210,40 +209,23 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
             // Έλεγχος αν η λίστα και η θέση είναι έγκυρες
             if (appsObjs != null && position < appsObjs.size()) {
                 AppsObj selectedApp = appsObjs.get(position);
-                int userId = getIntent().getIntExtra("USER_ID", -1);
 
-                // Έλεγχος αν το userId είναι έγκυρο
-                if (userId == -1) {
-                    Toast.makeText(AppSelectionActivity.this, "There was an error. Please try again", Toast.LENGTH_SHORT).show();
-                    return;
-                }
+                // Εναλλαγή της επιλογής στο UI (χωρίς αποθήκευση στη βάση δεδομένων)
+                adapter.toggleItemSelection(position);
 
-                // Χρήση του ονόματος της εφαρμογής αντί για String.valueOf(selectedApp)
-                if (!dbHelper.isAppSelected(selectedApp.getAppNames(), userId)) {
-                    adapter.toggleItemSelection(position);
-                    int selectedAppsCount = adapter.getSelectedAppsCount();
+                int selectedAppsCount = adapter.getSelectedAppsCount();
 
-                    if (selectedAppsCount > 10) {
-                        Toast.makeText(AppSelectionActivity.this, "You can only choose 10 apps", Toast.LENGTH_SHORT).show();
-                    } else if (selectedAppsCount == 0) {
-                        Log.d("MyApp", "αν δεν εχει επιλεξει καμια εφαρμογη " + userId);
-                    } else {
-                        Log.d("MyApp", "UserID " + userId);
-                        boolean isSaved = dbHelper.saveSelectedAppToDatabase(selectedApp, userId);
-                        if (isSaved) {
-                            Log.d("MyApp", "Η εφαρμογή αποθηκεύτηκε με επιτυχία για τον χρήστη με ID " + userId);
-                        } else {
-                            Log.e("MyApp", "Σφάλμα κατά την αποθήκευση της εφαρμογής");
-                        }
-                    }
-                } else {
-                    Toast.makeText(AppSelectionActivity.this, "This app has already been selected", Toast.LENGTH_SHORT).show();
+                if (selectedAppsCount > 10) {
+                    Toast.makeText(AppSelectionActivity.this, "You can only choose 10 apps", Toast.LENGTH_SHORT).show();
+                    adapter.toggleItemSelection(position); // Αναίρεση επιλογής
                 }
             } else {
                 Log.e("AppSelectionActivity", "Η θέση είναι εκτός ορίων ή η λίστα είναι άδεια");
             }
         }
     }
+
+
 
     //για να μπορέσει να προσθέσει στην λίστα την νέα εφαμρογή του χρήστη
     @Override
@@ -280,24 +262,37 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
 
     // Λειτουργία κουμπιών
 
-    public void SelectBtnClick(View view) { //save the selected apps
+    public void SelectBtnClick(View view) {
         ArrayList<AppsObj> selectedApps = adapter.getSelectedApps();
 
+        if (selectedApps.isEmpty()) {
+            Toast.makeText(this, "No apps selected!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         if (selectedApps.size() <= 10) {
+            int userId = getIntent().getIntExtra("USER_ID", -1);
+
+            if (userId == -1) {
+                Toast.makeText(this, "There was an error. Please try again", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // Αποθήκευση στη βάση δεδομένων μόνο εδώ!
             for (AppsObj app : selectedApps) {
                 dbHelper.saveSelectedAppToDatabase(app, userId);
             }
 
-            // Δημιουργία ενός Intent για να περάσει τα δεδομένα στην MainActivity
-            Intent resultIntent = new Intent();
-            resultIntent.putParcelableArrayListExtra("SELECTED_APPS", selectedApps);
+            // Μεταφορά στην MainActivity
+            Intent resultIntent = new Intent(AppSelectionActivity.this, MainActivity.class);
             resultIntent.putExtra("USER_ID", userId);
-            setResult(RESULT_OK, resultIntent); // Επιστρέφει τα αποτελέσματα
+            startActivity(resultIntent);
             finish();
         } else {
             Toast.makeText(this, "You can only choose up to 10 apps", Toast.LENGTH_SHORT).show();
         }
     }
+
     @Override
     public void onBackPressed() {
         ArrayList<AppsObj> selectedApps = adapter.getSelectedApps();
@@ -336,26 +331,8 @@ public class AppSelectionActivity extends AppCompatActivity implements RecyclerV
     }
 
 
-    public void onCancelButtonClick(View view) { //cancel button
-        if (isUnsavedChanges) {
-            // Show a confirmation dialog to the user
-            new AlertDialog.Builder(this)
-                    .setTitle("Unsaved Changes")
-                    .setMessage("You have unsaved changes. Do you want to discard them and cancel?")
-                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            // User confirmed to discard changes and exit
-                            finish(); // Close the current activity and return to the previous screen
-                        }
-                    })
-                    .setNegativeButton("No", null) // If No, just dismiss the dialog
-                    .show();
-        } else {
-            // If no unsaved changes, simply exit the activity
-            finish();
-        }
+    public void onCancelButtonClick(View view) {
+        finish();
     }
-    private void onFieldChanged() {
-        isUnsavedChanges = true; // Mark as unsaved changes when user modifies any field
-    }
+
 }

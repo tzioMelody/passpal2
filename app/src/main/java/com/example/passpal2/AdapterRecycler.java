@@ -86,6 +86,9 @@ public class AdapterRecycler extends RecyclerView.Adapter<AdapterRecycler.MyView
         }
 
     }
+
+
+
     public int getSelectedAppsCount() {
         return selectedApps.size();
     }
